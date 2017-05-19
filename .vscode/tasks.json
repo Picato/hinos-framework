@@ -1,0 +1,8 @@
+{
+    "command": "tsc",
+    "isShellCommand": true,
+    "args": ["-w", "--pretty"],
+    "showOutput": "always",
+    "isBackground": true,
+    "problemMatcher": "$tsc-watch"
+}

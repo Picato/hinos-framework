@@ -1,0 +1,39 @@
+{
+  "name": "hinos-framework",
+  "version": "1.0.0",
+  "description": "hinos project which is built for APIs",
+  "main": ".build/index.js",
+  "scripts": {
+    "build:clean": "rimraf .build",
+    "build": "npm run build:clean && tsc",
+    "dev": "npm run build:clean && tsc --watch --pretty --sourceMap",
+    "pretest": "tsc -p src/test/tsconfig.json",
+    "test": "mocha --opts src/test/mocha.opts \".spec/test/spec/*.js\"",
+    "gen": "tsc -p gen_code/tsconfig.json && node ./gen_code/.build"
+  },
+  "dependencies": {
+    "hinos-bodyparser": "file:hinos-plugins\\hinos-bodyparser",
+    "hinos-common": "file:hinos-plugins\\hinos-common",
+    "hinos-validation": "file:hinos-plugins\\hinos-validation",
+    "hinos-mongo": "file:hinos-plugins\\hinos-mongo",
+    "hinos-rabbitmq": "file:hinos-plugins\\hinos-rabbitmq",
+    "hinos-redis": "file:hinos-plugins\\hinos-redis",
+    "hinos-requestmatcher": "file:hinos-plugins\\hinos-requestmatcher",
+    "hinos-route": "file:hinos-plugins\\hinos-route",
+    "hinos-serve": "file:hinos-plugins\\hinos-serve",
+    "hinos": "file:hinos-plugins\\hinos",
+    "lodash": "^4.17.4"
+  },
+  "author": "doanthuanthanh88@gmail.com",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/chai": "^3.5.2",
+    "@types/lodash": "^4.14.64",
+    "@types/mocha": "^2.2.41",
+    "@types/node": "^7.0.18",
+    "chai": "^3.5.0",
+    "js-beautify": "^1.6.12",
+    "mocha": "^3.3.0",
+    "rimraf": "^2.6.1"
+  }
+}

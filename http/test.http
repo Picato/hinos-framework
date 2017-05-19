@@ -1,0 +1,79 @@
+{
+	des: 'Add',
+	method: 'POST',
+	url: 'http://localhost:1338/test',
+	requestHeader: {
+		'content-type': 'multipart/form-data'
+	},
+	requestBody: {
+		name: 'test 01',
+		age: 'asdf',
+		shared: true,
+		arr: JSON.stringify([{
+			name: 'string',
+			people: [{
+				name1: 'name1',
+				age1: 5
+			}]
+		}]),
+		obj: JSON.stringify({
+			name: 'obj 1',
+			age: 2,
+			obj1: {
+				b: 5
+			}
+		}),
+		'file:file': ['C:\\test.jpg']
+	}
+}
+
+{
+	des: 'Get list',
+	method: 'GET',
+	url: 'http://localhost:1337/test1'
+}
+
+{
+	des: 'Update',
+	method: 'PUT',
+	url: 'http://localhost:1337/test/ITEM_ID',
+	requestHeader: {
+		'content-type': 'multipart/form-data'
+	},
+	requestBody: {
+		_id: Uuid,
+		project_id ? : Uuid,
+		name: string,
+		age: number,
+		shared: boolean,
+		arr: Array < {
+			name ? : string;
+			people ? : Array < {
+				name1 ? : string;
+				age1 ? : number
+			} >
+		} > ,
+		obj ? : {
+			name ? : string;
+			age ? : number;
+			obj1 ? : {
+				b ? : number
+			}
+		},
+		file ? : string,
+		created_at ? : Date,
+		updated_at ? : Date
+	}
+}
+
+{
+	des: 'Get detail',
+	method: 'GET',
+	url: 'http://localhost:1337/test/ITEM_ID'
+}
+
+{
+	des: 'Delete',
+	method: 'DELETE',
+	url: 'http://localhost:1337/test/5912c3d5bdee482a9c64e77f'
+}
