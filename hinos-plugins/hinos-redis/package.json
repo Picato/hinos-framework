@@ -1,0 +1,21 @@
+{
+  "name": "hinos-redis",
+  "version": "1.0.0",
+  "description": "Module help to connect to redis for hinos",
+  "main": "index.js",
+  "scripts": {
+    "clean": "rimraf *.js *.map *.d.ts ./lib/*.js ./lib/*.map ./lib/*.d.ts",
+    "build": "npm install && npm run clean && tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^7.0.18",
+    "typescript": "^2.3.2",
+    "rimraf": "^2.6.1"
+  },
+  "dependencies": {
+    "hinos-common": "file:../hinos-common",
+    "redis": "^2.7.1"
+  },
+  "author": "doanthuanthanh88@gmail.com",
+  "license": "ISC"
+}

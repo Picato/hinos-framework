@@ -1,0 +1,22 @@
+{
+  "name": "hinos-serve",
+  "version": "1.0.0",
+  "description": "Module help route serve static resource for hinos",
+  "main": "index.js",
+  "scripts": {
+    "clean": "rimraf *.js *.map *.d.ts ./lib/*.js ./lib/*.map ./lib/*.d.ts",
+    "build": "npm install && npm run clean && tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^7.0.18",
+    "typescript": "^2.3.2",
+    "rimraf": "^2.6.1"
+  },
+  "dependencies": {
+    "hinos": "file:../hinos",
+    "lodash": "^4.17.4",
+    "mime-types": "^2.1.15"
+  },
+  "author": "doanthuanthanh88@gmail.com",
+  "license": "ISC"
+}

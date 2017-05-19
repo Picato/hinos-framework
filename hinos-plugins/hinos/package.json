@@ -1,0 +1,16 @@
+{
+  "name": "hinos",
+  "version": "1.0.0",
+  "description": "Pure nodejs framework, extreme fast and light weight which is written by typescript",
+  "main": "index.js",
+  "scripts": {
+    "clean": "rimraf *.js *.map *.d.ts ./lib/*.js ./lib/*.map ./lib/*.d.ts",
+    "build": "npm install && npm run clean && tsc"
+  },
+  "author": "doanthuanthanh88@gmail.com",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^7.0.18",
+    "rimraf": "^2.6.1"
+  }
+}

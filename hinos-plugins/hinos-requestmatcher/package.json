@@ -1,0 +1,20 @@
+{
+  "name": "hinos-requestmatcher",
+  "version": "1.0.0",
+  "description": "Module help parse type for request query, params, body before get data in controller for hinos",
+  "main": "index.js",
+  "scripts": {
+    "clean": "rimraf *.js *.map *.d.ts ./lib/*.js ./lib/*.map ./lib/*.d.ts",
+    "build": "npm install && npm run clean && tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^7.0.18",
+    "typescript": "^2.3.2",
+    "rimraf": "^2.6.1"
+  },
+  "dependencies": {
+    "lodash": "^4.17.4"
+  },
+  "author": "doanthuanthanh88@gmail.com",
+  "license": "ISC"
+}

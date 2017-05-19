@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var route_1 = require("./lib/route");
+exports.route = route_1.route;
+exports.GET = route_1.GET;
+exports.POST = route_1.POST;
+exports.PUT = route_1.PUT;
+exports.DELETE = route_1.DELETE;
+exports.PATCH = route_1.PATCH;
+exports.INJECT = route_1.INJECT;
+exports.HEAD = route_1.HEAD;
