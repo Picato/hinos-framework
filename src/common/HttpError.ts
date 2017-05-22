@@ -14,7 +14,7 @@ export default class HttpError extends Error {
 
     expose: boolean = true;
 
-    constructor(public readonly status: number, readonly message: any = 'Error') {
+    constructor(public readonly status: number, readonly message: any = '') {
         super(message);
     }
 }

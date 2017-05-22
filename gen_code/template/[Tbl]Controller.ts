@@ -1,6 +1,6 @@
 import { GET, POST, PUT, DELETE, HEAD, INJECT } from 'hinos-route';
 import { BODYPARSER } from 'hinos-bodyparser';
-import { MATCHER } from 'hinos-requestparser';
+import { MATCHER } from 'hinos-requestmatcher';
 import { Mongo } from 'hinos-mongo';
 import { ${Tbl}, ${Tbl}Service } from '../service/${Tbl}Service';>>>auth
 import { authoriz } from '../service/Authoriz'<<<auth
@@ -26,7 +26,7 @@ export default class ${Tbl}Controller {
 	@GET('/${tbl}/:_id') >>>auth
 	@INJECT(authoriz(`${AppConfig.name}>${tbl}`, ['GET']))<<<auth
 	@MATCHER({
-		$params: {
+		params: {
 			_id: Mongo.uuid
 		}
 	})
@@ -38,10 +38,10 @@ export default class ${Tbl}Controller {
 	}
 
 	@POST('/${tbl}')>>>auth
-	@INJECT(authoriz(`${AppConfig.name}>${tbl}`, ['INSERT']))<<<auth >>>file
-	@BODYPARSER(${file-opts})<<<file
+	@INJECT(authoriz(`${AppConfig.name}>${tbl}`, ['INSERT']))<<<auth
+	@BODYPARSER(>>>file${file-opts}<<<file)
 	@MATCHER({
-		$body: {
+		body: {
 			${$bodyIn}
 		}
 	})
@@ -53,13 +53,13 @@ export default class ${Tbl}Controller {
 	}
 
 	@PUT('/${tbl}/:_id')>>>auth
-	@INJECT(authoriz(`${AppConfig.name}>${tbl}`, ['UPDATE']))<<<auth >>>file
-	@BODYPARSER(${file-opts})<<<file
+	@INJECT(authoriz(`${AppConfig.name}>${tbl}`, ['UPDATE']))<<<auth
+	@BODYPARSER(>>>file${file-opts}<<<file)
 	@MATCHER({
-		$params: {
+		params: {
 			_id: Mongo.uuid
 		},
-		$body: {
+		body: {
 			${$bodyUp}
 		}
 	})
@@ -74,7 +74,7 @@ export default class ${Tbl}Controller {
 	@DELETE('/${tbl}/:_id') >>>auth
 	@INJECT(authoriz(`${AppConfig.name}>${tbl}`, ['DELETE']))<<<auth
 	@MATCHER({
-		$params: {
+		params: {
 			_id: Mongo.uuid
 		}
 	})

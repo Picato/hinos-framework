@@ -1,4 +1,10 @@
 {
-    "externalConfig": "D:\\git-doanthuanthanh88\\hinos\\appconfig.cfg#web.api",
-    "url": "http://localhost:1337"
+    "externalConfig": "D:\\git-doanthuanthanh88\\hinos-framework\\appconfig.cfg#web.api",
+    "url": "http://localhost:9604",
+    "mongo": {
+        "url": "mongodb://localhost:27017/chart"
+    },
+    "services": {
+        "auth": "http://localhost:9600"
+    }
 }

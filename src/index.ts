@@ -17,7 +17,7 @@ Server.use(serve({
 
 Server.use(route(path.join(__dirname, 'controller')));
 
-Server.listen(1338, () => {
+Server.listen(AppConfig.port, () => {
     console.log('Started');
 });
 

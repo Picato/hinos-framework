@@ -1,15 +1,15 @@
 import * as _ from 'lodash';
 import { VALIDATE, Checker } from 'hinos-validation';
 import { ImageResize } from 'hinos-bodyparser';
-import { MONGO, Mongo, Uuid, COLLECTION } from 'hinos-mongo';
-import { HttpError } from 'hinos-common';>>>file
-import Utils from './Utils';<<<file
+import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo';
+import HttpError from '../common/HttpError';>>>file
+import Utils from '../common/Utils';<<<file
 
 /************************************************
  ** ${Tbl}Service || 4/10/2017, 10:19:24 AM **
  ************************************************/
 
-@COLLECTION('${tbl}')
+@Collection('${tbl}')
 export class ${Tbl} {
 	${$bean}
 }

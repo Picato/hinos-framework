@@ -1,0 +1,58 @@
+{
+	des: 'Add',
+	method: 'POST',
+	url: 'http://localhost:9604/chart',
+	requestHeader: {
+		'content-type': 'application/json'
+	},
+	requestBody: {
+		_id: Uuid,
+		project_id: Uuid,
+		account_id: Uuid,
+		page_id: Uuid,
+		oder ? : number,
+		options: object,
+		created_at ? : Date,
+		updated_at ? : Date
+	}
+}
+
+{
+	des: 'Get list',
+	method: 'GET',
+	url: 'http://localhost:9604/chart',
+	requestHeader: {
+		token: '58be294c1617c81a1c05b2ff-58bfd3ab9c88e2411474d42b-59225488e373960cb817dfdf-2700'
+	}
+}
+
+{
+	des: 'Update',
+	method: 'PUT',
+	url: 'http://localhost:9604/chart/ITEM_ID',
+	requestHeader: {
+		'content-type': 'application/json'
+	},
+	requestBody: {
+		_id: Uuid,
+		project_id: Uuid,
+		account_id: Uuid,
+		page_id: Uuid,
+		oder ? : number,
+		options: object,
+		created_at ? : Date,
+		updated_at ? : Date
+	}
+}
+
+{
+	des: 'Get detail',
+	method: 'GET',
+	url: 'http://localhost:9604/chart/ITEM_ID'
+}
+
+{
+	des: 'Delete',
+	method: 'DELETE',
+	url: 'http://localhost:9604/chart/ITEM_ID'
+}

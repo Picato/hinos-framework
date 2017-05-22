@@ -22,6 +22,9 @@ interface IAppConfig {
             API_RECEIVER: string
         }
     };
+    services: {
+        auth: string
+    }
     app: any
 }
 

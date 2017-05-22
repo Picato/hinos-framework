@@ -4,6 +4,8 @@
   "description": "hinos project which is built for APIs",
   "main": ".build/index.js",
   "scripts": {
+    "preinstall": "npm install -g typescript",
+    "postinstall": "npm install -g typescript-formatter",
     "build:clean": "rimraf .build",
     "build": "npm run build:clean && tsc",
     "dev": "npm run build:clean && tsc --watch --pretty --sourceMap",
@@ -12,16 +14,17 @@
     "gen": "tsc -p gen_code/tsconfig.json && node ./gen_code/.build"
   },
   "dependencies": {
-    "hinos-bodyparser": "file:hinos-plugins\\hinos-bodyparser",
-    "hinos-common": "file:hinos-plugins\\hinos-common",
-    "hinos-validation": "file:hinos-plugins\\hinos-validation",
-    "hinos-mongo": "file:hinos-plugins\\hinos-mongo",
-    "hinos-rabbitmq": "file:hinos-plugins\\hinos-rabbitmq",
-    "hinos-redis": "file:hinos-plugins\\hinos-redis",
-    "hinos-requestmatcher": "file:hinos-plugins\\hinos-requestmatcher",
-    "hinos-route": "file:hinos-plugins\\hinos-route",
-    "hinos-serve": "file:hinos-plugins\\hinos-serve",
-    "hinos": "file:hinos-plugins\\hinos",
+    "hinos": "^1.0.0",
+    "hinos-bodyparser": "^1.0.1",
+    "hinos-common": "^1.0.0",
+    "hinos-mongo": "^1.0.1",
+    "hinos-rabbitmq": "^1.0.1",
+    "hinos-redis": "^1.0.1",
+    "hinos-requestmatcher": "^1.0.0",
+    "hinos-route": "^1.0.1",
+    "hinos-serve": "^1.0.1",
+    "hinos-socketio": "^1.0.0",
+    "hinos-validation": "^1.0.0",
     "lodash": "^4.17.4"
   },
   "author": "doanthuanthanh88@gmail.com",
@@ -32,7 +35,6 @@
     "@types/mocha": "^2.2.41",
     "@types/node": "^7.0.18",
     "chai": "^3.5.0",
-    "js-beautify": "^1.6.12",
     "mocha": "^3.3.0",
     "rimraf": "^2.6.1"
   }
