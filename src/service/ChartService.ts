@@ -15,8 +15,6 @@ export class Chart {
     account_id?: Uuid;
     page_id?: Uuid;
     oder?: number;
-    name?: string;
-    des?: string;
     options?: object;
     created_at?: Date;
     updated_at?: Date;
@@ -42,8 +40,6 @@ export class ChartService {
         Checker.must('account_id', body.account_id, Uuid);
         Checker.must('page_id', body.page_id, Uuid);
         Checker.must('oder', body.oder, Number, 1);
-        Checker.must('name', body.name, String);
-        Checker.option('des', body.des, String);
         Checker.must('options', body.options, Object);
         body.created_at = new Date();
         body.updated_at = new Date();
@@ -61,8 +57,6 @@ export class ChartService {
         Checker.option('oder', body.oder, Number);
         Checker.option('options', body.options, Object);
         Checker.option('created_at', body.created_at, Date);
-        Checker.option('name', body.name, String);
-        Checker.option('des', body.des, String);
         body.updated_at = new Date();
     })
     static async update(body: Chart, validate?: Function) {

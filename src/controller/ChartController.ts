@@ -13,9 +13,7 @@ export default class ChartController {
 
     @GET('/chart')
     @INJECT(authoriz(`${AppConfig.name}>chart`, ['FIND']))
-    static async find({
-		query
-	}) {
+    static async find({ query }) {
         let where = {};
         const rs: Chart[] = await ChartService.find({
             $where: where
@@ -25,15 +23,12 @@ export default class ChartController {
 
     @GET('/chart/:_id')
     @INJECT(authoriz(`${AppConfig.name}>chart`, ['GET']))
-    @BODYPARSER()
     @MATCHER({
         params: {
             _id: Mongo.uuid
         }
     })
-    static async get({
-		params
-	}) {
+    static async get({ params }) {
         const rs: Chart = await ChartService.get(params._id);
         return rs;
     }
@@ -46,21 +41,18 @@ export default class ChartController {
             project_id: Mongo.uuid,
             account_id: Mongo.uuid,
             page_id: Mongo.uuid,
-            name: String,
-            des: String,
             oder: Number,
             options: Object
         }
     })
-    static async add({
-		body
-	}) {
+    static async add({ body }) {
         const rs: Chart = await ChartService.insert(body);
         return rs;
     }
 
     @PUT('/chart/:_id')
     @INJECT(authoriz(`${AppConfig.name}>chart`, ['UPDATE']))
+    @BODYPARSER()
     @MATCHER({
         params: {
             _id: Mongo.uuid
@@ -69,16 +61,11 @@ export default class ChartController {
             project_id: Mongo.uuid,
             account_id: Mongo.uuid,
             page_id: Mongo.uuid,
-            name: String,
-            des: String,
             oder: Number,
             options: Object
         }
     })
-    static async edit({
-		params,
-        body
-	}) {
+    static async edit({ params, body }) {
         body._id = params._id;
         await ChartService.update(body);
     }
@@ -90,9 +77,7 @@ export default class ChartController {
             _id: Mongo.uuid
         }
     })
-    static async del({
-		params
-	}) {
+    static async del({ params }) {
         await ChartService.delete(params._id);
     }
 }
