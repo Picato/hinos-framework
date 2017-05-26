@@ -18,14 +18,12 @@ interface IAppConfig {
         url: string;
         releaseTimeout?: number;
         queue: {
-            API_SENDER: string,
-            API_RECEIVER: string
+            API_SENDER: string;
+            API_RECEIVER: string;
+            LOG_RECEIVER: string;
         }
     };
-    services: {
-        auth: string
-    }
-    app: any
+    encryptKey?: string;
 }
 
 declare const AppConfig: IAppConfig;
