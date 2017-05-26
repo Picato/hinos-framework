@@ -16,5 +16,12 @@ Server.use(cors());
 Server.use(route(path.join(__dirname, 'controller')));
 
 Server.listen(AppConfig.port, () => {
-    console.log('Listening port %d', AppConfig.port);
+    console.info(`
+       _     _                 
+      | |__ (_)_ __   ___  ___  ${AppConfig.port} 
+      | '_ \\| | '_ \\ / _ \\/ __|
+      | | | | | | | | (_) \\__ \\
+      |_| |_|_|_| |_|\\___/|___/
+      
+`);
 });

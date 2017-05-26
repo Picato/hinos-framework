@@ -1,7 +1,7 @@
 {
-    "externalConfig": "/appconfig.cfg#web.api",
+    "externalConfig": "./appconfig.cfg#web.api",
     "name": "hinos-framework",
-    "url": "http://localhost:1000",
+    "url": "http://localhost:1001",
     "encryptKey": ")^!!!(**",
     "mongo": {
         "url": "mongodb://localhost:27017/test",

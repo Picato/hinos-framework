@@ -4,9 +4,10 @@
   "description": "hinos project which is built for APIs",
   "main": ".build/index.js",
   "scripts": {
+    "start": "node .",
     "preinstall": "npm install -g typescript",
     "postinstall": "npm install -g typescript-formatter",
-    "build:clean": "rimraf .build",
+    "build:clean": "rimraf .build .spec",
     "build": "npm run build:clean && tsc",
     "dev": "npm run build:clean && tsc --watch --pretty --sourceMap",
     "pretest": "rimraf .spec && tsc -p src/test/tsconfig.json",
