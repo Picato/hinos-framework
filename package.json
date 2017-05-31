@@ -26,7 +26,7 @@
     "hinos-route": "^1.0.5",
     "hinos-serve": "^1.0.4",
     "hinos-socketio": "^1.0.3",
-    "hinos-validation": "^1.0.3",
+    "hinos-validation": "^1.0.5",
     "lodash": "^4.17.4"
   },
   "author": "doanthuanthanh88@gmail.com",
