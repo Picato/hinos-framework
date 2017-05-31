@@ -24,7 +24,7 @@
     "hinos-rabbitmq": "^1.0.4",
     "hinos-redis": "^1.0.4",
     "hinos-requestmatcher": "^1.0.3",
-    "hinos-route": "^1.0.5",
+    "hinos-route": "^1.0.6",
     "hinos-serve": "^1.0.4",
     "hinos-socketio": "^1.0.3",
     "hinos-validation": "^1.0.5",
