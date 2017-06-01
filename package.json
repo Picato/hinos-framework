@@ -16,9 +16,9 @@
     "pm2": "npm run build && pm2 start pm2.config.js"
   },
   "dependencies": {
-    "hinos": "^1.0.4",
-    "hinos-bodyparser": "^1.0.4",
-    "hinos-common": "^1.0.3",
+    "hinos": "^1.0.6",
+    "hinos-bodyparser": "^1.0.6",
+    "hinos-common": "^1.0.4",
     "hinos-cors": "^1.0.0",
     "hinos-mongo": "^1.0.4",
     "hinos-rabbitmq": "^1.0.4",
@@ -36,7 +36,7 @@
     "@types/chai": "^3.5.2",
     "@types/lodash": "^4.14.64",
     "@types/mocha": "^2.2.41",
-    "@types/node": "^7.0.18",
+    "@types/node": "^7.0.23",
     "chai": "^3.5.0",
     "mocha": "^3.3.0",
     "rimraf": "^2.6.1"

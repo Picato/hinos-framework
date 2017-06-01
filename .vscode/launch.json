@@ -21,8 +21,7 @@
             "program": "${workspaceRoot}/src/index.ts",
             "outFiles": ["${workspaceRoot}/.build/**/*.js"],
             "runtimeArgs": [
-                "--nolazy",
-                "--harmony-async-await"
+                "--nolazy"
             ]
         },
         {
