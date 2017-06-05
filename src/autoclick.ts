@@ -16,7 +16,7 @@ export async function scan() {
     setTimeout(async () => {
         await SyncData.autoSyncSqlToMongo();
         setTimeout(scan, AppConfig.app.interval);
-    }, 10000);
+    }, 30000);
 }
 
 const startDate = (dd, MM, yyyy) => {
