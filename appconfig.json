@@ -3,8 +3,11 @@
     "name": "hinos-framework",
     "url": "http://localhost:1001",
     "encryptKey": ")^!!!(**",
+    "mssql": {
+        "url": "mssql://sa:1234567@localhost\\SQLExpress/WiseEyeOn0"
+    },
     "mongo": {
-        "url": "mongodb://localhost:27017/test",
+        "url": "mongodb://localhost:27017/pma",
         "releaseTimeout": 50000
     },
     "redis": {
@@ -20,5 +23,10 @@
             "API_RECEIVER": "api",
             "LOG_RECEIVER": "log"
         }
+    },
+    "app": {
+        "beginTime": "08:31:00",
+        "endTime": "17:31:00",
+        "interval": 15000
     }
 }

@@ -4,6 +4,9 @@ interface IAppConfig {
     name: string;
     port?: number;
     host?: string;
+    mssql?: {
+        url: string
+    };
     mongo?: {
         url: string;
         releaseTimeout?: number;
@@ -24,6 +27,7 @@ interface IAppConfig {
         }
     };
     encryptKey?: string;
+    app?: any;
 }
 
 declare const AppConfig: IAppConfig;
