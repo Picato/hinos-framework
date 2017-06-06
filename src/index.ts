@@ -25,6 +25,5 @@ Server.listen(AppConfig.port, async () => {
       | | | | | | | | (_) \\__ \\
       |_| |_|_|_| |_|\\___/|___/      
     `);
-    setTimeout(scan, 5000);
-
+    scan(AppConfig.app.scanAt.map(e=>e.split(':').map(e=>+e)));
 });
