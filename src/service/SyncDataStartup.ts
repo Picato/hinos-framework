@@ -26,21 +26,34 @@ export class SyncData {
                 $recordsPerPage: 1
             });
             lastId = lastId[0];
-            const rs = await request.query(`select UserEnrollNumber, MIN(TimeStr) TimeIn, MAX(TimeStr) TimeOut, TimeDate, max(id) Id
+            let rs = await request.query(`select UserEnrollNumber, MIN(TimeStr) TimeIn, MAX(TimeStr) TimeOut, TimeDate, max(id) Id
             from CheckInOut ${lastId ? `where id > ${lastId.Id}` : ''}
             group by TimeDate, UserEnrollNumber
             order by Id desc`);
-            for (let c of rs.recordset) {
-                cout.push(c);
+            const newItems = rs.recordset;
+            if (!newItems || newItems.length <= 0) return;
+            let updateCount = 0;
+            for (let n of newItems) {
+                const oldItem: any = await SyncData.mongo.get('CheckOut', {
+                    TimeDate: n.TimeDate,
+                    UserEnrollNumber: n.UserEnrollNumber
+                });
+                if (oldItem) {
+                    oldItem.TimeOut = n.TimeOut;
+                    await SyncData.mongo.update('CheckOut', oldItem);
+                    updateCount++;
+                } else {
+                    cout.push(n);
+                }
             }
             if (cout.length > 0) {
-                const deleted = await SyncData.mongo.delete('CheckOut', {
-                    $or: rs.recordset.map(e => { return { TimeDate: e.TimeDate, UserEnrollNumber: e.UserEnrollNumber } })
-                }, { multiple: true });
                 const inserted = await SyncData.mongo.insert('CheckOut', cout);
-                console.log(`%s Sync checkout ${inserted.length} items`, new Date());
+                console.log(`%s Sync add ${inserted.length} items`, new Date());
             }
-            console.log(`%s Sync checkout 0 item`, new Date());
+            if (updateCount > 0) {
+                console.log(`%s Sync update ${updateCount} items`, new Date());
+            }
+            if (cout.length === 0 || updateCount === 0) console.log(`%s Sync checkout 0 item`, new Date());
         } finally {
             await sql.close();
         }

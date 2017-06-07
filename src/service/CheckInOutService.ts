@@ -9,35 +9,48 @@ import * as sql from 'mssql';
  ** ChartService || 4/10/2017, 10:19:24 AM **
  ************************************************/
 
-function dateToString(d: Date){
-    return `${d.getFullYear()}-${d.getMonth() < 9 ? '0' : ''}${d.getMonth()+1}-${d.getDate() < 10 ? '0' : ''}${d.getDate()} 00:00:00.000`;
+function dateToString(d: Date) {
+    return `${d.getFullYear()}-${d.getMonth() < 9 ? '0' : ''}${d.getMonth() + 1}-${d.getDate() < 10 ? '0' : ''}${d.getDate()} 00:00:00.000`;
 }
 
 export class CheckInOutService {
 
+    @MONGO()
+    static mongo: Mongo;
+
+    static async findUser() {
+        return await CheckInOutService.mongo.find('User', {
+            $recordsPerPage: -1
+        });
+    }
+
     static async find(startDate = new Date(), endDate = new Date()): Promise<Array<any>> {
-        await sql.connect(AppConfig.mssql.url);
-        try {
-            const request = new sql.Request();
-            request.input('start', startDate);
-            request.input('end', endDate);
-            const rs = await request.query(`select ROW_NUMBER() OVER (ORDER BY TimeDate) AS RowNum
-				,b.UserFullCode code
-				,b.UserEnrollName name
-				,a.TimeDate date
-				,a.TimeIn time_in
-				,a.TimeOut time_out
-				,DATEDIFF(minute, a.TimeIn, a.TimeOut) TimeWork
-				from UserInfo b inner join (      
-				select UserEnrollNumber, MIN(TimeStr) TimeIn, MAX(TimeStr) TimeOut, TimeDate, OriginType
-				from CheckInOut
-				group by TimeDate, UserEnrollNumber, OriginType
-			) a on a.UserEnrollNumber = b.UserEnrollNumber
-			where a.TimeDate >= '${dateToString(startDate)}' and a.TimeDate <= '${dateToString(endDate)}'
-			order by b.UserFullCode`);
-            return rs.recordset;
-        } finally {
-            await sql.close();
-        }
+        startDate.setHours(0);
+        startDate.setMinutes(0);
+        startDate.setSeconds(0);
+        startDate.setMilliseconds(0);
+        endDate.setHours(0);
+        endDate.setMinutes(0);
+        endDate.setSeconds(0);
+        endDate.setMilliseconds(0);
+        endDate.setDate(endDate.getDate() + 1);
+        const rs = await CheckInOutService.mongo.find('CheckOut', {
+            $where: {
+                TimeDate: {
+                    $gte: startDate,
+                    $lt: endDate
+                }
+            },
+            $recordsPerPage: -1,
+            $sort: {
+                TimeOut: -1
+            }
+        });
+        const users = await CheckInOutService.findUser();
+        return rs.map((e: any) => {
+            const user: any = users.find((e0: any) => e.UserEnrollNumber === e0.UserEnrollNumber);
+            if (user) e.UserEnRollName = user.UserEnRollName;
+            return e;
+        });
     }
 }
