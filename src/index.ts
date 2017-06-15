@@ -4,6 +4,7 @@ import { route } from 'hinos-route';
 import { Mongo } from 'hinos-mongo';
 import { serve } from 'hinos-serve';
 import { cors } from 'hinos-cors';
+import { GoldService } from './service/GoldService';
 import './config';
 
 require(`./env.${Server.env}`).default(Server);
@@ -24,4 +25,5 @@ Server.listen(AppConfig.port, () => {
       |_| |_|_|_| |_|\\___/|___/
       
 `);
+    GoldService.autoSync();
 });
