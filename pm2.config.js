@@ -1,6 +1,6 @@
 module.exports = {
   apps: [{
-    name: "hinos-framework",
+    name: "blaz",
     script: "./.build/index.js",
     watch: false,
     node_args: "--harmony-async-await",
