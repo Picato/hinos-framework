@@ -84,12 +84,12 @@ export class GoldService {
                                     "color": `${hnDetail.sell < GoldService.oldSell ? 'danger' : 'good'}`,
                                     "fields": [
                                         {
-                                            "title": `Giá mua từ NH >>> ${Math.abs(hnDetail.sell - GoldService.oldSell)} tr`,
+                                            "title": `Giá mua từ NH >>> ${hnDetail.sell} tr`,
                                             "value": `\`${hnDetail.sell > GoldService.oldSell ? '+' : ''}${hnDetail.sell - GoldService.oldSell}\``,
                                             "short": true,
                                         },
                                         {
-                                            "title": `Giá bán cho NH >>> ${Math.abs(hnDetail.buy - GoldService.oldBuy)} tr`,
+                                            "title": `Giá bán cho NH >>> ${hnDetail.buy} tr`,
                                             "value": `\`${hnDetail.buy > GoldService.oldBuy ? '+' : ''}${hnDetail.buy - GoldService.oldBuy}\``,
                                             "short": true,
                                         }
