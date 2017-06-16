@@ -100,6 +100,7 @@ export class GoldService {
                         }
                     });
                     GoldService.oldSell = hnDetail.sell;
+                    GoldService.oldBuy = hnDetail.buy;
                     GoldService.insert(hnDetail);
                 }
                 resolve(hnDetail);
