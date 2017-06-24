@@ -1,8 +1,8 @@
-import { GET, POST, PUT, DELETE, HEAD, INJECT } from 'hinos-route';
-import { BODYPARSER } from 'hinos-bodyparser';
-import { MATCHER } from 'hinos-requestmatcher';
-import { Mongo } from 'hinos-mongo';
-import { ${Tbl}, ${Tbl}Service } from '../service/${Tbl}Service';>>>auth
+import { GET, POST, PUT, DELETE, HEAD, INJECT } from 'hinos-route'
+import { BODYPARSER } from 'hinos-bodyparser'
+import { MATCHER } from 'hinos-requestmatcher'
+import { Mongo } from 'hinos-mongo'
+import { ${Tbl}, ${Tbl}Service } from '../service/${Tbl}Service'>>>auth
 import { authoriz } from '../service/Authoriz'<<<auth
 
 /************************************************
@@ -14,11 +14,11 @@ export default class ${Tbl}Controller {
 	@GET('/${tbl}') >>>auth
 	@INJECT(authoriz(`${AppConfig.name}>${tbl}`, ['FIND'])) <<<auth
 	static async find({ query }) {
-		let where = {};
+		let where = {}
 		const rs: ${Tbl}[] = await ${Tbl}Service.find({
 			$where: where
-		});
-		return rs;
+		})
+		return rs
 	}
 
 	@GET('/${tbl}/:_id') >>>auth
@@ -29,8 +29,8 @@ export default class ${Tbl}Controller {
 		}
 	})
 	static async get({ params }) {
-		const rs: ${Tbl} = await ${Tbl}Service.get(params._id);
-		return rs;
+		const rs: ${Tbl} = await ${Tbl}Service.get(params._id)
+		return rs
 	}
 
 	@POST('/${tbl}')>>>auth
@@ -42,8 +42,8 @@ export default class ${Tbl}Controller {
 		}
 	})
 	static async add({ body }) {
-		const rs: ${Tbl} = await ${Tbl}Service.insert(body);
-		return rs;
+		const rs: ${Tbl} = await ${Tbl}Service.insert(body)
+		return rs
 	}
 
 	@PUT('/${tbl}/:_id')>>>auth
@@ -58,8 +58,8 @@ export default class ${Tbl}Controller {
 		}
 	})
 	static async edit({ params, body }) {
-		body._id = params._id;
-		await ${Tbl}Service.update(body);
+		body._id = params._id
+		await ${Tbl}Service.update(body)
 	}
 
 	@DELETE('/${tbl}/:_id') >>>auth
@@ -70,6 +70,6 @@ export default class ${Tbl}Controller {
 		}
 	})
 	static async del({ params }) {
-		await ${Tbl}Service.delete(params._id);
+		await ${Tbl}Service.delete(params._id)
 	}
 }

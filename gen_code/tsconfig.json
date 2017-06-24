@@ -1,24 +1,24 @@
 {
-    "compilerOptions": {
-        "watch": false,
-        "pretty": false,
-        "module": "commonjs",
-        "target": "ES6",
-        "declaration": false,
-        "sourceMap": false,
-        "emitDecoratorMetadata": false,
-        "experimentalDecorators": false,
-        "typeRoots": [
-            "../node_modules/@types"
-        ],
-        "outDir": ".build",
-        "rootDir": "src"
-    },
-    "include": [
-        "src"
+  "compilerOptions": {
+    "watch": false,
+    "pretty": false,
+    "module": "commonjs",
+    "target": "ES6",
+    "declaration": false,
+    "sourceMap": false,
+    "emitDecoratorMetadata": false,
+    "experimentalDecorators": false,
+    "typeRoots": [
+      "../node_modules/@types"
     ],
-    "exclude": [
-        "src/test",
-        "node_modules"
-    ]
+    "outDir": ".build",
+    "rootDir": "src"
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "src/test",
+    "node_modules"
+  ]
 }
