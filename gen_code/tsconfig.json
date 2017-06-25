@@ -8,9 +8,6 @@
     "sourceMap": false,
     "emitDecoratorMetadata": false,
     "experimentalDecorators": false,
-    "typeRoots": [
-      "../node_modules/@types"
-    ],
     "outDir": ".build",
     "rootDir": "src"
   },
