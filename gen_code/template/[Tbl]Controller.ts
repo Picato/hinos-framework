@@ -16,7 +16,9 @@ export default class ${Tbl}Controller {
 	static async find({ query }) {
 		let where = {}
 		const rs: ${Tbl}[] = await ${Tbl}Service.find({
-			$where: where
+			$where: where,
+			$page: +query.page,
+			$recordsPerPage: +query.recordsPerPage
 		})
 		return rs
 	}
