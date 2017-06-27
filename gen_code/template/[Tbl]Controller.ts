@@ -9,11 +9,11 @@ import { authoriz } from '../service/Authoriz'<<<auth
  ** ${Tbl}Controller || 4/10/2017, 10:19:24 AM **
  ************************************************/
 
-export default class ${Tbl}Controller {
+export class ${Tbl}Controller {
 
 	@GET('/${tbl}') >>>auth
 	@INJECT(authoriz(`${AppConfig.name}>${tbl}`, ['FIND'])) <<<auth
-	static async find({ query }) {
+	async find({ query }) {
 		let where = {}
 		const rs: ${Tbl}[] = await ${Tbl}Service.find({
 			$where: where,
@@ -30,7 +30,7 @@ export default class ${Tbl}Controller {
 			_id: Mongo.uuid
 		}
 	})
-	static async get({ params }) {
+	async get({ params }) {
 		const rs: ${Tbl} = await ${Tbl}Service.get(params._id)
 		return rs
 	}
@@ -43,7 +43,7 @@ export default class ${Tbl}Controller {
 			${$bodyIn}
 		}
 	})
-	static async add({ body }) {
+	async add({ body }) {
 		const rs: ${Tbl} = await ${Tbl}Service.insert(body)
 		return rs
 	}
@@ -59,7 +59,7 @@ export default class ${Tbl}Controller {
 			${$bodyUp}
 		}
 	})
-	static async edit({ params, body }) {
+	async edit({ params, body }) {
 		body._id = params._id
 		await ${Tbl}Service.update(body)
 	}
@@ -71,7 +71,7 @@ export default class ${Tbl}Controller {
 			_id: Mongo.uuid
 		}
 	})
-	static async del({ params }) {
+	async del({ params }) {
 		await ${Tbl}Service.delete(params._id)
 	}
 }

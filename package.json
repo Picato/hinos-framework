@@ -23,7 +23,7 @@
     "hinos-redis": "^1.0.4",
     "hinos-requestmatcher": "^1.0.3",
     "hinos-route": "^1.0.6",
-    "hinos-serve": "^1.0.4",
+    "hinos-serve": "^1.0.6",
     "hinos-socketio": "^1.0.3",
     "hinos-validation": "^1.0.5",
     "lodash": "^4.17.4"
@@ -32,9 +32,9 @@
   "license": "ISC",
   "devDependencies": {
     "@types/chai": "^3.5.2",
-    "@types/lodash": "^4.14.64",
+    "@types/lodash": "^4.14.67",
     "@types/mocha": "^2.2.41",
-    "@types/node": "^7.0.23",
+    "@types/node": "^7.0.32",
     "chai": "^3.5.0",
     "mocha": "^3.3.0",
     "rimraf": "^2.6.1"
