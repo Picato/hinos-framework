@@ -42,6 +42,8 @@ class DateType extends type<string | number> {
     return super.validateInsert(item)
   }
   public validateUpdate(item) {
+    if (this._dfValue && new RegExp(this._dfValue.toString()).test('insert'))
+      return null
     if (this._dfValue && new RegExp(this._dfValue.toString()).test('update'))
       return `${item}.${this.fieldName} = new Date()`
     return super.validateUpdate(item)

@@ -31,12 +31,12 @@ class FileType extends type<any> {
 
   // Service
   public validateInsert(item) {
-    if (this._dfValue) return `Checker.must('${this.fieldName}', ${item ? `${item}.` : ''}${this.fieldName}, ${this.dataType}, ${this._dfValue})`
-    if (!this._required) return `Checker.option('${this.fieldName}', ${item ? `${item}.` : ''}${this.fieldName}, ${this.dataType})`
-    return `Checker.must('${this.fieldName}', ${item ? `${item}.` : ''}${this.fieldName}, ${this.dataType})`
+    if (this._dfValue) return `Checker.option(${item ? `${item}` : ''}, '${this.fieldName}', ${this.dataType}, ${this._dfValue})`
+    if (!this._required) return `Checker.option(${item ? `${item}` : ''}, '${this.fieldName}', ${this.dataType})`
+    return `Checker.required(${item ? `${item}` : ''}, '${this.fieldName}', ${this.dataType})`
   }
   public validateUpdate(item) {
-    return `Checker.option('${this.fieldName}', ${item ? `${item}.` : ''}${this.fieldName}, ${this.dataType})`
+    return `Checker.option(${item ? `${item}.` : ''}, '${this.fieldName}', ${this.dataType})`
   }
   public genBeanCollection() {
     return `${this.fieldName}?: ${this.dataType}<${this.gdataType}>`

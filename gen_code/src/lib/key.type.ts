@@ -17,7 +17,7 @@ class KeyType extends type<string> {
     return `${item ? `${item}.` : ''}${this.fieldName} = <${this.dataType}>Mongo.uuid()`
   }
   public validateUpdate(item) {
-    return `Checker.must('${this.fieldName}', ${item ? `${item}.` : ''}${this.fieldName}, ${this.dataType})`
+    return `Checker.required(${item ? `${item}` : ''}, '${this.fieldName}', ${this.dataType})`
   }
 
 }

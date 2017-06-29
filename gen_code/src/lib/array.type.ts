@@ -11,7 +11,7 @@ class ArrayType extends type<any> {
     const b = new ArrayType()
     return b.schema(_schema)
   }
-  public static default(dfValue: boolean) {
+  public static default(dfValue: Array<any>) {
     const b = new ArrayType()
     return b.default(dfValue)
   }
@@ -65,21 +65,21 @@ class ArrayType extends type<any> {
   private validate(item, t) {
     let cnt = ''
     if (t === 1) {
-      if (!this._schema) cnt = `Checker.option('${this.fieldName}', ${item ? `${item}.` : ''}${this.fieldName}, Array)`
-      else cnt = `Checker.option('${this.fieldName}', ${item ? `${item}.` : ''}${this.fieldName}, Array, (${this.fieldName})=>{${this.checkWhenHas(item, t)}})`
+      if (!this._schema) cnt = `Checker.option(${item ? `${item}` : ''}, '${this.fieldName}', Array)`
+      else cnt = `Checker.option(${item ? `${item}` : ''}${this.fieldName},'${this.fieldName}',  Array, (${this.fieldName})=>{${this.checkWhenHas(item, t)}})`
     } else {
       if (this._dfValue) {
-        cnt = `Checker.must('${this.fieldName}', ${item ? `${item}.` : ''}${this.fieldName}, Array, ${type.ostringify(this._dfValue, null, '\t')})`
+        cnt = `Checker.option(${item ? `${item}` : ''}, '${this.fieldName}', Array, ${type.ostringify(this._dfValue, null, '\t')})`
         if (this._schema) cnt += this.checkWhenHas(`${item}`, t)
       } else {
         if (this._required) {
-          cnt = `Checker.must('${this.fieldName}', ${item ? `${item}.` : ''}${this.fieldName}, Array)`
+          cnt = `Checker.required(${item ? `${item}` : ''}, '${this.fieldName}', Array)`
           if (this._schema) cnt += this.checkWhenHas(`${item}`, t)
         } else {
           if (this._schema)
-            cnt = `Checker.option('${this.fieldName}', ${item ? `${item}.` : ''}${this.fieldName}, Array, (${this.fieldName})=>{${this.checkWhenHas(item, t)}})`
+            cnt = `Checker.option(${item ? `${item}` : ''}, '${this.fieldName}', Array, undefined, (${this.fieldName})=>{${this.checkWhenHas(item, t)}})`
           else
-            cnt = `Checker.option('${this.fieldName}', ${item ? `${item}.` : ''}${this.fieldName}, Array)`
+            cnt = `Checker.option(${item ? `${item}` : ''}, '${this.fieldName}', Array)`
         }
       }
     }

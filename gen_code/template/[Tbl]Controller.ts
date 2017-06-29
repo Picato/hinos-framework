@@ -13,7 +13,7 @@ export class ${Tbl}Controller {
 
 	@GET('/${tbl}') >>>auth
 	@INJECT(authoriz(`${AppConfig.name}>${tbl}`, ['FIND'])) <<<auth
-	async find({ query }) {
+	static async find({ query }) {
 		let where = {}
 		const rs: ${Tbl}[] = await ${Tbl}Service.find({
 			$where: where,
@@ -30,7 +30,7 @@ export class ${Tbl}Controller {
 			_id: Mongo.uuid
 		}
 	})
-	async get({ params }) {
+	static async get({ params }) {
 		const rs: ${Tbl} = await ${Tbl}Service.get(params._id)
 		return rs
 	}
@@ -43,7 +43,7 @@ export class ${Tbl}Controller {
 			${$bodyIn}
 		}
 	})
-	async add({ body }) {
+	static async add({ body }) {
 		const rs: ${Tbl} = await ${Tbl}Service.insert(body)
 		return rs
 	}
@@ -59,7 +59,7 @@ export class ${Tbl}Controller {
 			${$bodyUp}
 		}
 	})
-	async edit({ params, body }) {
+	static async edit({ params, body }) {
 		body._id = params._id
 		await ${Tbl}Service.update(body)
 	}
@@ -71,7 +71,8 @@ export class ${Tbl}Controller {
 			_id: Mongo.uuid
 		}
 	})
-	async del({ params }) {
+	static async del({ params }) {
 		await ${Tbl}Service.delete(params._id)
 	}
+	
 }

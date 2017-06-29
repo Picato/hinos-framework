@@ -14,63 +14,62 @@ export class ${Tbl} {
 	${$bean}
 }
 
-class ${Tbl}ServiceImpl {
+export class ${Tbl}Service {
 	@MONGO()
-	private mongo: Mongo>>>file
+	private static mongo: Mongo>>>file
   
-	readonly IMAGE_SIZES: Array<ImageResize> = ${file-resize} <<<file
+	static readonly IMAGE_SIZES: Array<ImageResize> = ${file-resize} <<<file
 
-	async find(fil: any = {}): Promise < Array < ${Tbl} >> {
-		const rs: ${Tbl}[] = await this.mongo.find < ${Tbl} > (${Tbl}, fil)
+	static async find(fil: any = {}): Promise <Array<${Tbl}>> {
+		const rs: ${Tbl}[] = await ${Tbl}Service.mongo.find<${Tbl}> (${Tbl}, fil)
 		return rs
 	}
 
-	async get(_id: any): Promise < ${Tbl} > {
-		const rs: ${Tbl} = await this.mongo.get < ${Tbl} > (${Tbl}, _id)
+	static async get(_id: any): Promise<${Tbl}> {
+		const rs: ${Tbl} = await ${Tbl}Service.mongo.get<${Tbl}> (${Tbl}, _id)
 		return rs
 	}
 
 	@VALIDATE((body: ${Tbl}) => {
 		${$validateIn}
 	})
-	async insert(body: ${Tbl}, validate ? : Function): Promise < ${Tbl} > { >>>file
+	static async insert(body: ${Tbl}, validate ? : Function): Promise<${Tbl}> { >>>file
 		try {
-			const rs: ${Tbl} = await this.mongo.insert < ${Tbl} > (${Tbl}, body)
+			const rs: ${Tbl} = await ${Tbl}Service.mongo.insert<${Tbl}> (${Tbl}, body)
 			// Move file to prod folder
 			return rs
 		} catch (e) {
 			Utils.deleteUploadFiles(body.${file-field}, this.IMAGE_SIZES)
 			throw e
 		} <<<file >>>normal
-        const rs:${Tbl} = await this.mongo.insert<${Tbl}>(${Tbl}, body)        
+        const rs:${Tbl} = await ${Tbl}Service.mongo.insert<${Tbl}>(${Tbl}, body)        
         return rs<<<normal
 	}
 
 	@VALIDATE((body: ${Tbl}) => {
 		${$validateUp}
 	})
-	async update(body: ${Tbl}, validate ? : Function) { >>>file        
-		const oldItem: ${Tbl} = await this.mongo.get < ${Tbl} > (${Tbl}, body._id)
+	static async update(body: ${Tbl}, validate ? : Function) { >>>file        
+		const oldItem: ${Tbl} = await ${Tbl}Service.mongo.get<${Tbl}> (${Tbl}, body._id)
 		if (!oldItem) throw HttpError.NOT_FOUND('Could not found item to update')
-		const rs: number = < number > await this.mongo.update < ${Tbl} > (${Tbl}, body)
+		const rs: number =<number > await ${Tbl}Service.mongo.update<${Tbl}> (${Tbl}, body)
 		Utils.deleteUploadFiles(oldItem.${file-field}, this.IMAGE_SIZES) 
 		// Move file to prod folder <<<file >>>normal
-        const rs:number = <number>await this.mongo.update<${Tbl}>(${Tbl}, body)
+        const rs:number = <number>await ${Tbl}Service.mongo.update<${Tbl}>(${Tbl}, body)
         if(rs === 0) throw HttpError.NOT_FOUND('Could not found item to update') <<<normal
 	}
 
 	@VALIDATE((_id: Uuid) => {
-		Checker.must('_id', _id, Uuid)
+		Checker.required(_id, [undefined, '_id'], Uuid)
 	})
-	async delete(_id: Uuid) { >>>file        
-		const item: ${Tbl} = < ${Tbl} > await this.mongo.delete < ${Tbl} > (${Tbl}, _id, {
+	static async delete(_id: Uuid) { >>>file        
+		const item: ${Tbl} =<${Tbl}> await ${Tbl}Service.mongo.delete<${Tbl}> (${Tbl}, _id, {
 			return: true
 		})
 		if (!item) throw HttpError.NOT_FOUND('Could not found item to delete')
 		Utils.deleteUploadFiles(item.${file-field}, this.IMAGE_SIZES) <<<file >>>normal
-        const rs:number = <number>await this.mongo.delete<${Tbl}>(${Tbl}, _id)
+        const rs:number = <number>await ${Tbl}Service.mongo.delete<${Tbl}>(${Tbl}, _id)
         if(rs === 0) throw HttpError.NOT_FOUND('Could not found item to delete') <<<normal        
 	}
 }
 
-export const ${Tbl}Service = new ${Tbl}ServiceImpl()
