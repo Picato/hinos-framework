@@ -1,0 +1,48 @@
+{
+  des: 'Add',
+  method: 'POST',
+  url: 'http://localhost:1001/project',
+  requestHeader: {
+    'content-type': 'application/json'
+  },
+  requestBody: {
+      name: 'ROOT',
+      status: 1
+  }
+}
+
+{
+  des: 'Get list',
+    method: 'GET',
+      url: 'http://localhost:1001/project'
+}
+
+{
+  des: 'Update',
+    method: 'PUT',
+      url: 'http://localhost:1001/project/ITEM_ID',
+        requestHeader: {
+    'content-type': 'application/json'
+  },
+  requestBody: {
+    _id: Uuid,
+      name: string,
+        des ?: string,
+        status: number,
+          plugins: object,
+            created_at ?: Date,
+            updated_at ?: Date
+  }
+}
+
+{
+  des: 'Get detail',
+    method: 'GET',
+      url: 'http://localhost:1001/project/ITEM_ID'
+}
+
+{
+  des: 'Delete',
+    method: 'DELETE',
+      url: 'http://localhost:1001/project/ITEM_ID'
+}

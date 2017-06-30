@@ -1,0 +1,55 @@
+{
+  des: 'Add',
+  method: 'POST',
+  url: 'http://localhost:1001/role',
+  requestHeader: {
+    'content-type': 'application/json',
+    token: '5954a3981f52ff1604d6f1c55954a39f1f52ff1604d6f1c65954a5db9a67b807acd122f3?2700'
+  },
+  requestBody: {
+    project_id: '5954a67b396f111aa86d0da4',
+    name: 'Super Admin', 
+    api: [
+      {
+        path: '.*',
+        actions: ['.*']
+      }
+    ]
+  }
+}
+
+{
+  des: 'Get list',
+    method: 'GET',
+      url: 'http://localhost:1001/role'
+}
+
+{
+  des: 'Update',
+    method: 'PUT',
+      url: 'http://localhost:1001/role/ITEM_ID',
+        requestHeader: {
+    'content-type': 'application/json'
+  },
+  requestBody: {
+    _id: Uuid,
+      name: string,
+        api: Array,
+          web: Array,
+            mob: Array,
+              created_at ?: Date,
+              updated_at ?: Date
+  }
+}
+
+{
+  des: 'Get detail',
+    method: 'GET',
+      url: 'http://localhost:1001/role/ITEM_ID'
+}
+
+{
+  des: 'Delete',
+    method: 'DELETE',
+      url: 'http://localhost:1001/role/ITEM_ID'
+}

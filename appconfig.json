@@ -4,7 +4,7 @@
     "url": "http://localhost:1001",
     "encryptKey": ")^!!!(**",
     "mongo": {
-        "url": "mongodb://localhost:27017/test",
+        "url": "mongodb://localhost:27017/oauthv3",
         "releaseTimeout": 50000
     },
     "redis": {
@@ -20,5 +20,8 @@
             "API_RECEIVER": "api",
             "LOG_RECEIVER": "log"
         }
+    },
+    "app": {
+        "suid": "123456789"
     }
 }

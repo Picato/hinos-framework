@@ -1,0 +1,106 @@
+{
+  des: 'Ping',
+  method: 'HEAD',
+  url: 'http://localhost:1001/ping',
+  requestHeader: {
+    token: '59537948fe62661758907241-5953872037976522480c5c58-59547a442398ab24e8febef1?900'
+  }
+}
+
+{
+  des: 'Logout',
+  method: 'GET',
+  url: 'http://localhost:1001/logout',
+  requestHeader: {
+    token: '59537948fe62661758907241-5953872037976522480c5c58-59547a442398ab24e8febef1?900'
+  }
+}
+
+{
+  des: 'Authro',
+  method: 'HEAD',
+  url: 'http://localhost:1001/authoriz?path=test&actions=INSERT',
+  requestHeader: {
+    'content-type': 'application/json',
+    token: '59537948fe62661758907241-5953872037976522480c5c58-59547a442398ab24e8febef1?900'
+  }
+}
+
+{
+  des: 'Get me',
+  method: 'GET',
+  url: 'http://localhost:1001/me',
+  requestHeader: {
+    token: '5954a67b396f111aa86d0da45954a6b0396f111aa86d0da65954ad1054320a291040f6c9'
+  }
+}
+
+{
+  des: 'Update me',
+  method: 'PUT',
+  url: 'http://localhost:1001/me',
+  requestHeader: {
+    'content-type': 'application/json', 
+    token: '5954da82554ba717fcbbf59e5954da82554ba717fcbbf5a15954da95554ba717fcbbf5a2?2700'
+  },
+  requestBody: {
+      username: 'thanhdt1',
+      password: '123',
+      recover_by: 'doanthuanthanh88@gmail.com',
+      more: {
+        fullname: 'thanh 1'
+      }
+  }
+}
+
+{
+  des: 'Login',
+  method: 'POST',
+  url: 'http://localhost:1001/login',
+  requestHeader: {
+    'content-type': 'application/json',
+    pj: '5954da82554ba717fcbbf59e',
+  },
+  requestBody: {
+      username: 'admin',
+      password: '5954da'
+  }
+}
+
+{
+  des: 'Generate secret key',
+  method: 'PUT',
+  url: 'http://localhost:1001/secretkey',
+  requestHeader: {
+    'content-type': 'application/json',
+    token: '5954a67b396f111aa86d0da45954a6b0396f111aa86d0da65954acf154320a291040f6c8?2700'
+  }
+}
+
+{
+  des: 'get secret key',
+  method: 'GET',
+  url: 'http://localhost:1001/secretkey',
+  requestHeader: {
+    'content-type': 'application/json',
+    token: '5954a67b396f111aa86d0da45954a6b0396f111aa86d0da65954acf154320a291040f6c8?2700'
+  }
+}
+
+{
+  des: 'Register',
+  method: 'POST',
+  url: 'http://localhost:1001/register',
+  requestHeader: {
+    'content-type': 'application/json', 
+    pj: '59537948fe62661758907241',
+    role_id: '5953870037976522480c5c56'
+  },
+  requestBody: {
+      username: 'thanhdt1',
+      password: '123',
+      status: 1,
+      recover_by: 'doanthuanthanh88@gmail.com',
+      more: {}
+  }
+}

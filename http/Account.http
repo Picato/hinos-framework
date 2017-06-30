@@ -1,0 +1,62 @@
+
+
+{
+  des: 'Add',
+  method: 'POST',
+  url: 'http://localhost:1001/account',
+  requestHeader: {
+    'content-type': 'application/json'
+  },
+  requestBody: {
+      username: 'admin',
+      password: 'admin@@@',
+      role_ids: ['5954a691396f111aa86d0da5'],
+      project_id: '5954a67b396f111aa86d0da4',
+      status: 1,
+      recover_by: 'doanthuanthanh88@gmail.com',
+      more: {}
+  }
+}
+
+{
+  des: 'Get list',
+    method: 'GET',
+      url: 'http://localhost:1001/account'
+}
+
+{
+  des: 'Update',
+    method: 'PUT',
+      url: 'http://localhost:1001/account/ITEM_ID',
+        requestHeader: {
+    'content-type': 'application/json'
+  },
+  requestBody: {
+    _id: Uuid,
+      username: string,
+        password: string,
+          project_id: Uuid,
+            status: number,
+              recover_by: string,
+                role_ids ?: Array,
+                more: object,
+                  secret_key ?: string,
+                  created_at ?: Date,
+                  updated_at ?: Date
+  }
+}
+
+{
+  des: 'Get detail',
+    method: 'GET',
+      url: 'http://localhost:1001/account/ITEM_ID'
+}
+
+{
+  des: 'Delete',
+  method: 'DELETE',
+  requestHeader: {
+    token: '5954d6a70453fd0448c2d6845954d6a70453fd0448c2d6875954d95a399bc904ccdc1f6e?2700'
+  },
+  url: 'http://localhost:1001/account/5954d6a70453fd0448c2d687'
+}
