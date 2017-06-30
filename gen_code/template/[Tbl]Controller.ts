@@ -59,7 +59,7 @@ export class ${Tbl}Controller {
 			${$bodyUp}
 		}
 	})
-	static async edit({ params, body }) {
+	static async update({ params, body }) {
 		body._id = params._id
 		await ${Tbl}Service.update(body)
 	}

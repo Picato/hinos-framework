@@ -24,6 +24,9 @@ interface IAppConfig {
         }
     };
     encryptKey?: string;
+    app: {
+        
+    }
 }
 
 declare const AppConfig: IAppConfig;
