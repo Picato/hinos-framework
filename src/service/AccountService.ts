@@ -22,7 +22,7 @@ export class Account {
   project_id?: Uuid
   status?: number
   recover_by?: string
-  role_ids?: Array<Uuid>
+  role_ids?: Uuid[]
   more?: object
   secret_key?: string
   created_at?: Date
@@ -37,11 +37,11 @@ export class AccountCached {
   role_ids: Uuid[]
 
   static cast(_this) {
-    return <AccountCached>{
+    return {
       project_id: Mongo.uuid(_this.project_id),
       role_ids: _this.role_ids.map(Mongo.uuid),
       account_id: Mongo.uuid(_this.account_id)
-    }
+    } as AccountCached
   }
 }
 
@@ -68,38 +68,38 @@ export class AccountService {
     })
     let count = 0
     for (const cached of caches) {
-      await AccountService.setCachedToken(cached.secret_key, <AccountCached>{
+      await AccountService.setCachedToken(cached.secret_key, {
         project_id: cached.project_id,
         account_id: cached._id,
         role_ids: cached.role_ids
-      })
+      } as AccountCached)
     }
     console.log(`Loaded ${caches.length} accounts into cached`)
   }
 
-  static async getSecretKey({ accountId }) {
+  static async getSecretKey({ accountId = undefined as Uuid }) {
     const acc = await AccountService.mongo.get<Account>(Account, accountId, {
       secret_key: 1
     })
     return acc.secret_key
   }
 
-  static async genSecretKey({ accountId, projectId }) {
+  static async genSecretKey({ accountId = undefined as Uuid, projectId = undefined as Uuid }) {
     const secretKey = `${projectId}${accountId}${Mongo.uuid().toString()}`
     const acc = await AccountService.mongo.get<Account>(Account, accountId, {
       project_id: 1, role_ids: 1, secret_key: 1
     })
-    const rs = <number>await AccountService.mongo.update<Account>(Account, {
+    const rs = await AccountService.mongo.update<Account>(Account, {
       _id: accountId,
       secret_key: secretKey
-    })
+    }) as number
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
     await AccountService.setCachedToken(acc.secret_key)
-    await AccountService.setCachedToken(secretKey, <AccountCached>{
+    await AccountService.setCachedToken(secretKey, {
       project_id: acc.project_id,
       account_id: acc._id,
       role_ids: acc.role_ids
-    })
+    } as AccountCached)
     return secretKey
   }
 
@@ -108,13 +108,13 @@ export class AccountService {
     return me
   }
 
-  static async ping({ token = <string>undefined, projectId = <Uuid>undefined }) {
+  static async ping({ token = undefined as string, projectId = undefined as Uuid }) {
     const plugins = await ProjectService.getCachedPlugins(projectId)
     await AccountService.touchCachedToken(token, plugins.oauth.session_expired)
   }
 
   @VALIDATE(async (body: Account) => {
-    body._id = <Uuid>Mongo.uuid()
+    body._id = Mongo.uuid() as Uuid
     Checker.required(body, 'username', String)
     Checker.required(body, 'password', String)
     Checker.required(body, 'project_id', Uuid)
@@ -137,12 +137,12 @@ export class AccountService {
   }
 
   static async authen(token) {
-    let cached = <AccountCached>await AccountService.getCachedToken(token)
+    let cached = await AccountService.getCachedToken(token)
     if (!cached) throw HttpError.AUTHEN()
     return AccountCached.cast(cached)
   }
 
-  static async authoriz({ token = <string>undefined, path = <string>undefined, actions = [] }) {
+  static async authoriz({ token = undefined as string, path = undefined as string, actions = [] }) {
     const cached: AccountCached = await AccountService.authen(token)
     const roles: Role[] = await RoleService.getCachedRole(cached.project_id)
     const accRole = roles.filter(e => cached.role_ids.map(e => e.toString()).indexOf(e._id.toString() !== -1))
@@ -168,7 +168,7 @@ export class AccountService {
   }
 
   static async login(user: { username: string, password: string, projectId: Uuid, app?: string }) {
-    const acc: Account = await AccountService.mongo.get<Account>(Account, {
+    const acc = await AccountService.mongo.get<Account>(Account, {
       username: user.username,
       project_id: user.projectId
     }, { password: 1, app: 1, token: 1, status: 1, _id: 1, project_id: 1, role_ids: 1 })
@@ -180,7 +180,7 @@ export class AccountService {
     })
     if (acc.status !== Account.Status.ACTIVED) throw HttpError.BAD_REQUEST('Account not actived')
     const plugins = await ProjectService.getCachedPlugins(acc.project_id)
-    if (!plugins || !plugins.oauth) throw HttpError.INTERNAL('oauth plugin not config yet')
+    if (!plugins || !plugins.oauth) throw HttpError.INTERNAL('project is not actived')
     const oauth = plugins.oauth
     if (oauth.single_mode === true) {
       for (const tk of acc.token) {
@@ -194,11 +194,11 @@ export class AccountService {
       _id: acc._id,
       token: acc.token
     })
-    await AccountService.setCachedToken(token, <AccountCached>{
+    await AccountService.setCachedToken(token, {
       account_id: acc._id,
       role_ids: acc.role_ids,
       project_id: acc.project_id
-    })
+    } as AccountCached)
     await AccountService.touchCachedToken(token, oauth.session_expired)
     return `${token}?${oauth.session_expired}`
   }
@@ -222,18 +222,18 @@ export class AccountService {
     })
   }
 
-  static async find(fil: any = {}): Promise<Array<Account>> {
-    const rs: Account[] = await AccountService.mongo.find<Account>(Account, fil)
+  static async find(fil: any = {}) {
+    const rs = await AccountService.mongo.find<Account>(Account, fil)
     return rs
   }
 
-  static async get(_id: any): Promise<Account> {
-    const rs: Account = await AccountService.mongo.get<Account>(Account, _id)
+  static async get(_id: any) {
+    const rs = await AccountService.mongo.get<Account>(Account, _id)
     return rs
   }
 
   @VALIDATE((body: Account) => {
-    body._id = <Uuid>Mongo.uuid()
+    body._id = Mongo.uuid() as Uuid
     Checker.required(body, 'username', String)
     Checker.required(body, 'password', String)
     Checker.required(body, 'project_id', Uuid)
@@ -245,14 +245,14 @@ export class AccountService {
     body.created_at = new Date()
     body.updated_at = new Date()
   })
-  static async insert(body: Account, validate?: Function): Promise<Account> {
+  static async insert(body: Account, validate?: Function) {
     const existed = await AccountService.mongo.get(Account, {
       username: body.username,
       project_id: body.project_id
     })
     // Check username must be not existed
     if (existed) throw HttpError.BAD_REQUEST(`Username ${body.username} was existed`)
-    const rs: Account = await AccountService.mongo.insert<Account>(Account, body)
+    const rs = await AccountService.mongo.insert<Account>(Account, body) as Account
     return rs
   }
 
@@ -266,12 +266,12 @@ export class AccountService {
     body.updated_at = new Date()
   })
   static async update(body: Account, validate?: Function) {
-    const old = <Account>await AccountService.mongo.update<Account>(Account, body, {
+    const old = await AccountService.mongo.update<Account>(Account, body, {
       return: true
-    })
+    }) as Account
     if (!old) throw HttpError.NOT_FOUND('Could not found item to update')
     // Check if password was updated
-    if (old.password !== body.password) {
+    if (body.password && old.password !== body.password) {
       await ProjectService.update({
         _id: old.project_id,
         owner: `${old.username}/******`
@@ -289,9 +289,9 @@ export class AccountService {
     Checker.required(_id, [undefined, '_id'], Uuid)
   })
   static async delete(_id: Uuid) {
-    const old = <Account>await AccountService.mongo.delete<Account>(Account, _id, {
+    const old = await AccountService.mongo.delete<Account>(Account, _id, {
       return: true
-    })
+    }) as Account
     if (!old) throw HttpError.NOT_FOUND('Could not found item to delete')
     // Remove cached
     for (const tk of old.token) {
@@ -310,8 +310,8 @@ export class AccountService {
     await AccountService.redis.set(`$token:${token}`, cached)
   }
 
-  static async getCachedToken(token: string): Promise<AccountCached> {
-    return await AccountService.redis.get(`$token:${token}`)
+  static async getCachedToken(token: string) {
+    return await AccountService.redis.get(`$token:${token}`) as AccountCached
   }
 
 }

@@ -13,6 +13,12 @@ import { authoriz } from '../service/Authoriz'
 export class AccountController {
 
   @GET('/Account')
+  @MATCHER({
+    query: {
+      page: Number,
+      recordsPerPage: Number
+    }
+  })
   @INJECT(authoriz(`${AppConfig.name}>Account`, ['FIND']))
   static async find({ query, state }) {
     let where = {
@@ -20,8 +26,11 @@ export class AccountController {
     }
     const rs: Account[] = await AccountService.find({
       $where: where,
-      $page: +query.page,
-      $recordsPerPage: +query.recordsPerPage
+      $page: query.page,
+      $recordsPerPage: query.recordsPerPage,
+      $fields: {
+        token: 0, password: 0, project_id: 0
+      }
     })
     return rs
   }

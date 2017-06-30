@@ -60,18 +60,18 @@ export class ProjectService {
     }
   }
 
-  static async find(fil: any = {}): Promise<Array<Project>> {
-    const rs: Project[] = await ProjectService.mongo.find<Project>(Project, fil)
+  static async find(fil: any = {}) {
+    const rs = await ProjectService.mongo.find<Project>(Project, fil)
     return rs
   }
 
-  static async get(_id: any): Promise<Project> {
-    const rs: Project = await ProjectService.mongo.get<Project>(Project, _id)
+  static async get(_id: any, $fields?: any) {
+    const rs = await ProjectService.mongo.get<Project>(Project, _id, $fields)
     return rs
   }
 
   @VALIDATE((body: Project) => {
-    body._id = <Uuid>Mongo.uuid()
+    body._id = Mongo.uuid() as Uuid
     Checker.required(body, 'name', String)
     Checker.option(body, 'des', String)
     Checker.required(body, 'status', Number)
@@ -85,8 +85,8 @@ export class ProjectService {
     body.created_at = new Date()
     body.updated_at = new Date()
   })
-  static async insert(body: Project, validate?: Function): Promise<Project> {
-    const prj = <Project>await ProjectService.mongo.insert<Project>(Project, body)
+  static async insert(body: Project, validate?: Function) {
+    const prj = await ProjectService.mongo.insert<Project>(Project, body) as Project
     if (prj.status === Project.Status.ACTIVED) await ProjectService.reloadCachedPlugins(prj._id, prj.plugins)
     // Create default role
     const role = await RoleService.createDefaultAdminRole(prj._id)
@@ -104,9 +104,9 @@ export class ProjectService {
     body.updated_at = new Date()
   })
   static async update(body: Project, validate?: Function) {
-    const old = <Project>await ProjectService.mongo.update<Project>(Project, body, {
+    const old = await ProjectService.mongo.update<Project>(Project, body, {
       return: true
-    })
+    }) as Project
     if (!old) throw HttpError.NOT_FOUND('Could not found item to update')
     if (body.status !== undefined) {
       if (old.status !== body.status && body.status === Project.Status.INACTIVED) {
@@ -128,7 +128,7 @@ export class ProjectService {
     Checker.required(_id, [undefined, '_id'], Uuid)
   })
   static async delete(_id: Uuid) {
-    const rs: number = <number>await ProjectService.mongo.delete<Project>(Project, _id)
+    const rs = await ProjectService.mongo.delete<Project>(Project, _id) as number
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to delete')
     await RoleService.delete({
       project_id: _id
