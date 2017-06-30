@@ -13,12 +13,18 @@ export class ${Tbl}Controller {
 
 	@GET('/${tbl}') >>>auth
 	@INJECT(authoriz(`${AppConfig.name}>${tbl}`, ['FIND'])) <<<auth
+	@MATCHER({
+    query: {
+      page: Number,
+      recordsPerPage: Number
+    }
+  })
 	static async find({ query }) {
 		let where = {}
-		const rs: ${Tbl}[] = await ${Tbl}Service.find({
+		const rs = await ${Tbl}Service.find({
 			$where: where,
-			$page: +query.page,
-			$recordsPerPage: +query.recordsPerPage
+			$page: query.page,
+			$recordsPerPage: query.recordsPerPage
 		})
 		return rs
 	}
@@ -31,7 +37,7 @@ export class ${Tbl}Controller {
 		}
 	})
 	static async get({ params }) {
-		const rs: ${Tbl} = await ${Tbl}Service.get(params._id)
+		const rs = await ${Tbl}Service.get(params._id)
 		return rs
 	}
 
@@ -44,7 +50,7 @@ export class ${Tbl}Controller {
 		}
 	})
 	static async add({ body }) {
-		const rs: ${Tbl} = await ${Tbl}Service.insert(body)
+		const rs = await ${Tbl}Service.insert(body) as ${Tbl}
 		return rs
 	}
 
@@ -59,7 +65,7 @@ export class ${Tbl}Controller {
 			${$bodyUp}
 		}
 	})
-	static async edit({ params, body }) {
+	static async update({ params, body }) {
 		body._id = params._id
 		await ${Tbl}Service.update(body)
 	}
