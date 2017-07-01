@@ -1,0 +1,49 @@
+{
+  des: 'Add',
+  method: 'POST',
+  url: 'http://localhost:1002/Upload/5957b75e9fd27b25ec5363a5',
+  requestHeader: {
+    'content-type': 'multipart/form-data',
+    token: '59566907ad1fd629540c4b3d59566927ad1fd629540c4b425957edaa4a37e2111c573932?2700'
+  },
+  requestBody: {   
+    'file:files': ['C:\\test.jpg', 'C:\\test.jpg']
+  }
+}
+
+{
+  des: 'Get list',
+    method: 'GET',
+      url: 'http://localhost:1001/Files'
+}
+
+{
+  des: 'Update',
+    method: 'PUT',
+      url: 'http://localhost:1001/Files/ITEM_ID',
+        requestHeader: {
+    'content-type': 'application/json'
+  },
+  requestBody: {
+    _id: Uuid,
+      config_id: Uuid,
+        project_id: Uuid,
+          account_id: Uuid,
+            links: Array,
+              link: string,
+                created_at ?: Date,
+                updated_at ?: Date
+  }
+}
+
+{
+  des: 'Get detail',
+    method: 'GET',
+      url: 'http://localhost:1001/Files/ITEM_ID'
+}
+
+{
+  des: 'Delete',
+    method: 'DELETE',
+      url: 'http://localhost:1001/Files/ITEM_ID'
+}
