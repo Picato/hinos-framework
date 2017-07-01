@@ -1,5 +1,5 @@
-# hinos-framework
-Typescript project which is integrated by hinos + typescript + hinos plugins
+# hinos-file-service
+Microservice which help manage file via APIs
 
 # Prerequisite
 If you nodejs verision < 8.0 then you need add bellow code in package.json
