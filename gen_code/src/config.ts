@@ -11,13 +11,35 @@ import uuid from './lib/uuid.type';
 export namespace generation {
   export const Auth = true;
   export const Tables = {
-    chart: {
+    Config: {
       _id: key,
       project_id: uuid,
       account_id: uuid,
-      page_id: uuid,
-      oder: number.required(false).default(1),
-      options: object,
+      name: string,
+      config: object.default({
+        host: string,
+        port: number,
+        secure: boolean,
+        auth: object.default({
+          user: string,
+          pass: string
+        })
+      }),
+      created_at: date.auto('insert'),
+      updated_at: date.auto('insert|update')
+    },
+    Mail: {
+      _id: key,
+      config_id: uuid,
+      status: number.default(0),
+      project_id: uuid,
+      account_id: uuid,
+      subject: string,
+      text: string,
+      html: string,
+      from: string,
+      to: array.default([]),
+      cc: array.default([]),
       created_at: date.auto('insert'),
       updated_at: date.auto('insert|update')
     }

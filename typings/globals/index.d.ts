@@ -19,7 +19,7 @@ interface IAppConfig {
         oauth: string
     },
     app: {
-        
+        scanTimeout: number
     }
 }
 

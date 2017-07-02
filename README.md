@@ -1,5 +1,32 @@
-# hinos-service@template
-Template project which create micro services base on hinos-framework
+# hinos-mail-service
+Service help send email
+
+# APIs
+
+```js
+{
+    des: 'Send email',
+    method: 'POST',
+    url: 'http://localhost:1003/Send/${MailConfigId}',
+    requestHeader: {
+        'content-type': 'application/json',
+        token: '${Token}'
+      },
+      requestBody: {
+            subject: 'Test 123',
+            text: 'something here', // Just only html or text
+            html: '<a href="#">Text</a>', // Just only html or text
+            from: 'clipvnet@gmail.com',
+            to: ['thanhdt@viosoft.com'],
+            cc: ['doanthuanthanh88@gmail.com'],
+            attachments: [{
+                filename: 'filename.txt',
+                content: 'data here', // Just only content or path
+                path: 'http://file.txt' // Just only content or path
+            }]
+  }
+}
+```
 
 # Prerequisite
 If you nodejs verision < 8.0 then you need add bellow code in package.json

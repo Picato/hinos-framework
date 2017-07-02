@@ -4,6 +4,7 @@ import { route } from 'hinos-route'
 import { Mongo } from 'hinos-mongo'
 import { serve } from 'hinos-serve'
 import { cors } from 'hinos-cors'
+import { MailService } from './service/MailService'
 import './config'
 
 require(`./env.${Server.env}`).default(Server)
@@ -16,6 +17,7 @@ Server.use(cors())
 Server.use(route(path.join(__dirname, 'controller')))
 
 Server.listen(AppConfig.port, () => {
+  MailService.schedule()
   console.info(`
        _     _                 
       | |__ (_)_ __   ___  ___  ${AppConfig.port} 

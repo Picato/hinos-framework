@@ -1,0 +1,57 @@
+{
+  des: 'Add',
+  method: 'POST',
+    url: 'http://localhost:1003/Send/59592cfab6f3652c3cee2015',
+  requestHeader: {
+    'content-type': 'application/json',
+    token: '59566907ad1fd629540c4b3d59566927ad1fd629540c4b42595959b7fdf50c17dc0492f6?2700'
+  },
+  requestBody: {
+    subject: 'Test 123',
+    html: '<a href="#">Text</a>',
+    from: 'clipvnet@gmail.com',
+    to: ['thanhdt@viosoft.com'],
+    cc: ['doanthuanthanh88@gmail.com']
+  }
+}
+
+{
+  des: 'Get list',
+    method: 'GET',
+      url: 'http://localhost:1001/Mail'
+}
+
+{
+  des: 'Update',
+    method: 'PUT',
+      url: 'http://localhost:1001/Mail/ITEM_ID',
+        requestHeader: {
+    'content-type': 'application/json'
+  },
+  requestBody: {
+    _id: Uuid,
+      config_id: Uuid,
+        project_id: Uuid,
+          account_id: Uuid,
+            subject: string,
+              text: string,
+                html: string,
+                  from: string,
+                    to: Array,
+                      cc: Array,
+                        created_at ?: Date,
+                        updated_at ?: Date
+  }
+}
+
+{
+  des: 'Get detail',
+    method: 'GET',
+      url: 'http://localhost:1001/Mail/ITEM_ID'
+}
+
+{
+  des: 'Delete',
+    method: 'DELETE',
+      url: 'http://localhost:1001/Mail/ITEM_ID'
+}

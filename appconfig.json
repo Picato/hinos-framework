@@ -1,18 +1,16 @@
 {
     "externalConfig": "./appconfig.cfg#web.api",
-    "name": "hinos-service",
-    "url": "http://localhost:1001",
+    "name": "hinos-mail-service",
+    "url": "http://localhost:1003",
     "services": {
         "oauth": "http://localhost:1001"
     },
     "encryptKey": ")^!!!(**",
     "mongo": {
-        "url": "mongodb://localhost:27017/test",
+        "url": "mongodb://localhost:27017/mail",
         "releaseTimeout": 50000
     },
-    "redis": {
-        "host": "localhost",
-        "port": 6379,
-        "releaseTimeout": 50000
+    "app": {
+        "scanTimeout": 15000
     }
 }
