@@ -1,13 +1,13 @@
 {
     "externalConfig": "./appconfig.cfg#web.api",
     "name": "hinos-service",
-    "url": "http://localhost:1001",
+    "url": "http://localhost:1004",
     "services": {
         "oauth": "http://localhost:1001"
     },
     "encryptKey": ")^!!!(**",
     "mongo": {
-        "url": "mongodb://localhost:27017/test",
+        "url": "mongodb://localhost:27017/log",
         "releaseTimeout": 50000
     },
     "redis": {

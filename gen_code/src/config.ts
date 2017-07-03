@@ -11,13 +11,13 @@ import uuid from './lib/uuid.type';
 export namespace generation {
   export const Auth = true;
   export const Tables = {
-    chart: {
+    Log: {
       _id: key,
       project_id: uuid,
       account_id: uuid,
-      page_id: uuid,
-      oder: number.required(false).default(1),
-      options: object,
+      type: number,
+      title: string,
+      status:  number,
       created_at: date.auto('insert'),
       updated_at: date.auto('insert|update')
     }

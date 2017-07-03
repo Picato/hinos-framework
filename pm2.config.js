@@ -1,6 +1,6 @@
 module.exports = {
   apps: [{
-    name: "hinos-service",
+    name: "hinos-log-service",
     script: "./.build/index.js",
     watch: false,
     node_args: "",

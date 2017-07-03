@@ -1,7 +1,7 @@
 {
-  "name": "hinos-framework",
+  "name": "hinos-log-service",
   "version": "1.0.0",
-  "description": "hinos project which is built for APIs",
+  "description": "Manage logs via APIs",
   "main": ".build/index.js",
   "scripts": {
     "start": "node .",
