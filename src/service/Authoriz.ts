@@ -19,7 +19,6 @@ export function authoriz(path: string, actions: string[]) {
       projectId: Mongo.uuid(projectId),
       accountId: Mongo.uuid(accountId)
     }
-<<<<<<< HEAD
     await next()
   }
 }
@@ -27,8 +26,6 @@ export function authoriz(path: string, actions: string[]) {
 export function suAuthoriz() {
   return async ({ headers }, next: Function) => {
     if (headers.token !== AppConfig.app.suid) throw HttpError.AUTHEN()
-=======
->>>>>>> c0d308b0d3578c0481b4d7136d21a13749d98fb6
     await next()
   }
 }

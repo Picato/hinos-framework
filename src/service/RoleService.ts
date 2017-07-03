@@ -46,12 +46,12 @@ export class RoleService {
   }
 
   static async find(fil: any = {}) {
-    const rs = await RoleService.mongo.find<Role>(Role, fil)
+    const rs = await RoleService.mongo.find<Role>(Role.toString(), fil)
     return rs
   }
 
   static async get(_id: any) {
-    const rs = await RoleService.mongo.get<Role>(Role, _id)
+    const rs = await RoleService.mongo.get<Role>(Role.toString(), _id)
     return rs
   }
 
@@ -66,7 +66,7 @@ export class RoleService {
     body.updated_at = new Date()
   })
   static async insert(body: Role, validate?: Function) {
-    const rs = await RoleService.mongo.insert<Role>(Role, body) as Role
+    const rs = await RoleService.mongo.insert<Role>(Role.toString(), body) as Role
     // Reload cache
     await RoleService.reloadCachedRole(body.project_id)
     return rs
@@ -82,7 +82,7 @@ export class RoleService {
     body.updated_at = new Date()
   })
   static async update(body: Role, validate?: Function) {
-    const rs = await RoleService.mongo.update<Role>(Role, body) as number
+    const rs = await RoleService.mongo.update<Role>(Role.toString(), body) as number
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
     // Reload cache
     await RoleService.reloadCachedRole(body.project_id)
@@ -93,7 +93,7 @@ export class RoleService {
     Checker.required(key, ['project_id'], Uuid)
   })
   static async delete(key: { _id?: Uuid, project_id: Uuid }) {
-    const rs = await RoleService.mongo.delete<Role>(Role, key, {
+    const rs = await RoleService.mongo.delete<Role>(Role.toString(), key, {
       multiple: !key._id
     }) as number
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to delete')
