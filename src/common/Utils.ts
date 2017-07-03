@@ -19,9 +19,9 @@ export default class Utils {
         }
       }
     }
-    if (!(files instanceof Array)) return remove(path.join(__dirname, '..', '..', 'assets', files), sizes)
+    if (!(files instanceof Array)) return remove(path.join(__dirname, '..', '..', 'assets', files.split('?')[0]), sizes)
     for (let f of files) {
-      remove(path.join(__dirname, '..', '..', 'assets', f), sizes)
+      remove(path.join(__dirname, '..', '..', 'assets', f.split('?')[0]), sizes)
     }
   }
 }
