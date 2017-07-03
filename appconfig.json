@@ -1,27 +1,21 @@
 {
-    "externalConfig": "./appconfig.cfg#web.api",
-    "name": "hinos-framework",
-    "url": "http://localhost:1001",
-    "encryptKey": ")^!!!(**",
-    "mongo": {
-        "url": "mongodb://localhost:27017/oauthv3",
-        "releaseTimeout": 50000
-    },
-    "redis": {
-        "host": "localhost",
-        "port": 6379,
-        "releaseTimeout": 50000
-    },
-    "rabbitmq": {
-        "url": "amqp://127.0.0.1",
-        "releaseTimeout": 50000,
-        "queue": {
-            "API_SENDER": "backend",
-            "API_RECEIVER": "api",
-            "LOG_RECEIVER": "log"
-        }
-    },
-    "app": {
-        "suid": "123456789"
-    }
+  "externalConfig": "./appconfig.cfg#web.api",
+  "name": "hinos-oauth-service",
+  "url": "http://localhost:1001",
+  "services": {
+    "oauth": "http://localhost:1001"
+  },
+  "encryptKey": ")^!!!(**",
+  "mongo": {
+    "url": "mongodb://localhost:27017/oauthv3",
+    "releaseTimeout": 50000
+  },
+  "redis": {
+    "host": "localhost",
+    "port": 6379,
+    "releaseTimeout": 50000
+  },
+  "app": {
+    "suid": "123456789"
+  }
 }

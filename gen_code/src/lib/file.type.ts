@@ -36,7 +36,7 @@ class FileType extends type<any> {
     return `Checker.required(${item ? `${item}` : ''}, '${this.fieldName}', ${this.dataType})`
   }
   public validateUpdate(item) {
-    return `Checker.option(${item ? `${item}.` : ''}, '${this.fieldName}', ${this.dataType})`
+    return `Checker.option(${item ? `${item}` : ''}, '${this.fieldName}', ${this.dataType})`
   }
   public genBeanCollection() {
     return `${this.fieldName}?: ${this.dataType}<${this.gdataType}>`

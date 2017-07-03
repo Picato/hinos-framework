@@ -14,16 +14,10 @@ interface IAppConfig {
         db?: string;
         releaseTimeout?: number;
     };
-    rabbitmq?: {
-        url: string;
-        releaseTimeout?: number;
-        queue: {
-            API_SENDER: string;
-            API_RECEIVER: string;
-            LOG_RECEIVER: string;
-        }
-    };
     encryptKey?: string;
+    services: {
+        oauth: string
+    },
     app: {
         suid: string
     }
