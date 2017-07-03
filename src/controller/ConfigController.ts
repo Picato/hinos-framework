@@ -72,8 +72,7 @@ export class ConfigController {
   static async update({ params, body, state }) {
     body._id = {
       _id: params._id,
-      project_id: state.auth.projectId,
-      account_id: state.auth.accountId
+      project_id: state.auth.projectId
     }
     await ConfigService.update(body)
   }
@@ -88,8 +87,7 @@ export class ConfigController {
   static async del({ params, state }) {
     await ConfigService.delete({
       _id: params._id,
-      project_id: state.auth.projectId,
-      account_id: state.auth.accountId
+      project_id: state.auth.projectId
     })
   }
 
