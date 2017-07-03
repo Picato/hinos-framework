@@ -15,6 +15,7 @@ export namespace generation {
       _id: key,
       project_id: uuid,
       account_id: uuid,
+      name: string,
       config: object.default({
         maxSize: 2046,
         maxFile: 2,

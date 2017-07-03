@@ -18,6 +18,35 @@ Service help upload and download files
 }
 ```
 
+```js
+{
+  des: 'Delete multiple files upload',
+  method: 'PUT',
+  url: 'http://localhost:1002/Remove',
+  requestHeader: {
+    'content-type': 'application/json',
+    token: '${Token}'
+  },
+  requestBody: {
+    files: [
+      'http://urlfilehere',
+      'http://urlfilehere'
+    ]
+  }
+}
+```
+
+```js
+{
+  des: 'Delete single file upload',
+  method: 'DELETE',
+  url: 'http://localhost:1001/Files/${link}',
+  requestHeader: {
+    token: '${Token}'
+  }
+}
+```
+
 # Prerequisite
 If you nodejs verision < 8.0 then you need add bellow code in package.json
 ```json

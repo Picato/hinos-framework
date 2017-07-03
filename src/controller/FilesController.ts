@@ -85,6 +85,23 @@ export class FilesController {
     return rs
   }
 
+  @PUT('/Remove')
+  @INJECT(authoriz(`${AppConfig.name}>Files`, ['DELETE']))
+  @BODYPARSER()
+  @MATCHER({
+    body: {
+      files: Array
+    }
+  })
+  static async delFiles({ state, body }) {
+    for (const file of body.files) {
+      await FilesService.delete({
+        files: file,
+        project_id: state.auth.projectId
+      })
+    }
+  }
+
   @DELETE('/Files/:files')
   @INJECT(authoriz(`${AppConfig.name}>Files`, ['DELETE']))
   @MATCHER({

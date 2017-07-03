@@ -51,10 +51,10 @@ export class FilesService {
     }
   }
 
-  @VALIDATE((key: Files) => {
+  @VALIDATE((key: Object) => {
     Checker.required(key, [, 'key'], Object)
   })
-  static async delete(key: Files) {
+  static async delete(key: Object) {
     const item = await FilesService.mongo.delete<Files>(Files.toString(), key, {
       return: true
     }) as Files
