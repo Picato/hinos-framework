@@ -28,7 +28,7 @@ export class FilesService {
   static readonly IMAGE_SIZES: ImageResize[] = undefined
 
   static async find(fil = {}) {
-    const rs = await FilesService.mongo.find<Files>(Files.toString(), fil)
+    const rs = await FilesService.mongo.find<Files>(Files, fil)
     return rs
   }
 
@@ -43,7 +43,7 @@ export class FilesService {
   })
   static async insert(body: Files, validate?: Function) {
     try {
-      const rs = await FilesService.mongo.insert<Files>(Files.toString(), body) as Files
+      const rs = await FilesService.mongo.insert<Files>(Files, body)
       return rs
     } catch (e) {
       Utils.deleteUploadFiles(body.files, this.IMAGE_SIZES)
@@ -55,9 +55,9 @@ export class FilesService {
     Checker.required(key, [, 'key'], Object)
   })
   static async delete(key: Object) {
-    const item = await FilesService.mongo.delete<Files>(Files.toString(), key, {
+    const item = await FilesService.mongo.delete<Files>(Files, key, {
       return: true
-    }) as Files
+    })
     if (!item) throw HttpError.NOT_FOUND('Could not found item to delete')
     const config = await ConfigService.get(item.config_id)
     Utils.deleteUploadFiles(item.files, config.config.resize)

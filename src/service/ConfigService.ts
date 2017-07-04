@@ -56,7 +56,7 @@ export class ConfigService {
     body.updated_at = new Date()
   })
   static async insert(body: Config, validate?: Function) {
-    const rs = await ConfigService.mongo.insert<Config>(Config, body) as Config
+    const rs = await ConfigService.mongo.insert<Config>(Config, body)
     return rs
   }
 
@@ -74,7 +74,7 @@ export class ConfigService {
     Checker.required(_id, [, '_id'], Object)
   })
   static async delete(_id: Object) {
-    const rs = await ConfigService.mongo.delete<Config>(Config, _id) as number
+    const rs = await ConfigService.mongo.delete(Config, _id)
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to delete')
   }
 }
