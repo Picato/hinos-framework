@@ -16,10 +16,10 @@
   },
   "dependencies": {
     "hinos": "^1.0.8",
-    "hinos-bodyparser": "^1.0.6",
+    "hinos-bodyparser": "^1.0.7",
     "hinos-common": "^1.0.4",
     "hinos-cors": "^1.0.0",
-    "hinos-mongo": "^1.0.5",
+    "hinos-mongo": "^1.0.7",
     "hinos-rabbitmq": "^1.0.4",
     "hinos-redis": "^1.0.4",
     "hinos-requestmatcher": "^1.0.4",

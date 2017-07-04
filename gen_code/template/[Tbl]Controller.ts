@@ -50,7 +50,7 @@ export class ${Tbl}Controller {
 		}
 	})
 	static async add({ body }) {
-		const rs = await ${Tbl}Service.insert(body) as ${Tbl}
+		const rs = await ${Tbl}Service.insert(body)
 		return rs
 	}
 
