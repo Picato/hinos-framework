@@ -25,12 +25,12 @@ export class LogService {
   private static mongo: Mongo
 
   static async find(fil = {}) {
-    const rs = await LogService.mongo.find<Log>(Log.toString(), fil)
+    const rs = await LogService.mongo.find<Log>(Log, fil)
     return rs
   }
 
   static async get(_id: any) {
-    const rs = await LogService.mongo.get<Log>(Log.toString(), _id)
+    const rs = await LogService.mongo.get<Log>(Log, _id)
     return rs
   }
 
@@ -45,7 +45,7 @@ export class LogService {
     body.updated_at = new Date()
   })
   static async insert(body: Log, validate?: Function) {
-    const rs = await LogService.mongo.insert<Log>(Log.toString(), body) as Log
+    const rs = await LogService.mongo.insert<Log>(Log, body)
     return rs
   }
 
@@ -56,7 +56,7 @@ export class LogService {
     body.updated_at = new Date()
   })
   static async update(body: Log, validate?: Function) {
-    const rs = await LogService.mongo.update<Log>(Log.toString(), body) as number
+    const rs = await LogService.mongo.update(Log, body)
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
   }
 
@@ -64,7 +64,7 @@ export class LogService {
     Checker.required(_id, [, '_id'], Object)
   })
   static async delete(_id: Object) {
-    const rs = await LogService.mongo.delete<Log>(Log.toString(), _id) as number
+    const rs = await LogService.mongo.delete(Log, _id)
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to delete')
   }
 }
