@@ -66,7 +66,7 @@ export class ConfigService {
     Checker.option(body, 'name', String)
   })
   static async update(body: Config, validate?: Function) {
-    const rs = await ConfigService.mongo.update<Config>(Config, body) as number
+    const rs = await ConfigService.mongo.update(Config, body)
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
   }
 
