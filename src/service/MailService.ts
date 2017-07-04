@@ -77,7 +77,7 @@ export class MailService {
           e.status--
           e.error = err
         }
-        await MailService.mongo.update<Mail>(Mail, e)
+        await MailService.mongo.update(Mail, e)
       }
     }
     setTimeout(MailService.schedule, AppConfig.app.scanTimeout)
@@ -127,7 +127,7 @@ export class MailService {
     body.updated_at = new Date()
   })
   static async insert(body: Mail, validate?: Function) {
-    const rs = await MailService.mongo.insert<Mail>(Mail, body) as Mail
+    const rs = await MailService.mongo.insert<Mail>(Mail, body)
     return rs
   }
 
@@ -137,7 +137,7 @@ export class MailService {
     body.updated_at = new Date()
   })
   static async resend(body: Mail, validate?: Function) {
-    const rs = await MailService.mongo.update<Mail>(Mail, body) as number
+    const rs = await MailService.mongo.update(Mail, body)
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
   }
 
@@ -154,7 +154,7 @@ export class MailService {
     body.updated_at = new Date()
   })
   static async update(body: Mail, validate?: Function) {
-    const rs = await MailService.mongo.update<Mail>(Mail, body) as number
+    const rs = await MailService.mongo.update(Mail, body)
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
   }
 
@@ -162,7 +162,7 @@ export class MailService {
     Checker.required(_id, [, '_id'], Object)
   })
   static async delete(_id: Object) {
-    const rs = await MailService.mongo.delete<Mail>(Mail, _id) as number
+    const rs = await MailService.mongo.delete(Mail, _id)
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to delete')
   }
 }
