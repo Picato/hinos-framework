@@ -81,8 +81,7 @@ export class MailController {
     await MailService.resend({
       _id: {
         _id: params._id,
-        project_id: state.auth.projectId,
-        account_id: state.auth.accountId
+        project_id: state.auth.projectId
       }
     })
   }
@@ -97,8 +96,7 @@ export class MailController {
   static async del({ params, state }) {
     await MailService.delete({
       _id: params._id,
-      project_id: state.auth.projectId,
-      account_id: state.auth.accountId
+      project_id: state.auth.projectId
     })
   }
 
