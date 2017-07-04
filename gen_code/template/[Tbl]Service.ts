@@ -35,14 +35,14 @@ export class ${Tbl}Service {
 	})
 	static async insert(body: ${Tbl}, validate ? : Function) { >>>file
 		try {
-			const rs = await ${Tbl}Service.mongo.insert<${Tbl}> (${Tbl}, body) as ${Tbl}
+			const rs = await ${Tbl}Service.mongo.insert<${Tbl}> (${Tbl}, body)
 			// Move file to prod folder
 			return rs
 		} catch (e) {
 			Utils.deleteUploadFiles(body.${file-field}, this.IMAGE_SIZES)
 			throw e
 		} <<<file >>>normal
-        const rs = await ${Tbl}Service.mongo.insert<${Tbl}>(${Tbl}, body) as ${Tbl}
+        const rs = await ${Tbl}Service.mongo.insert<${Tbl}>(${Tbl}, body)
         return rs<<<normal
 	}
 
@@ -50,23 +50,23 @@ export class ${Tbl}Service {
 		${$validateUp}
 	})
 	static async update(body: ${Tbl}, validate ? : Function) { >>>file        
-		const oldItem = await ${Tbl}Service.mongo.update<${Tbl}> (${Tbl}, body, { return: true }) as ${Tbl}
+		const oldItem = await ${Tbl}Service.mongo.update<${Tbl}> (${Tbl}, body, { return: true })
 		if (!oldItem) throw HttpError.NOT_FOUND('Could not found item to update')
 		Utils.deleteUploadFiles(oldItem.${file-field}, ${Tbl}Service.IMAGE_SIZES) 
 		// Move file to prod folder <<<file >>>normal
-        const rs = await ${Tbl}Service.mongo.update<${Tbl}>(${Tbl}, body) as number
-        if(rs === 0) throw HttpError.NOT_FOUND('Could not found item to update') <<<normal
+		const rs = await ${Tbl}Service.mongo.update(${Tbl}, body)
+		if(rs === 0) throw HttpError.NOT_FOUND('Could not found item to update') <<<normal
 	}
 
 	@VALIDATE((_id: Uuid) => {
 		Checker.required(_id, [, '_id'], Uuid)
 	})
 	static async delete(_id: Uuid) { >>>file        
-		const item = await ${Tbl}Service.mongo.delete<${Tbl}> (${Tbl}, _id, { return: true }) as ${Tbl}
+		const item = await ${Tbl}Service.mongo.delete<${Tbl}> (${Tbl}, _id, { return: true })
 		if (!item) throw HttpError.NOT_FOUND('Could not found item to delete')
 		Utils.deleteUploadFiles(item.${file-field}, ${Tbl}Service.IMAGE_SIZES) <<<file >>>normal
-        const rs = await ${Tbl}Service.mongo.delete<${Tbl}>(${Tbl}, _id) as number
-        if(rs === 0) throw HttpError.NOT_FOUND('Could not found item to delete') <<<normal        
+		const rs = await ${Tbl}Service.mongo.delete(${Tbl}, _id)
+		if(rs === 0) throw HttpError.NOT_FOUND('Could not found item to delete') <<<normal        
 	}
 }
 
