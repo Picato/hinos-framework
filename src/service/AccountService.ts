@@ -60,7 +60,7 @@ export class AccountService {
   private static redis: Redis
 
   static async loadIntoCached() {
-    const caches = await AccountService.mongo.find<Account>(Account.toString(), {
+    const caches = await AccountService.mongo.find<Account>(Account, {
       $where: {
         secret_key: { $exists: true }
       },
@@ -78,7 +78,7 @@ export class AccountService {
   }
 
   static async getSecretKey({ accountId = undefined as Uuid }) {
-    const acc = await AccountService.mongo.get<Account>(Account.toString(), accountId, {
+    const acc = await AccountService.mongo.get<Account>(Account, accountId, {
       secret_key: 1
     })
     return acc.secret_key
@@ -86,13 +86,13 @@ export class AccountService {
 
   static async genSecretKey({ accountId = undefined as Uuid, projectId = undefined as Uuid }) {
     const secretKey = `${projectId}${accountId}${Mongo.uuid().toString()}`
-    const acc = await AccountService.mongo.get<Account>(Account.toString(), accountId, {
+    const acc = await AccountService.mongo.get<Account>(Account, accountId, {
       project_id: 1, role_ids: 1, secret_key: 1
     })
-    const rs = await AccountService.mongo.update<Account>(Account.toString(), {
+    const rs = await AccountService.mongo.update(Account, {
       _id: accountId,
       secret_key: secretKey
-    }) as number
+    })
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
     await AccountService.setCachedToken(acc.secret_key)
     await AccountService.setCachedToken(secretKey, {
@@ -104,7 +104,7 @@ export class AccountService {
   }
 
   static async getMe({ projectId, accountId }) {
-    const me = await AccountService.mongo.get<Account>(Account.toString(), accountId, { username: 1, recover_by: 1, more: 1, created_at: 1, updated_at: 1 })
+    const me = await AccountService.mongo.get<Account>(Account, accountId, { username: 1, recover_by: 1, more: 1, created_at: 1, updated_at: 1 })
     return me
   }
 
@@ -168,7 +168,7 @@ export class AccountService {
   }
 
   static async login(user: { username: string, password: string, projectId: Uuid, app?: string }) {
-    const acc = await AccountService.mongo.get<Account>(Account.toString(), {
+    const acc = await AccountService.mongo.get<Account>(Account, {
       username: user.username,
       project_id: user.projectId
     }, { password: 1, app: 1, token: 1, status: 1, _id: 1, project_id: 1, role_ids: 1 })
@@ -190,7 +190,7 @@ export class AccountService {
     }
     const token = `${acc.project_id}${acc._id}${Mongo.uuid()}`
     acc.token.push(token)
-    await AccountService.mongo.update<Account>(Account.toString(), {
+    await AccountService.mongo.update(Account, {
       _id: acc._id,
       token: acc.token
     })
@@ -223,12 +223,12 @@ export class AccountService {
   }
 
   static async find(fil: any = {}) {
-    const rs = await AccountService.mongo.find<Account>(Account.toString(), fil)
+    const rs = await AccountService.mongo.find<Account>(Account, fil)
     return rs
   }
 
   static async get(_id: any) {
-    const rs = await AccountService.mongo.get<Account>(Account.toString(), _id)
+    const rs = await AccountService.mongo.get<Account>(Account, _id)
     return rs
   }
 
@@ -246,13 +246,13 @@ export class AccountService {
     body.updated_at = new Date()
   })
   static async insert(body: Account, validate?: Function) {
-    const existed = await AccountService.mongo.get(Account.toString(), {
+    const existed = await AccountService.mongo.get(Account, {
       username: body.username,
       project_id: body.project_id
     })
     // Check username must be not existed
     if (existed) throw HttpError.BAD_REQUEST(`Username ${body.username} was existed`)
-    const rs = await AccountService.mongo.insert<Account>(Account.toString(), body) as Account
+    const rs = await AccountService.mongo.insert<Account>(Account, body) as Account
     return rs
   }
 
@@ -266,9 +266,9 @@ export class AccountService {
     body.updated_at = new Date()
   })
   static async update(body: Account, validate?: Function) {
-    const old = await AccountService.mongo.update<Account>(Account.toString(), body, {
+    const old = await AccountService.mongo.update<Account>(Account, body, {
       return: true
-    }) as Account
+    })
     if (!old) throw HttpError.NOT_FOUND('Could not found item to update')
     // Check if password was updated
     if (body.password && old.password !== body.password) {
@@ -289,9 +289,9 @@ export class AccountService {
     Checker.required(_id, [undefined, '_id'], Uuid)
   })
   static async delete(_id: Uuid) {
-    const old = await AccountService.mongo.delete<Account>(Account.toString(), _id, {
+    const old = await AccountService.mongo.delete<Account>(Account, _id, {
       return: true
-    }) as Account
+    })
     if (!old) throw HttpError.NOT_FOUND('Could not found item to delete')
     // Remove cached
     for (const tk of old.token) {
