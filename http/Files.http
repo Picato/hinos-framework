@@ -1,13 +1,38 @@
 {
-  des: 'Add',
+  des: 'Upload temp files',
   method: 'POST',
-  url: 'http://localhost:1002/Upload/5957b75e9fd27b25ec5363a5',
+  url: 'http://localhost:1002/Upload/595c71ce14996d27e8f0d1c1',
   requestHeader: {
     'content-type': 'multipart/form-data',
-    token: '59566907ad1fd629540c4b3d59566927ad1fd629540c4b425957edaa4a37e2111c573932?2700'
+    token: '595c7179d28ff924b0f5c623595c7179d28ff924b0f5c626595ca0188537a0173c9b89ab?2700'
+  },
+  requestBody: {
+    'file:files': ['C:\\test.jpg']
+  }
+}
+
+{
+  des: 'Store temp files',
+  method: 'PUT',
+  url: 'http://localhost:1002/Store',
+  requestHeader: {
+    token: '595c7179d28ff924b0f5c623595c7179d28ff924b0f5c626595c8e1670199129fc70da96?2700'
   },
   requestBody: {   
-    'file:files': ['C:\\test.jpg', 'C:\\test.jpg']
+    'files': ['upload/595c7179d28ff924b0f5c623/529d3c7e-796a-4005-94e3-cd47b269d408.jpg?name=test.jpg']
+  }
+}
+
+{
+  des: 'Delete files',
+  method: 'PUT',
+  url: 'http://localhost:1002/Remove',
+  requestHeader: {
+    'content-type': 'application/json',
+    token: '595c7179d28ff924b0f5c623595c7179d28ff924b0f5c626595c8e1670199129fc70da96?2700'
+  },
+  requestBody: {
+    'files': ['upload/595c7179d28ff924b0f5c623/529d3c7e-796a-4005-94e3-cd47b269d408.jpg?name=test.jpg']
   }
 }
 

@@ -41,6 +41,9 @@ export class FilesController {
     }
   ])
   @MATCHER({
+    query: {
+      store: Boolean
+    },
     params: {
       configId: Uuid
     },
@@ -48,41 +51,42 @@ export class FilesController {
       files: vl => vl instanceof Array ? vl.map(e => `${e.httpPath}?name=${e.originalname}`) : `${vl.httpPath}?name=${vl.originalname}`
     }
   })
-  static async upload({ body, state, params }) {
+  static async upload({ body, state, params, query }) {
     body.account_id = state.auth.accountId
     body.project_id = state.auth.projectId
     body.config_id = params.configId
+    body.status = query.store ? Files.Status.SAVED : Files.Status.TEMP
     const files = _.clone(body.files)
     if (body.files instanceof Array) {
       for (const f of files) {
         body.files = f
-        await FilesService.insert(body)
+        await FilesService.insert(body, state.config.resize)
       }
     } else {
-      await FilesService.insert(body)
+      await FilesService.insert(body, state.config.resize)
     }
     return files
   }
 
-  @GET('/Files')
-  @INJECT(authoriz(`${AppConfig.name}>Files`, ['FIND']))
+  @PUT('/Store')
+  @INJECT(authoriz(`${AppConfig.name}>Files`, ['DELETE']))
+  @BODYPARSER()
   @MATCHER({
-    query: {
-      page: Number,
-      recordsPerPage: Number
+    body: {
+      files: vl => vl instanceof Array ? vl : [vl]
     }
   })
-  static async find({ query }) {
-    let where = {}
-    const rs = await FilesService.find({
-      $where: where,
-      $sort: {
-        updated_at: -1
+  static async storeFiles({ state, body }) {
+    await FilesService.store({
+      _id: {
+        files: {
+          $in: body.files
+        },
+        account_id: state.auth.accountId,
+        project_id: state.auth.projectId
       },
-      $page: query.page,
-      $recordsPerPage: query.recordsPerPage
+      status: Files.Status.SAVED
     })
-    return rs
   }
 
   @PUT('/Remove')
@@ -90,7 +94,7 @@ export class FilesController {
   @BODYPARSER()
   @MATCHER({
     body: {
-      files: Array
+      files: vl => vl instanceof Array ? vl : [vl]
     }
   })
   static async delFiles({ state, body }) {
@@ -102,18 +106,43 @@ export class FilesController {
     }
   }
 
-  @DELETE('/Files/:files')
-  @INJECT(authoriz(`${AppConfig.name}>Files`, ['DELETE']))
+  @GET('/Files')
+  @INJECT(authoriz(`${AppConfig.name}>Files`, ['FIND']))
   @MATCHER({
-    params: {
-      files: String
+    query: {
+      page: Number,
+      recordsPerPage: Number,
+      config_id: Uuid
     }
   })
-  static async del({ params, state }) {
-    await FilesService.delete({
-      files: params.files,
+  static async find({ query, state }) {
+    let where: any = {
       project_id: state.auth.projectId
+    }
+    if (query.config_id) where.config_id = query.config_id
+    const rs = await FilesService.find({
+      $where: where,
+      $sort: {
+        updated_at: -1
+      },
+      $page: query.page,
+      $recordsPerPage: query.recordsPerPage
     })
+    return rs
   }
+
+  // @DELETE('/Files/:files')
+  // @INJECT(authoriz(`${AppConfig.name}>Files`, ['DELETE']))
+  // @MATCHER({
+  //   params: {
+  //     files: String
+  //   }
+  // })
+  // static async del({ params, state }) {
+  //   await FilesService.delete({
+  //     files: params.files,
+  //     project_id: state.auth.projectId
+  //   })
+  // }
 
 }

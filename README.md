@@ -1,26 +1,58 @@
 # hinos-files-service
 Service help upload and download files
 
+# About
+* When upload a file, it is stored in temp folder
+* The files which was stored in temp folder will be deleted after a period of time. So you have 2 choice:
+    1.  You need call a API to store them after upload
+    2.  Store file in the upload process
+
 # APIs
 
 ```js
 {
-  des: 'Upload file',
+  des: 'Upload and store file ASAP',
+  method: 'POST',
+  url: 'http://localhost:1002/Upload/${FileConfigId}?store=true',
+  requestHeader: {
+    'content-type': 'multipart/form-data',
+    token: '${Token}'
+  },
+  requestBody: {
+    'file:files': ['C:\\test.jpg', 'C:\\test.jpg']
+  }
+}
+```
+```js
+{
+  des: 'Just upload without store',
   method: 'POST',
   url: 'http://localhost:1002/Upload/${FileConfigId}',
   requestHeader: {
     'content-type': 'multipart/form-data',
     token: '${Token}'
   },
-  requestBody: {   
-    'files': ['C:\\test.jpg', 'C:\\test.jpg'] // data here
+  requestBody: {
+    'files': ['C:\\test.jpg', 'C:\\test.jpg']
   }
 }
 ```
-
 ```js
 {
-  des: 'Delete multiple files upload',
+  des: 'Store files which were uploaded before that',
+  method: 'PUT',
+  url: 'http://localhost:1002/Store',
+  requestHeader: {
+    token: '${Token}'
+  },
+  requestBody: {   
+    'files': [${LinkGetAfterUpload1}, ${LinkGetAfterUpload2}]
+  }
+}
+```
+```js
+{
+  des: 'Remove files on server',
   method: 'PUT',
   url: 'http://localhost:1002/Remove',
   requestHeader: {
@@ -28,21 +60,7 @@ Service help upload and download files
     token: '${Token}'
   },
   requestBody: {
-    files: [
-      'http://urlfilehere',
-      'http://urlfilehere'
-    ]
-  }
-}
-```
-
-```js
-{
-  des: 'Delete single file upload',
-  method: 'DELETE',
-  url: 'http://localhost:1001/Files/${link}',
-  requestHeader: {
-    token: '${Token}'
+    'files': [${LinkGetAfterUpload1}, ${LinkGetAfterUpload2}]
   }
 }
 ```

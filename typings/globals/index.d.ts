@@ -1,20 +1,21 @@
 interface IAppConfig {
-    externalConfig?: string;
-    url: string;
-    name: string;
-    port?: number;
-    host?: string;
+    externalConfig?: string
+    url: string
+    name: string
+    port?: number
+    host?: string
     mongo?: {
-        url: string;
-        releaseTimeout?: number;
-    };
-    encryptKey?: string;
+        url: string
+        releaseTimeout?: number
+    }
+    encryptKey?: string
     services: {
         oauth: string
     },
     app: {
-        
+        periodToDelete: number
+        scanTimeout: number
     }
 }
 
-declare const AppConfig: IAppConfig;
+declare const AppConfig: IAppConfig
