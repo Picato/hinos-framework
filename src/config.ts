@@ -38,7 +38,8 @@ if (appconfig.externalConfig) {
       continue
     }
     let k = l.substr(0, l.indexOf('='))
-    let v = l.substr(l.indexOf('=') + 1)
+    let v: any = l.substr(l.indexOf('=') + 1)
+    if (v.indexOf('+') === 0) v = +v
     config[key] = loadNewVar(config[key], k, v)
   }
   _.merge(appconfig, config[externalGroup])
