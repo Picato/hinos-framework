@@ -38,7 +38,7 @@ export default class AccountController {
   @MATCHER({
     headers: {
       pj: Uuid,
-      role_id: (...role_ids) => role_ids.map(Mongo.uuid),
+      role_id: vl => vl instanceof Array ? vl.map(Mongo.uuid) : [Mongo.uuid(vl)],
       app: String
     },
     body: {
