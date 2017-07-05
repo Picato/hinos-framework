@@ -88,7 +88,7 @@ export class MailService {
       try {
         const transporter = nodemailer.createTransport(config);
         try {
-          transporter.sendMail(mailOptions, (error, info) => {
+          transporter.sendMail(mailOptions as nodemailer.SendMailOptions, (error, info) => {
             if (error) return reject(error);
             resolve(info);
           });
