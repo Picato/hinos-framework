@@ -4,8 +4,11 @@ import * as _ from 'lodash'
 
 declare let global: any
 
-const appconfig: IAppConfig = require('../appconfig.json')
-appconfig.name = process.env.npm_package_name
+const packageConfig = require('../package.json')
+const appconfig: IAppConfig = _.merge({}, packageConfig.config, {
+  name: packageConfig.name
+})
+
 if (appconfig.externalConfig) {
   const [externalFile, externalGroup] = appconfig.externalConfig.split('#')
   let content: string = fs.readFileSync(externalFile).toString()
