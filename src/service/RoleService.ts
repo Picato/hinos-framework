@@ -35,7 +35,7 @@ export class RoleService {
   private static redis: Redis
 
   static async createDefaultAdminRole(projectId: Uuid) {
-    const rs: Role = await RoleService.insert({
+    const rs = await RoleService.insert({
       name: 'Admin',
       api: [{
         path: '.*',
@@ -60,7 +60,7 @@ export class RoleService {
     body._id = Mongo.uuid() as Uuid
     Checker.required(body, 'name', String)
     Checker.required(body, 'project_id', Uuid)
-    Checker.required(body, 'account_id', Uuid)
+    Checker.option(body, 'account_id', Uuid)
     Checker.option(body, 'api', Array, [])
     Checker.option(body, 'web', Array, [])
     Checker.option(body, 'mob', Array, [])

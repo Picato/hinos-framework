@@ -85,7 +85,7 @@ export class AccountService {
   }
 
   static async genSecretKey({ accountId = undefined as Uuid, projectId = undefined as Uuid }) {
-    const secretKey = `${projectId}${accountId}${Mongo.uuid().toString()}`
+    const secretKey = `${new Date().getTime()}${projectId}${Math.round(Math.random() * 1000000)}${accountId}${Math.round(Math.random() * 1000)}${Mongo.uuid()}`
     const acc = await AccountService.mongo.get<Account>(Account, {
       _id: accountId,
       project_id: projectId
@@ -157,8 +157,8 @@ export class AccountService {
   }
 
   static async authoriz({ token = undefined as string, path = undefined as string, actions = [] }) {
-    const cached: AccountCached = await AccountService.authen(token)
-    const roles: Role[] = await RoleService.getCachedRole(cached.project_id)
+    const cached = await AccountService.authen(token)
+    const roles = await RoleService.getCachedRole(cached.project_id)
     const accRole = roles.filter(e => cached.role_ids.map(e => e.toString()).indexOf(e._id.toString() !== -1))
     for (const role of accRole) {
       for (const r of role.api) {
@@ -202,7 +202,7 @@ export class AccountService {
       }
       acc.token = []
     }
-    const token = `${acc.project_id}${acc._id}${Mongo.uuid()}`
+    const token = `${new Date().getTime()}${acc.project_id}${Math.round(Math.random() * 1000000)}${acc._id}${Math.round(Math.random() * 1000)}${Mongo.uuid()}`
     acc.token.push(token)
     await AccountService.mongo.update(Account, {
       _id: acc._id,
@@ -219,8 +219,8 @@ export class AccountService {
 
   static async createDefaultAdminAccount(projectId: Uuid, role: Role) {
     // Create default account
-    const password = Mongo.uuid().toString().substr(0, 6)
-    const admin: Account = await AccountService.insert({
+    const password = Mongo.uuid().toString().split('').reverse().join('').substr(0, 6)
+    const admin = await AccountService.insert({
       username: 'admin',
       password: md5(password),
       project_id: projectId,

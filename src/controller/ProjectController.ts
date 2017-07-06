@@ -17,7 +17,7 @@ export class ProjectController {
   @INJECT(suAuthoriz())
   static async find({ query }) {
     let where = {}
-    const rs: Project[] = await ProjectService.find({
+    const rs = await ProjectService.find({
       $where: where,
       $page: +query.page,
       $recordsPerPage: +query.recordsPerPage
@@ -33,7 +33,7 @@ export class ProjectController {
     }
   })
   static async get({ params }) {
-    const rs: Project = await ProjectService.get(params._id)
+    const rs = await ProjectService.get(params._id)
     return rs
   }
 
@@ -49,7 +49,7 @@ export class ProjectController {
     }
   })
   static async add({ body }) {
-    const rs: Project = await ProjectService.insert(body)
+    const rs = await ProjectService.insert(body)
     return rs
   }
 

@@ -58,12 +58,22 @@ export default class AccountController {
   }
 
   @GET('/Logout')
+  @MATCHER({
+    headers: {
+      token: vl => vl.split('?')[0]
+    }
+  })
   @INJECT(authoriz(`${AppConfig.name}>Me`, ['LOGOUT']))
   static async logout({ state }) {
     await AccountService.logout(state.auth)
   }
 
   @HEAD('/Ping')
+  @MATCHER({
+    headers: {
+      token: vl => vl.split('?')[0]
+    }
+  })
   @INJECT(authoriz(`${AppConfig.name}>Me`, ['PING']))
   static async ping({ state }) {
     await AccountService.ping(state.auth)
@@ -86,7 +96,7 @@ export default class AccountController {
     await next()
   })
   static async authoriz({ state, headers, ctx }) {
-    const rs = await AccountService.authoriz(state)
+    await AccountService.authoriz(state)
     ctx.set({ token: headers.token })
   }
 
