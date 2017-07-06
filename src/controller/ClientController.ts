@@ -97,6 +97,12 @@ export default class AccountController {
     return secretKey
   }
 
+  @DELETE('/Secretkey')
+  @INJECT(authoriz(`${AppConfig.name}>Me`, ['GEN_SECRETKEY']))
+  static async clearSecretKey({ state }) {
+    await AccountService.clearSecretKey(state.auth)
+  }
+
   @GET('/Secretkey')
   @INJECT(authoriz(`${AppConfig.name}>Me`, ['GET_SECRETKEY']))
   static async getSecretKey({ state }) {

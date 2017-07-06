@@ -19,6 +19,7 @@ export class Role {
   _id?: Uuid
   name?: string
   project_id?: Uuid
+  account_id?: Uuid
   api?: Action[]
   web?: Action[]
   mob?: Action[]
@@ -59,6 +60,7 @@ export class RoleService {
     body._id = Mongo.uuid() as Uuid
     Checker.required(body, 'name', String)
     Checker.required(body, 'project_id', Uuid)
+    Checker.required(body, 'account_id', Uuid)
     Checker.option(body, 'api', Array, [])
     Checker.option(body, 'web', Array, [])
     Checker.option(body, 'mob', Array, [])
@@ -75,6 +77,7 @@ export class RoleService {
   @VALIDATE((body: Role) => {
     Checker.required(body, '_id', Uuid)
     Checker.required(body, 'project_id', Uuid)
+    Checker.required(body, 'account_id', Uuid)
     Checker.option(body, 'name', String)
     Checker.option(body, 'api', Array)
     Checker.option(body, 'web', Array)

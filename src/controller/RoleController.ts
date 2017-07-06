@@ -53,6 +53,7 @@ export class RoleController {
   })
   static async add({ body, state }) {
     body.project_id = state.auth.projectId
+    body.account_id = state.auth.accountId
     const rs: Role = await RoleService.insert(body)
     return rs
   }
@@ -76,7 +77,8 @@ export class RoleController {
       _id: params._id,
       project_id: state.auth.projectId
     }
-    body.project_id = state.auth.projectId    
+    body.project_id = state.auth.projectId
+    body.account_id = state.auth.accountId
     await RoleService.update(body)
   }
 

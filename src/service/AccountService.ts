@@ -86,9 +86,10 @@ export class AccountService {
 
   static async genSecretKey({ accountId = undefined as Uuid, projectId = undefined as Uuid }) {
     const secretKey = `${projectId}${accountId}${Mongo.uuid().toString()}`
-    const acc = await AccountService.mongo.get<Account>(Account, accountId, {
-      project_id: 1, role_ids: 1, secret_key: 1
-    })
+    const acc = await AccountService.mongo.get<Account>(Account, {
+      _id: accountId,
+      project_id: projectId
+    }, { role_ids: 1, secret_key: 1 })
     const rs = await AccountService.mongo.update(Account, {
       _id: accountId,
       secret_key: secretKey
@@ -96,11 +97,24 @@ export class AccountService {
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
     await AccountService.setCachedToken(acc.secret_key)
     await AccountService.setCachedToken(secretKey, {
-      project_id: acc.project_id,
-      account_id: acc._id,
+      project_id: projectId,
+      account_id: accountId,
       role_ids: acc.role_ids
     } as AccountCached)
     return secretKey
+  }
+
+  static async clearSecretKey({ accountId = undefined as Uuid, projectId = undefined as Uuid }) {
+    const acc = await AccountService.mongo.get<Account>(Account, {
+      _id: accountId,
+      project_id: projectId
+    }, { secret_key: 1 })
+    const rs = await AccountService.mongo.update(Account, {
+      _id: acc._id,
+      secret_key: undefined
+    })
+    if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
+    await AccountService.setCachedToken(acc.secret_key)
   }
 
   static async getMe({ projectId, accountId }) {
