@@ -44,8 +44,10 @@ export class MailController {
       recordsPerPage: Number
     }
   })
-  static async find({ query }) {
-    let where = {}
+  static async find({ query, state }) {
+    let where = {
+      project_id: state.auth.projectId
+    }
     const rs = await MailService.find({
       $where: where,
       $page: query.page,
@@ -65,8 +67,11 @@ export class MailController {
       _id: Mongo.uuid
     }
   })
-  static async get({ params }) {
-    const rs = await MailService.get(params._id)
+  static async get({ params, state }) {
+    const rs = await MailService.get({
+      _id: params._id,
+      project_id: state.auth.projectId
+    })
     return rs
   }
 
@@ -82,7 +87,8 @@ export class MailController {
       _id: {
         _id: params._id,
         project_id: state.auth.projectId
-      }
+      },
+      account_id: state.auth.accountId
     })
   }
 

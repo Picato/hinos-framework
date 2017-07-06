@@ -19,8 +19,10 @@ export class ConfigController {
       recordsPerPage: Number
     }
   })
-  static async find({ query }) {
-    let where = {}
+  static async find({ query, state }) {
+    let where = {
+      project_id: state.auth.projectId
+    }
     const rs = await ConfigService.find({
       $where: where,
       $page: query.page,
@@ -36,8 +38,11 @@ export class ConfigController {
       _id: Mongo.uuid
     }
   })
-  static async get({ params }) {
-    const rs = await ConfigService.get(params._id)
+  static async get({ params, state }) {
+    const rs = await ConfigService.get({
+      _id: params._id,
+      project_id: state.auth.projectId
+    })
     return rs
   }
 
@@ -74,6 +79,7 @@ export class ConfigController {
       _id: params._id,
       project_id: state.auth.projectId
     }
+    body.account_id = state.auth.accountId
     await ConfigService.update(body)
   }
 
