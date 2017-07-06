@@ -4,7 +4,7 @@
   url: 'http://localhost:1002/Upload/595c71ce14996d27e8f0d1c1',
   requestHeader: {
     'content-type': 'multipart/form-data',
-    token: '595c7179d28ff924b0f5c623595c7179d28ff924b0f5c626595ca0188537a0173c9b89ab?2700'
+    token: '595de3aedaf10302d89cf369595de3aedaf10302d89cf36c595de3f9daf10302d89cf36d?2700'
   },
   requestBody: {
     'file:files': ['C:\\test.jpg']
