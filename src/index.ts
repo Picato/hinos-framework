@@ -13,7 +13,7 @@ require(`./env.${Server.env}`).default(Server)
 Mongo(AppConfig.mongo)
 Redis(AppConfig.redis)
 Server.use(cors({
-  exposeHeaders: ['token']
+  exposeHeaders: ['token', 'project_id', 'account_id']
 }))
 Server.use(route(path.join(__dirname, 'controller')))
 

@@ -96,8 +96,8 @@ export default class AccountController {
     await next()
   })
   static async authoriz({ state, headers, ctx }) {
-    await AccountService.authoriz(state)
-    ctx.set({ token: headers.token })
+    const ac = await AccountService.authoriz(state)
+    ctx.set({ account_id: ac.account_id, project_id: ac.project_id })
   }
 
   @PUT('/Secretkey')

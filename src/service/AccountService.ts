@@ -85,7 +85,7 @@ export class AccountService {
   }
 
   static async genSecretKey({ accountId = undefined as Uuid, projectId = undefined as Uuid }) {
-    const secretKey = `${new Date().getTime()}${projectId}${Math.round(Math.random() * 1000000)}${accountId}${Math.round(Math.random() * 1000)}${Mongo.uuid()}`
+    const secretKey = AccountService.generateToken()
     const acc = await AccountService.mongo.get<Account>(Account, {
       _id: accountId,
       project_id: projectId
@@ -151,8 +151,9 @@ export class AccountService {
   }
 
   static async authen(token) {
+    if (!token) throw HttpError.AUTHEN()
     let cached = await AccountService.getCachedToken(token)
-    if (!cached) throw HttpError.AUTHEN()
+    if (!cached) throw HttpError.EXPIRED()
     return AccountCached.cast(cached)
   }
 
@@ -202,7 +203,7 @@ export class AccountService {
       }
       acc.token = []
     }
-    const token = `${new Date().getTime()}${acc.project_id}${Math.round(Math.random() * 1000000)}${acc._id}${Math.round(Math.random() * 1000)}${Mongo.uuid()}`
+    const token = AccountService.generateToken()
     acc.token.push(token)
     await AccountService.mongo.update(Account, {
       _id: acc._id,
@@ -326,6 +327,10 @@ export class AccountService {
 
   static async getCachedToken(token: string) {
     return await AccountService.redis.get(`$token:${token}`) as AccountCached
+  }
+
+  private static generateToken() {
+    return md5(`${Math.round(Math.random() * 1000000)}${Mongo.uuid()}`)
   }
 
 }
