@@ -13,11 +13,10 @@ export function authoriz(path: string, actions: string[]) {
       }
     })
     if (res.statusCode !== 204) throw HttpError.INTERNAL(res.error)
-    const [, projectId, accountId] = res.headers.token.match(new RegExp(`^.{13}(.{24}).{${13 >> 1}}(.{24})`))
     ctx.state.auth = {
       token: res.headers.token,
-      projectId: Mongo.uuid(projectId),
-      accountId: Mongo.uuid(accountId)
+      projectId: Mongo.uuid(res.headers.project_id),
+      accountId: Mongo.uuid(res.headers.account_id)
     }
     await next()
   }
