@@ -8,6 +8,7 @@ import HttpError from '../common/HttpError'
 import { Role, Action } from './RoleService'
 import { ProjectService } from './ProjectService'
 import { RoleService } from './RoleService'
+import * as fbgraph from 'fbgraph'
 
 /************************************************
  ** AccountService || 4/10/2017, 10:19:24 AM **
@@ -77,6 +78,16 @@ export class AccountService {
     console.log(`Loaded ${caches.length} accounts into cached`)
   }
 
+  static getMeFacebook(token: string): Promise<{ id: string, email: string }> {
+    return new Promise((resolve, reject) => {
+      fbgraph.setAccessToken(token)
+      fbgraph.get("/me?fields=email", (err, res) => {
+        if (err) return reject(err)
+        resolve(res)
+      })
+    })
+  }
+
   static async getSecretKey({ accountId = undefined as Uuid }) {
     const acc = await AccountService.mongo.get<Account>(Account, accountId, {
       secret_key: 1
@@ -130,7 +141,11 @@ export class AccountService {
   @VALIDATE(async (body: Account) => {
     body._id = Mongo.uuid() as Uuid
     Checker.required(body, 'username', String)
-    Checker.required(body, 'password', String)
+    Checker.option(body, 'app', String, undefined, () => {
+      Checker.required(body, 'token', String)
+    }, () => {
+      Checker.required(body, 'password', String)
+    })
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'recover_by', String)
     Checker.required(body, 'role_ids', Array)
@@ -250,7 +265,11 @@ export class AccountService {
   @VALIDATE((body: Account) => {
     body._id = Mongo.uuid() as Uuid
     Checker.required(body, 'username', String)
-    Checker.required(body, 'password', String)
+    Checker.option(body, 'app', String, undefined, () => {
+      Checker.required(body, 'token', String)
+    }, () => {
+      Checker.required(body, 'password', String)
+    })
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'status', Number)
     Checker.required(body, 'recover_by', String)

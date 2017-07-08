@@ -7,6 +7,7 @@ import { Mongo, Uuid } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
 import { Account, AccountService } from '../service/AccountService'
 import { authoriz } from '../service/Authoriz'
+import * as fbgraph from 'fbgraph'
 
 /************************************************
  ** AccountController || 4/10/2017, 10:19:24 AM **
@@ -18,17 +19,21 @@ export default class AccountController {
   @BODYPARSER()
   @MATCHER({
     headers: {
-      pj: Uuid,
-      app: String
+      pj: Uuid
     },
     body: {
+      app: String,
+      token: String,
       username: String,
       password: md5
     }
   })
   static async login({ headers, ctx, body }) {
     body.projectId = headers.pj
-    body.app = headers.app
+    if ('facebook' === body.app) {
+      const { id } = await AccountService.getMeFacebook(body.token)
+      body.username = id
+    }
     const token = await AccountService.login(body)
     ctx.set('token', token)
   }
@@ -38,22 +43,26 @@ export default class AccountController {
   @MATCHER({
     headers: {
       pj: Uuid,
-      role_id: vl => vl instanceof Array ? vl.map(Mongo.uuid) : [Mongo.uuid(vl)],
-      app: String
+      role_id: vl => vl instanceof Array ? vl.map(Mongo.uuid) : [Mongo.uuid(vl)]
     },
     body: {
       username: String,
       password: md5,
       recover_by: String,
+      token: String,
+      app: String,
       more: Object
     }
   })
   static async register({ body, headers }) {
-    const acc = await AccountService.register(Object.assign(body, {
-      app: headers.app,
-      project_id: headers.pj,
-      role_ids: headers.role_id
-    }))
+    body.project_id = headers.pj
+    body.role_ids = headers.role_id
+    if ('facebook' === body.app) {
+      const { id, email } = await AccountService.getMeFacebook(body.token)
+      body.username = id
+      body.recover_by = email
+    }
+    const acc = await AccountService.register(body)
     return acc
   }
 

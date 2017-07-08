@@ -7,13 +7,15 @@ Service help manage authen, authoiz via APIs
 {
   des: 'Register',
   method: 'POST',
-  url: 'http://localhost:1001/register',
+  url: 'http://localhost:1001/Register',
   requestHeader: {
     'content-type': 'application/json', 
     pj: '${ProjectId}',
     role_id: '${RoleId}'
   },
   requestBody: {
+      app: 'facebook', // If register via facebook
+      token: '${facebook-accessToken}', // If register via facebook
       username: 'thanhdt1',
       password: '123',
       status: 1,
@@ -26,12 +28,14 @@ Service help manage authen, authoiz via APIs
 {
   des: 'Login',
   method: 'POST',
-  url: 'http://localhost:1001/login',
+  url: 'http://localhost:1001/Login',
   requestHeader: {
     'content-type': 'application/json',
     pj: '${ProjectId}',
   },
   requestBody: {
+      app: 'facebook', // If register via facebook
+      token: '${facebook-accessToken}', // If register via facebook
       username: '${username}',
       password: '${password}'
   }
@@ -41,7 +45,7 @@ Service help manage authen, authoiz via APIs
 {
   des: 'Keep alive session help it not expired',
   method: 'HEAD',
-  url: 'http://localhost:1001/ping',
+  url: 'http://localhost:1001/Ping',
   requestHeader: {
     token: '${Token}'
   }
@@ -51,7 +55,7 @@ Service help manage authen, authoiz via APIs
 {
   des: 'Logout',
   method: 'GET',
-  url: 'http://localhost:1001/logout',
+  url: 'http://localhost:1001/Logout',
   requestHeader: {
     token: '${Token}'
   }
@@ -61,7 +65,7 @@ Service help manage authen, authoiz via APIs
 {
   des: 'Check authorization',
   method: 'HEAD',
-  url: 'http://localhost:1001/authoriz?path=test&actions=INSERT',
+  url: 'http://localhost:1001/Authoriz?path=test&actions=INSERT',
   requestHeader: {
     'content-type': 'application/json',
     token: '${Token}'
@@ -72,7 +76,7 @@ Service help manage authen, authoiz via APIs
 {
   des: 'Get my information',
   method: 'GET',
-  url: 'http://localhost:1001/me',
+  url: 'http://localhost:1001/Me',
   requestHeader: {
     token: '${Token}'
   }
@@ -82,7 +86,7 @@ Service help manage authen, authoiz via APIs
 {
   des: 'Update my information',
   method: 'PUT',
-  url: 'http://localhost:1001/me',
+  url: 'http://localhost:1001/Me',
   requestHeader: {
     'content-type': 'application/json', 
     token: '${Token}'
@@ -101,7 +105,7 @@ Service help manage authen, authoiz via APIs
 {
   des: 'Generate secret key help use api without login',
   method: 'PUT',
-  url: 'http://localhost:1001/secretkey',
+  url: 'http://localhost:1001/Secretkey',
   requestHeader: {
     'content-type': 'application/json',
     token: '5954a67b396f111aa86d0da45954a6b0396f111aa86d0da65954acf154320a291040f6c8?2700'
@@ -112,7 +116,7 @@ Service help manage authen, authoiz via APIs
 {
   des: 'get secret key',
   method: 'GET',
-  url: 'http://localhost:1001/secretkey',
+  url: 'http://localhost:1001/Secretkey',
   requestHeader: {
     'content-type': 'application/json',
     token: '5954a67b396f111aa86d0da45954a6b0396f111aa86d0da65954acf154320a291040f6c8?2700'

@@ -34,6 +34,7 @@
     }
   },
   "dependencies": {
+    "fbgraph": "^1.4.1",
     "hinos": "^1.0.8",
     "hinos-bodyparser": "^1.0.7",
     "hinos-common": "^1.0.4",
