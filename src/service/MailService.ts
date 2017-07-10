@@ -73,6 +73,7 @@ export class MailService {
           })
           await MailService.sendMail(_.pick(mail, ['attachments', 'cc', 'from', 'html', 'subject', 'to', 'text']), config.config)
           e.status = Mail.Status.PASSED
+          e.error = undefined
         } catch (err) {
           e.status--
           e.error = err
