@@ -83,22 +83,26 @@ export class MailService {
     setTimeout(MailService.schedule, AppConfig.app.scanTimeout)
   }
 
+  static async test(mail: Mail, config) {
+    await MailService.sendMail(_.pick(mail, ['attachments', 'cc', 'from', 'html', 'subject', 'to', 'text']), config)
+  }
+
   private static async sendMail(mailOptions: Mail, config: Config) {
     return new Promise((resolve, reject) => {
       try {
-        const transporter = nodemailer.createTransport(config);
+        const transporter = nodemailer.createTransport(config)
         try {
           transporter.sendMail(mailOptions as nodemailer.SendMailOptions, (error, info) => {
-            if (error) return reject(error);
-            resolve(info);
-          });
+            if (error) return reject(HttpError.INTERNAL(error.message))
+            resolve(info)
+          })
         } catch (e) {
           reject(HttpError.INTERNAL(e))
         }
       } catch (e) {
-        reject(HttpError.INTERNAL(e));
+        reject(HttpError.INTERNAL(e))
       }
-    });
+    })
   }
 
   static async find(fil = {}) {

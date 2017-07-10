@@ -11,6 +11,25 @@ import { authoriz } from '../service/Authoriz'
 
 export class MailController {
 
+  @POST('/Test')
+  @INJECT(authoriz(`${AppConfig.name}>Config`, ['Test']))
+  @BODYPARSER()
+  @MATCHER({
+    body: {
+      name: String,
+      to: String,
+      config: Object
+    }
+  })
+  static async test({ body }) {
+    const rs = await MailService.test({
+      from: body.name,
+      to: body.to,
+      subject: "Test",
+      text: ""
+    }, body.config)
+  }
+
   @POST('/Send/:configId')
   @INJECT(authoriz(`${AppConfig.name}>Mail`, ['INSERT']))
   @BODYPARSER()
