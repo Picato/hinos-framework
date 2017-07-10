@@ -36,8 +36,8 @@
     "hinos-cors": "^1.0.0",
     "hinos-mongo": "^1.0.7",
     "hinos-requestmatcher": "^1.0.4",
-    "hinos-route": "^1.0.6",
-    "hinos-serve": "^1.0.6",
+    "hinos-route": "^1.0.7",
+    "hinos-serve": "^1.0.7",
     "hinos-validation": "^1.0.7",
     "lodash": "^4.17.4"
   },
