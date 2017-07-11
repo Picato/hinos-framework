@@ -1,4 +1,5 @@
 import * as _ from 'lodash'
+import * as path from 'path'
 import { GET, POST, PUT, DELETE, HEAD, INJECT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
 import { MATCHER } from 'hinos-requestmatcher'
@@ -6,6 +7,8 @@ import { Mongo, Uuid } from 'hinos-mongo'
 import { Files, FilesService } from '../service/FilesService'
 import { ConfigService } from '../service/ConfigService'
 import { authoriz } from '../service/Authoriz'
+import Utils from '../common/Utils'
+import HttpError from '../common/HttpError'
 
 /************************************************
  ** FilesController || 4/10/2017, 10:19:24 AM **
@@ -39,16 +42,48 @@ export class FilesController {
       maxCount: "() => state.config.maxFile",
       resize: "() => state.config.resize"
     }
-  ])
+  ], (err, next) => {
+    if (err.code && 'LIMIT_UNEXPECTED_FILE' === err.code) throw HttpError.BAD_REQUEST(`The maximum number of files is ${err.ctx.state.config.maxFile}`)
+    throw err
+  })
   @MATCHER({
     query: {
-      store: Boolean
+      store: Boolean,
+      name: String
     },
     params: {
       configId: Uuid
     },
     body: {
-      files: vl => vl instanceof Array ? vl.map(e => `${e.httpPath}?name=${e.originalname}`) : `${vl.httpPath}?name=${vl.originalname}`
+      files: async (vl, { state, query }) => {
+        if (state.config.zip) {
+          if (vl instanceof Array) {
+            if (vl.length <= 0) return vl
+            const fileOut = path.parse(vl[0].path)
+            await Utils.zip(vl.map(e => {
+              return {
+                path: e.path,
+                name: e.originalname
+              }
+            }), path.join(fileOut.dir, `${fileOut.name}.zip`))
+            await Utils.deleteUploadFiles(vl.map(e => e.httpPath), state.config.resize)
+            const httpName = path.parse(vl[0].httpPath)
+            const httpPath = path.join(httpName.dir, `${httpName.name}.zip`)
+            return `${httpPath}?name=${query.name || httpName.name}.zip`
+          } else {
+            const fileName = path.parse(vl.originalname)
+            const httpName = path.parse(vl.httpPath)
+            await Utils.zip({
+              path: vl.path,
+              name: fileName.name
+            }, `${fileName.name}.zip`)
+            await Utils.deleteUploadFiles(vl.path, state.config.resize)
+            const httpPath = path.join(httpName.dir, `${httpName.name}.zip`)
+            return `${httpPath}?name=${fileName.name}.zip`
+          }
+        }
+        return vl instanceof Array ? vl.map(e => `${e.httpPath}?name=${e.originalname}`) : `${vl.httpPath}?name=${vl.originalname}`
+      }
     }
   })
   static async upload({ body, state, params, query }) {
@@ -56,14 +91,15 @@ export class FilesController {
     body.project_id = state.auth.projectId
     body.config_id = params.configId
     body.status = query.store ? Files.Status.SAVED : Files.Status.TEMP
+    body.sizes = state.config.resize
     const files = _.clone(body.files)
     if (body.files instanceof Array) {
       for (const f of files) {
         body.files = f
-        await FilesService.insert(body, state.config.resize)
+        await FilesService.insert(body)
       }
     } else {
-      await FilesService.insert(body, state.config.resize)
+      await FilesService.insert(body)
     }
     return files
   }

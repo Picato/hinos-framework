@@ -1,5 +1,6 @@
 import * as path from 'path'
 import * as fs from 'fs'
+import * as archiver from 'archiver'
 import { ImageResize } from 'hinos-bodyparser'
 
 export default class Utils {
@@ -23,5 +24,24 @@ export default class Utils {
     for (let f of files) {
       remove(path.join(__dirname, '..', '..', 'assets', f.split('?')[0]), sizes)
     }
+  }
+  public static zip(inPath: { path: string, name: string } | { path: string, name: string }[], outPath) {
+    return new Promise((resolve, reject) => {
+      var archive = archiver('zip', {
+        zlib: { level: 9 }
+      })
+      const output = fs.createWriteStream(path.join(__dirname, '..', '..', outPath))
+      output.on('close', resolve)
+      archive.on('error', reject)
+      archive.pipe(output)
+      if (inPath instanceof Array) {
+        for (const p of inPath) {
+          archive = archive.append(fs.createReadStream(path.join(__dirname, '..', '..', p.path)), { name: p.name })
+        }
+      } else {
+        archive = archive.append(fs.createReadStream(path.join(__dirname, '..', '..', inPath.path)), { name: inPath.name })
+      }
+      archive.finalize()
+    })
   }
 }

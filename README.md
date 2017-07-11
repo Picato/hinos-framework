@@ -5,7 +5,13 @@ Service help upload and download files
 * When upload a file, it is stored in temp folder
 * The files which was stored in temp folder will be deleted after a period of time. So you have 2 choice:
     1.  You need call a API to store them after upload
-    2.  Store file in the upload process
+    2.  Auto store file in the upload process
+
+# Features
+1. Upload temp file
+2. Upload and store file
+3. Upload images and auto resize it base on file configuration
+4. Upload file and auto zip and rename it
 
 # APIs
 
@@ -28,6 +34,20 @@ Service help upload and download files
   des: 'Just upload without store',
   method: 'POST',
   url: 'http://localhost:1002/Upload/${FileConfigId}',
+  requestHeader: {
+    'content-type': 'multipart/form-data',
+    token: '${Token}'
+  },
+  requestBody: {
+    'files': ['C:\\test.jpg', 'C:\\test.jpg']
+  }
+}
+```
+```js
+{
+  des: 'Upload and rename file. <<THIS API ONLY BE APPLIED WHEN FILE CONFIG ALLOW AUTO ZIP>>',
+  method: 'POST',
+  url: 'http://localhost:1002/Upload/${FileConfigId}?name=${fileName}',
   requestHeader: {
     'content-type': 'multipart/form-data',
     token: '${Token}'

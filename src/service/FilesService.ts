@@ -17,6 +17,7 @@ export class Files {
   project_id?: Uuid
   account_id?: Uuid
   status?: number
+  sizes?: ImageResize[]
   files?: string | string[]
   created_at?: Date
   updated_at?: Date
@@ -60,22 +61,23 @@ export class FilesService {
     return rs
   }
 
-  @VALIDATE((body: Files, resize: ImageResize[]) => {
+  @VALIDATE((body: Files) => {
     body._id = <Uuid>Mongo.uuid()
     Checker.required(body, 'config_id', Uuid)
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
     Checker.required(body, 'files', [String, Array])
     Checker.option(body, 'status', Number, Files.Status.TEMP)
+    Checker.option(body, 'sizes', Array)
     body.created_at = new Date()
     body.updated_at = new Date()
   })
-  static async insert(body: Files, resize: ImageResize[], validate?: Function) {
+  static async insert(body: Files, validate?: Function) {
     try {
       const rs = await FilesService.mongo.insert<Files>(Files, body)
       return rs
     } catch (e) {
-      Utils.deleteUploadFiles(body.files, resize)
+      Utils.deleteUploadFiles(body.files, body.sizes)
       throw e
     }
   }
@@ -100,8 +102,7 @@ export class FilesService {
       return: true
     })
     if (!item) throw HttpError.NOT_FOUND('Could not found item to delete')
-    const config = await ConfigService.get(item.config_id)
-    Utils.deleteUploadFiles(item.files, config.config.resize)
+    Utils.deleteUploadFiles(item.files, item.sizes)
   }
 }
 

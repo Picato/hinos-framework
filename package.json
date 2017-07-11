@@ -30,14 +30,15 @@
     }
   },
   "dependencies": {
+    "archiver": "^2.0.0",
     "hinos": "^1.0.8",
-    "hinos-bodyparser": "^1.0.7",
+    "hinos-bodyparser": "^1.1.1",
     "hinos-common": "^1.0.4",
     "hinos-cors": "^1.0.0",
     "hinos-mongo": "^1.0.7",
-    "hinos-requestmatcher": "^1.0.4",
+    "hinos-requestmatcher": "^1.0.5",
     "hinos-route": "^1.0.7",
-    "hinos-serve": "^1.0.7",
+    "hinos-serve": "^1.1.0",
     "hinos-validation": "^1.0.7",
     "lodash": "^4.17.4"
   },
@@ -47,7 +48,7 @@
     "@types/chai": "^3.5.2",
     "@types/lodash": "^4.14.64",
     "@types/mocha": "^2.2.41",
-    "@types/node": "^7.0.23",
+    "@types/node": "^7.0.34",
     "chai": "^3.5.0",
     "mocha": "^3.3.0",
     "rimraf": "^2.6.1"
