@@ -1,5 +1,11 @@
 # hinos-oauth-service
-Service help manage authen, authoiz via APIs
+A micro service manage authentication, authoiziation for others micro services
+
+# Features
+1. Manage project
+2. Manage account
+3. Manage role for each account
+4. Manage login, logout, change user information...
 
 # APIs
 
@@ -125,7 +131,11 @@ Service help manage authen, authoiz via APIs
 ```
 
 # Prerequisite
-If you nodejs verision < 8.0 then you need add bellow code in package.json
+__Global libraries:__ Please ensure installed ```typescript```, ```cross-var```, ```rimraf```
+```sh
+npm i -g typescript cross-var rimraf
+```
+__Node version:__ If you nodejs verision < 8.0 then you need add bellow code in package.json
 ```json
 "scripts": {
     "start": "node --harmony-async-await .",
