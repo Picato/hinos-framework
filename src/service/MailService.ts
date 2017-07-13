@@ -122,7 +122,7 @@ export class MailService {
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
     Checker.required(body, 'subject', String)
-    Checker.option(body, 'text', String, undefined, undefined, e => Checker.required(body, 'html', String))
+    Checker.option(body, 'text', String, undefined, e => Checker.required(body, 'html', String))
     Checker.required(body, 'from', String)
     Checker.required(body, 'to', Array)
     Checker.option(body, 'cc', Array, [])
