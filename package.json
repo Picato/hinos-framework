@@ -33,7 +33,7 @@
     "hinos-mongo": "^1.0.7",
     "hinos-requestmatcher": "^1.0.5",
     "hinos-route": "^1.0.7",
-    "hinos-validation": "^1.0.7",
+    "hinos-validation": "^1.1.0",
     "lodash": "^4.17.4"
   },
   "author": "doanthuanthanh88@gmail.com",
