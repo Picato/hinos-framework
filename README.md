@@ -1,5 +1,5 @@
 # hinos-files-service
-Service help upload and download files
+A micro service manage files uploading and downloading
 
 # About
 * When upload a file, it is stored in temp folder
@@ -8,8 +8,8 @@ Service help upload and download files
     2.  Auto store file in the upload process
 
 # Features
-1. Upload temp file
-2. Upload and store file
+1. Upload temp file (It's will be removed after period time)
+2. Upload and store file (It's will NOT be removed after period time)
 3. Upload images and auto resize it base on file configuration
 4. Upload file and auto zip and rename it
 
@@ -86,7 +86,11 @@ Service help upload and download files
 ```
 
 # Prerequisite
-If you nodejs verision < 8.0 then you need add bellow code in package.json
+__Global libraries:__ Please ensure installed ```typescript```, ```cross-var```, ```rimraf```
+```sh
+npm i -g typescript cross-var rimraf
+```
+__Node version:__ If you nodejs verision < 8.0 then you need add bellow code in package.json
 ```json
 "scripts": {
     "start": "node --harmony-async-await .",
