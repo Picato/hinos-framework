@@ -1,5 +1,5 @@
 # hinos-log-service
-Service help manage logs
+A micro service manage logs
 
 # APIs
 
@@ -72,7 +72,11 @@ Service help manage logs
 ```
 
 # Prerequisite
-If you nodejs verision < 8.0 then you need add bellow code in package.json
+__Global libraries:__ Please ensure installed ```typescript```, ```cross-var```, ```rimraf```
+```sh
+npm i -g typescript cross-var rimraf
+```
+__Node version:__ If you nodejs verision < 8.0 then you need add bellow code in package.json
 ```json
 "scripts": {
     "start": "node --harmony-async-await .",
