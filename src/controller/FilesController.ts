@@ -56,7 +56,7 @@ export class FilesController {
     },
     body: {
       files: async (vl, { state, query }) => {
-        if (state.config.zip) {
+        if (state.config.zip && (vl instanceof Array || !vl.originalname.endsWith('.zip'))) {
           if (vl instanceof Array) {
             if (vl.length <= 0) return vl
             const fileOut = path.parse(vl[0].path)
