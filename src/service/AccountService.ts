@@ -141,11 +141,7 @@ export class AccountService {
   @VALIDATE(async (body: Account) => {
     body._id = Mongo.uuid() as Uuid
     Checker.required(body, 'username', String)
-    Checker.option(body, 'app', String, undefined, () => {
-      Checker.required(body, 'token', String)
-    }, () => {
-      Checker.required(body, 'password', String)
-    })
+    Checker.option(body, 'app', String, () => Checker.required(body, 'token', String), () => Checker.required(body, 'password', String))
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'recover_by', String)
     Checker.required(body, 'role_ids', Array)
@@ -203,7 +199,7 @@ export class AccountService {
       project_id: user.projectId
     }, { password: 1, app: 1, token: 1, status: 1, _id: 1, project_id: 1, role_ids: 1 })
     if (!acc) throw HttpError.NOT_FOUND(`Could not found username ${user.username}`)
-    await Checker.option(user, 'app', String, undefined, () => {
+    await Checker.option(user, 'app', String, () => {
       if (!acc.app.includes(user.app)) throw HttpError.AUTHEN('Login via social error')
     }, () => {
       if (acc.password !== user.password) throw HttpError.BAD_REQUEST('Password is not matched')
@@ -265,11 +261,7 @@ export class AccountService {
   @VALIDATE((body: Account) => {
     body._id = Mongo.uuid() as Uuid
     Checker.required(body, 'username', String)
-    Checker.option(body, 'app', String, undefined, () => {
-      Checker.required(body, 'token', String)
-    }, () => {
-      Checker.required(body, 'password', String)
-    })
+    Checker.option(body, 'app', String, () => Checker.required(body, 'token', String), () => Checker.required(body, 'password', String))
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'status', Number)
     Checker.required(body, 'recover_by', String)
