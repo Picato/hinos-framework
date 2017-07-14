@@ -3,4 +3,3 @@ node_modules/
 .spec/
 assets/*
 !assets/GUI.zip
-package-lock.json

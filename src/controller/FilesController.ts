@@ -73,10 +73,11 @@ export class FilesController {
           } else {
             const fileName = path.parse(vl.originalname)
             const httpName = path.parse(vl.httpPath)
+            const fileOut = path.parse(vl.path)
             await Utils.zip({
               path: vl.path,
               name: fileName.name
-            }, `${fileName.name}.zip`)
+            }, path.join(fileOut.dir, `${fileOut.name}.zip`))
             await Utils.deleteUploadFiles(vl.path, state.config.resize)
             const httpPath = path.join(httpName.dir, `${httpName.name}.zip`)
             return `${httpPath}?name=${fileName.name}.zip`

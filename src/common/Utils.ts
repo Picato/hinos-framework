@@ -4,8 +4,11 @@ import * as archiver from 'archiver'
 import { ImageResize } from 'hinos-bodyparser'
 
 export default class Utils {
+  private static getAssetPath(...path) {
+    return path.join(path.indexOf('assets') === 0 ? '' : 'assets', ...path)
+  }
   public static getUploadFile(assetPath: string) {
-    return path.join(__dirname, '..', '..', 'assets', assetPath)
+    return Utils.getAssetPath(assetPath)
   }
   public static deleteUploadFiles(files: string | string[], sizes?: ImageResize[]): void {
     if (!files) return
@@ -20,9 +23,9 @@ export default class Utils {
         }
       }
     }
-    if (!(files instanceof Array)) return remove(path.join(__dirname, '..', '..', 'assets', files.split('?')[0]), sizes)
+    if (!(files instanceof Array)) return remove(Utils.getAssetPath(files.split('?')[0]), sizes)
     for (let f of files) {
-      remove(path.join(__dirname, '..', '..', 'assets', f.split('?')[0]), sizes)
+      remove(Utils.getAssetPath(f.split('?')[0]), sizes)
     }
   }
   public static zip(inPath: { path: string, name: string } | { path: string, name: string }[], outPath) {
@@ -30,16 +33,16 @@ export default class Utils {
       var archive = archiver('zip', {
         zlib: { level: 9 }
       })
-      const output = fs.createWriteStream(path.join(__dirname, '..', '..', outPath))
+      const output = fs.createWriteStream(Utils.getAssetPath(outPath))
       output.on('close', resolve)
       archive.on('error', reject)
       archive.pipe(output)
       if (inPath instanceof Array) {
         for (const p of inPath) {
-          archive = archive.append(fs.createReadStream(path.join(__dirname, '..', '..', p.path)), { name: p.name })
+          archive = archive.append(fs.createReadStream(Utils.getAssetPath(p.path)), { name: p.name })
         }
       } else {
-        archive = archive.append(fs.createReadStream(path.join(__dirname, '..', '..', inPath.path)), { name: inPath.name })
+        archive = archive.append(fs.createReadStream(Utils.getAssetPath(inPath.path)), { name: inPath.name })
       }
       archive.finalize()
     })
