@@ -2,7 +2,7 @@ import { GET, POST, PUT, DELETE, HEAD, INJECT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
 import { MATCHER } from 'hinos-requestmatcher'
 import { Mongo } from 'hinos-mongo'
-import { Config, ConfigService } from '../service/ConfigService'
+import { MailConfig, MailConfigService } from '../service/MailConfigService'
 import { authoriz } from '../service/Authoriz'
 
 /************************************************
@@ -11,7 +11,7 @@ import { authoriz } from '../service/Authoriz'
 
 export class ConfigController {
 
-  @GET('/Config')
+  @GET('/MailConfig')
   @INJECT(authoriz(`${AppConfig.name}>Config`, ['FIND']))
   @MATCHER({
     query: {
@@ -23,7 +23,7 @@ export class ConfigController {
     let where = {
       project_id: state.auth.projectId
     }
-    const rs = await ConfigService.find({
+    const rs = await MailConfigService.find({
       $where: where,
       $page: query.page,
       $recordsPerPage: query.recordsPerPage
@@ -31,7 +31,7 @@ export class ConfigController {
     return rs
   }
 
-  @GET('/Config/:_id')
+  @GET('/MailConfig/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Config`, ['GET']))
   @MATCHER({
     params: {
@@ -39,14 +39,14 @@ export class ConfigController {
     }
   })
   static async get({ params, state }) {
-    const rs = await ConfigService.get({
+    const rs = await MailConfigService.get({
       _id: params._id,
       project_id: state.auth.projectId
     })
     return rs
   }
 
-  @POST('/Config')
+  @POST('/MailConfig')
   @INJECT(authoriz(`${AppConfig.name}>Config`, ['INSERT']))
   @BODYPARSER()
   @MATCHER({
@@ -58,11 +58,11 @@ export class ConfigController {
   static async add({ body, state }) {
     body.project_id = state.auth.projectId
     body.account_id = state.auth.accountId
-    const rs = await ConfigService.insert(body) as Config
+    const rs = await MailConfigService.insert(body) as MailConfig
     return rs
   }
 
-  @PUT('/Config/:_id')
+  @PUT('/MailConfig/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Config`, ['UPDATE']))
   @BODYPARSER()
   @MATCHER({
@@ -80,10 +80,10 @@ export class ConfigController {
       project_id: state.auth.projectId
     }
     body.account_id = state.auth.accountId
-    await ConfigService.update(body)
+    await MailConfigService.update(body)
   }
 
-  @DELETE('/Config/:_id')
+  @DELETE('/MailConfig/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Config`, ['DELETE']))
   @MATCHER({
     params: {
@@ -91,7 +91,7 @@ export class ConfigController {
     }
   })
   static async del({ params, state }) {
-    await ConfigService.delete({
+    await MailConfigService.delete({
       _id: params._id,
       project_id: state.auth.projectId
     })

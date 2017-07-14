@@ -3,7 +3,7 @@ import { VALIDATE, Checker } from 'hinos-validation'
 import { ImageResize } from 'hinos-bodyparser'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
-import { ConfigService, Config } from './ConfigService'
+import { MailConfig, MailConfigService } from './MailConfigService'
 import * as nodemailer from 'nodemailer'
 
 /************************************************
@@ -65,7 +65,7 @@ export class MailService {
     if (listEmail.length > 0) {
       for (const e of listEmail) {
         try {
-          const config = await ConfigService.get(e.config_id)
+          const config = await MailConfigService.get(e.config_id)
           let mail = _.cloneDeep(e)
           _.merge(mail, {
             cc: e.cc.join(', '),
@@ -88,7 +88,7 @@ export class MailService {
     await MailService.sendMail(_.pick(mail, ['attachments', 'cc', 'from', 'html', 'subject', 'to', 'text']), config)
   }
 
-  private static async sendMail(mailOptions: Mail, config: Config) {
+  private static async sendMail(mailOptions: Mail, config: MailConfig) {
     return new Promise((resolve, reject) => {
       try {
         const transporter = nodemailer.createTransport(config)
