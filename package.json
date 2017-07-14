@@ -13,7 +13,7 @@
   },
   "config": {
     "externalConfig": "./appconfig.cfg#api",
-    "url": "http://localhost:1000",
+    "url": "http://localhost:1007",
     "services": {
       "oauth": "http://localhost:1001"
     },
