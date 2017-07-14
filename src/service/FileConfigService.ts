@@ -5,11 +5,11 @@ import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
 
 /************************************************
- ** ConfigService || 4/10/2017, 10:19:24 AM **
+ ** FileConfigService || 4/10/2017, 10:19:24 AM **
  ************************************************/
 
-@Collection('Config')
-export class Config {
+@Collection('FileConfig')
+export class FileConfig {
   _id?: Uuid
   project_id?: Uuid
   account_id?: Uuid
@@ -28,21 +28,21 @@ export class Config {
   updated_at?: Date
 }
 
-export class ConfigService {
+export class FileConfigService {
   @MONGO()
   private static mongo: Mongo
 
   static async find(fil = {}) {
-    const rs = await ConfigService.mongo.find<Config>(Config, fil)
+    const rs = await FileConfigService.mongo.find<FileConfig>(FileConfig, fil)
     return rs
   }
 
   static async get(_id: any) {
-    const rs = await ConfigService.mongo.get<Config>(Config, _id)
+    const rs = await FileConfigService.mongo.get<FileConfig>(FileConfig, _id)
     return rs
   }
 
-  @VALIDATE((body: Config) => {
+  @VALIDATE((body: FileConfig) => {
     body._id = <Uuid>Mongo.uuid()
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
@@ -55,18 +55,18 @@ export class ConfigService {
     body.created_at = new Date()
     body.updated_at = new Date()
   })
-  static async insert(body: Config, validate?: Function) {
-    const rs = await ConfigService.mongo.insert<Config>(Config, body)
+  static async insert(body: FileConfig, validate?: Function) {
+    const rs = await FileConfigService.mongo.insert<FileConfig>(FileConfig, body)
     return rs
   }
 
-  @VALIDATE((body: Config) => {
+  @VALIDATE((body: FileConfig) => {
     Checker.required(body, '_id', Object)
     Checker.option(body, 'config', Object)
     Checker.option(body, 'name', String)
   })
-  static async update(body: Config, validate?: Function) {
-    const rs = await ConfigService.mongo.update(Config, body)
+  static async update(body: FileConfig, validate?: Function) {
+    const rs = await FileConfigService.mongo.update(FileConfig, body)
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
   }
 
@@ -74,7 +74,7 @@ export class ConfigService {
     Checker.required(_id, [, '_id'], Object)
   })
   static async delete(_id: Object) {
-    const rs = await ConfigService.mongo.delete(Config, _id)
+    const rs = await FileConfigService.mongo.delete(FileConfig, _id)
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to delete')
   }
 }

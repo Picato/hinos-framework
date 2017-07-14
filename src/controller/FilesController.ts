@@ -5,7 +5,7 @@ import { BODYPARSER } from 'hinos-bodyparser'
 import { MATCHER } from 'hinos-requestmatcher'
 import { Mongo, Uuid } from 'hinos-mongo'
 import { Files, FilesService } from '../service/FilesService'
-import { ConfigService } from '../service/ConfigService'
+import { FileConfigService } from '../service/FileConfigService'
 import { authoriz } from '../service/Authoriz'
 import Utils from '../common/Utils'
 import HttpError from '../common/HttpError'
@@ -24,7 +24,7 @@ export class FilesController {
     }
   })
   @INJECT(async ({ params, ctx }, next: Function) => {
-    const config = await ConfigService.get(params.configId)
+    const config = await FileConfigService.get(params.configId)
     ctx.state.config = config.config
     await next()
   })

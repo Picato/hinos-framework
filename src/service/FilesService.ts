@@ -4,7 +4,7 @@ import { ImageResize } from 'hinos-bodyparser'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
 import Utils from '../common/Utils'
-import { ConfigService } from './ConfigService'
+import { FileConfigService } from './FileConfigService'
 
 /************************************************
  ** FilesService || 4/10/2017, 10:19:24 AM **
