@@ -143,7 +143,7 @@ export class FilesController {
     }
   }
 
-  @GET('/Files')
+  @GET('/')
   @INJECT(authoriz(`${AppConfig.name}>Files`, ['FIND']))
   @MATCHER({
     query: {

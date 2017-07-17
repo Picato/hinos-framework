@@ -11,8 +11,8 @@ import { authoriz } from '../service/Authoriz'
 
 export class FileConfigController {
 
-  @GET('/FileConfig')
-  @INJECT(authoriz(`${AppConfig.name}>FileConfig`, ['FIND']))
+  @GET('/Config')
+  @INJECT(authoriz(`${AppConfig.name}>Config`, ['FIND']))
   @MATCHER({
     query: {
       page: Number,
@@ -31,8 +31,8 @@ export class FileConfigController {
     return rs
   }
 
-  @POST('/FileConfig')
-  @INJECT(authoriz(`${AppConfig.name}>FileConfig`, ['INSERT']))
+  @POST('/Config')
+  @INJECT(authoriz(`${AppConfig.name}>Config`, ['INSERT']))
   @BODYPARSER()
   @MATCHER({
     body: {
@@ -47,8 +47,8 @@ export class FileConfigController {
     return rs
   }
 
-  @PUT('/FileConfig/:_id')
-  @INJECT(authoriz(`${AppConfig.name}>FileConfig`, ['UPDATE']))
+  @PUT('/Config/:_id')
+  @INJECT(authoriz(`${AppConfig.name}>Config`, ['UPDATE']))
   @BODYPARSER()
   @MATCHER({
     params: {
@@ -67,8 +67,8 @@ export class FileConfigController {
     await FileConfigService.update(body)
   }
 
-  @DELETE('/FileConfig/:_id')
-  @INJECT(authoriz(`${AppConfig.name}>FileConfig`, ['DELETE']))
+  @DELETE('/Config/:_id')
+  @INJECT(authoriz(`${AppConfig.name}>Config`, ['DELETE']))
   @MATCHER({
     params: {
       _id: Mongo.uuid

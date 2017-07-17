@@ -7,7 +7,7 @@ import type from './lib/_.type';
 const exec = require('child_process').exec;
 declare let global: any;
 
-const AppConfig: any = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'appconfig.json')).toString());
+const AppConfig: any = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'package.json')).toString()).config;
 const urlApp = url.parse(AppConfig.url);
 AppConfig.port = +urlApp.port;
 AppConfig.host = urlApp.host;

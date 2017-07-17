@@ -9,10 +9,12 @@
     "gen": "tsc && node ./.build"
   },
   "dependencies": {
-    "@types/node": "^7.0.23",
     "lodash": "^4.17.4",
     "rimraf": "^2.6.1"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^7.0.36"
+  }
 }

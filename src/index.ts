@@ -14,7 +14,7 @@ Server.use(serve({
   '/upload': path.join(__dirname, '..', 'assets', 'upload')
 }))
 Server.use(cors())
-Server.use(route(path.join(__dirname, 'controller'), { ignorecase: true }))
+Server.use(route(path.join(__dirname, 'controller'), { ignorecase: true, root: '/Files' }))
 
 Server.listen(AppConfig.port, () => {
   FilesService.syncToRemoveTempFiles()

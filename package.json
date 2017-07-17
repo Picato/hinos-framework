@@ -35,7 +35,7 @@
     "hinos-cors": "^1.0.0",
     "hinos-mongo": "^1.0.7",
     "hinos-requestmatcher": "^1.0.5",
-    "hinos-route": "^1.0.7",
+    "hinos-route": "^1.0.10",
     "hinos-serve": "^1.1.0",
     "hinos-validation": "^1.1.0",
     "lodash": "^4.17.4"
@@ -44,9 +44,9 @@
   "license": "ISC",
   "devDependencies": {
     "@types/chai": "^3.5.2",
-    "@types/lodash": "^4.14.64",
+    "@types/lodash": "^4.14.69",
     "@types/mocha": "^2.2.41",
-    "@types/node": "^7.0.36",
+    "@types/node": "^7.0.37",
     "chai": "^3.5.0",
     "mocha": "^3.3.0",
     "rimraf": "^2.6.1"
