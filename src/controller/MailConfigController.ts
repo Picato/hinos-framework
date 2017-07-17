@@ -11,7 +11,7 @@ import { authoriz } from '../service/Authoriz'
 
 export class ConfigController {
 
-  @GET('/MailConfig')
+  @GET('/Config')
   @INJECT(authoriz(`${AppConfig.name}>Config`, ['FIND']))
   @MATCHER({
     query: {
@@ -31,7 +31,7 @@ export class ConfigController {
     return rs
   }
 
-  @GET('/MailConfig/:_id')
+  @GET('/Config/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Config`, ['GET']))
   @MATCHER({
     params: {
@@ -46,7 +46,7 @@ export class ConfigController {
     return rs
   }
 
-  @POST('/MailConfig')
+  @POST('/Config')
   @INJECT(authoriz(`${AppConfig.name}>Config`, ['INSERT']))
   @BODYPARSER()
   @MATCHER({
@@ -62,7 +62,7 @@ export class ConfigController {
     return rs
   }
 
-  @PUT('/MailConfig/:_id')
+  @PUT('/Config/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Config`, ['UPDATE']))
   @BODYPARSER()
   @MATCHER({
@@ -83,7 +83,7 @@ export class ConfigController {
     await MailConfigService.update(body)
   }
 
-  @DELETE('/MailConfig/:_id')
+  @DELETE('/Config/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Config`, ['DELETE']))
   @MATCHER({
     params: {

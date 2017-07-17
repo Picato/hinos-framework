@@ -3,8 +3,11 @@ import * as fs from 'fs'
 import { ImageResize } from 'hinos-bodyparser'
 
 export default class Utils {
+  private static getAssetPath(...path) {
+    return path.join(path.indexOf('assets') === 0 ? '' : 'assets', ...path)
+  }
   public static getUploadFile(assetPath: string) {
-    return path.join(__dirname, '..', '..', 'assets', assetPath)
+    return Utils.getAssetPath(assetPath)
   }
   public static deleteUploadFiles(files: string | string[], sizes?: ImageResize[]): void {
     if (!files) return
@@ -19,9 +22,9 @@ export default class Utils {
         }
       }
     }
-    if (!(files instanceof Array)) return remove(path.join(__dirname, '..', '..', 'assets', files.split('?')[0]), sizes)
+    if (!(files instanceof Array)) return remove(Utils.getAssetPath(files.split('?')[0]), sizes)
     for (let f of files) {
-      remove(path.join(__dirname, '..', '..', 'assets', f.split('?')[0]), sizes)
+      remove(Utils.getAssetPath(f.split('?')[0]), sizes)
     }
   }
 }

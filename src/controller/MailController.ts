@@ -55,7 +55,7 @@ export class MailController {
     return rs
   }
 
-  @GET('/Mail')
+  @GET('/')
   @INJECT(authoriz(`${AppConfig.name}>Mail`, ['FIND']))
   @MATCHER({
     query: {
@@ -79,7 +79,7 @@ export class MailController {
     return rs
   }
 
-  @GET('/Mail/:_id')
+  @GET('/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Mail`, ['GET']))
   @MATCHER({
     params: {
@@ -111,7 +111,7 @@ export class MailController {
     })
   }
 
-  @DELETE('/Mail/:_id')
+  @DELETE('/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Mail`, ['DELETE']))
   @MATCHER({
     params: {
