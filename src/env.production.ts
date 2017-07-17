@@ -1,5 +1,5 @@
-import { Server } from 'hinos';
+import { Server } from 'hinos'
 
 export default function env(Server) {
-    console.log('Production mode');
+  console.log('Production mode')
 }

@@ -4,16 +4,37 @@
   "description": "hinos project which is built for APIs",
   "main": ".build/index.js",
   "scripts": {
+    "prepare": "npm install -g typescript && npm install -g cross-var",
     "start": "node .",
-    "preinstall": "npm install -g typescript",
-    "postinstall": "npm install -g typescript-formatter",
-    "build:clean": "rimraf .build .spec",
-    "build": "npm run build:clean && tsc",
-    "dev": "npm run build:clean && tsc --watch --pretty --sourceMap",
+    "prebuild": "rimraf .build .spec",
+    "build": "tsc",
     "pretest": "rimraf .spec && tsc -p src/test/tsconfig.json",
     "test": "mocha --opts src/test/mocha.opts \".spec/test/spec/*.js\"",
-    "gen": "tsc -p gen_code/tsconfig.json && node ./gen_code/.build",
-    "pm2": "npm run build && pm2 start pm2.config.js"
+    "dev": "tsc --watch --pretty --sourceMap",
+    "pm2": "cross-var \"npm run build && pm2 start . --env production --name $npm_package_name\""
+  },
+  "config": {
+    "externalConfig": "./appconfig.cfg#api",
+    "url": "http://localhost:1001",
+    "encryptKey": ")^!!!(**",
+    "mongo": {
+      "url": "mongodb://localhost:27017/test",
+      "releaseTimeout": 50000
+    },
+    "redis": {
+      "host": "localhost",
+      "port": 6379,
+      "releaseTimeout": 50000
+    },
+    "rabbitmq": {
+      "url": "amqp://127.0.0.1",
+      "releaseTimeout": 50000,
+      "queue": {
+        "API_SENDER": "backend",
+        "API_RECEIVER": "api",
+        "LOG_RECEIVER": "log"
+      }
+    }
   },
   "dependencies": {
     "hinos": "^1.0.8",

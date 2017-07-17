@@ -1,0 +1,18 @@
+{
+  "name": "gen_code",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "preinstall": "npm install -g typescript",
+    "postinstall": "npm install -g typescript-formatter",
+    "gen": "tsc && node ./.build"
+  },
+  "dependencies": {
+    "@types/node": "^7.0.23",
+    "lodash": "^4.17.4",
+    "rimraf": "^2.6.1"
+  },
+  "author": "",
+  "license": "ISC"
+}
