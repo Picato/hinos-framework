@@ -11,7 +11,7 @@ import { authoriz } from '../service/Authoriz'
 
 export class LogController {
 
-  @GET('/Log')
+  @GET('/')
   @INJECT(authoriz(`${AppConfig.name}>Log`, ['FIND']))
   @MATCHER({
     query: {
@@ -34,7 +34,7 @@ export class LogController {
     return rs
   }
 
-  @GET('/Log/:_id')
+  @GET('/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Log`, ['GET']))
   @MATCHER({
     params: {
@@ -49,7 +49,7 @@ export class LogController {
     return rs
   }
 
-  @POST('/Log')
+  @POST('/')
   @INJECT(authoriz(`${AppConfig.name}>Log`, ['INSERT']))
   @BODYPARSER()
   static async add({ body, state }) {
@@ -59,7 +59,7 @@ export class LogController {
     return rs
   }
 
-  @PUT('/Log/:_id')
+  @PUT('/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Log`, ['UPDATE']))
   @BODYPARSER()
   @MATCHER({
@@ -82,7 +82,7 @@ export class LogController {
     await LogService.update(body)
   }
 
-  @DELETE('/Log/:_id')
+  @DELETE('/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Log`, ['DELETE']))
   @MATCHER({
     params: {

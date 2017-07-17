@@ -1,0 +1,53 @@
+{
+  des: 'Add',
+    method: 'POST',
+      url: 'http://localhost:1000/component',
+        requestHeader: {
+    'content-type': 'application/json'
+  },
+  requestBody: {
+    _id: Uuid,
+      project_id: Uuid,
+        account_id: Uuid,
+          file: string,
+            group: string,
+              created_at ?: Date,
+              updated_at ?: Date
+  }
+}
+
+{
+  des: 'Get list',
+    method: 'GET',
+      url: 'http://localhost:1000/component'
+}
+
+{
+  des: 'Update',
+    method: 'PUT',
+      url: 'http://localhost:1000/component/ITEM_ID',
+        requestHeader: {
+    'content-type': 'application/json'
+  },
+  requestBody: {
+    _id: Uuid,
+      project_id: Uuid,
+        account_id: Uuid,
+          file: string,
+            group: string,
+              created_at ?: Date,
+              updated_at ?: Date
+  }
+}
+
+{
+  des: 'Get detail',
+    method: 'GET',
+      url: 'http://localhost:1000/component/ITEM_ID'
+}
+
+{
+  des: 'Delete',
+    method: 'DELETE',
+      url: 'http://localhost:1000/component/ITEM_ID'
+}

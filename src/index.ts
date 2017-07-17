@@ -9,7 +9,7 @@ require(`./env.${Server.env}`).default(Server)
 
 Mongo(AppConfig.mongo)
 Server.use(cors())
-Server.use(route(path.join(__dirname, 'controller'), { ignorecase: true }))
+Server.use(route(path.join(__dirname, 'controller'), { ignorecase: true, root: '/Log' }))
 
 Server.listen(AppConfig.port, () => {
   console.info(`
