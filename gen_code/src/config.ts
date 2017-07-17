@@ -31,6 +31,7 @@ export namespace generation {
       username: string,
       password: string,
       project_id: uuid,
+<<<<<<< HEAD
       status: number.default(0),
       recover_by: string,
       role_ids: array.required(false),
@@ -45,6 +46,12 @@ export namespace generation {
       api: array.default([]),
       web: array.default([]),
       mob: array.default([]),
+=======
+      account_id: uuid,
+      file: string,
+      des: string,
+      group: string,
+>>>>>>> 648329b0a945735d9be5da590a1c42015960505d
       created_at: date.auto('insert'),
       updated_at: date.auto('insert|update')
     }
