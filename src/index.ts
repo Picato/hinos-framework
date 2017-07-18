@@ -13,7 +13,13 @@ Server.use(serve({
   '/images': path.join(__dirname, '..', 'assets', 'images')
 }))
 Server.use(cors())
-Server.use(route(path.join(__dirname, 'controller'), { ignorecase: true }))
+Server.use(route(path.join(__dirname, 'controller'), {
+  ignorecase: true,
+  onInit(method, path) {
+    if (!AppConfig.routes[method.toUpperCase()]) AppConfig.routes[method.toUpperCase()] = []
+    AppConfig.routes[method.toUpperCase()].push(path)
+  }
+}))
 
 Server.listen(AppConfig.port, () => {
   console.info(`
