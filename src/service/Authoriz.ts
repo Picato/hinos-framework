@@ -1,6 +1,5 @@
 import { Context } from 'hinos'
 import HttpError from '../common/HttpError'
-import MicroService from './MicroService'
 import { Mongo } from 'hinos-mongo'
 
 export function authoriz(pathCode: string, actions: string[]) {

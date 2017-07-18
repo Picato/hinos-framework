@@ -1,10 +1,9 @@
 {
-  "name": "hinos-framework",
+  "name": "hinos-api-gateway",
   "version": "1.0.0",
-  "description": "hinos project which is built for APIs",
+  "description": "Api gateway which manage all of APIs",
   "main": ".build/index.js",
   "scripts": {
-    "prepare": "npm install -g typescript && npm install -g cross-var",
     "start": "node .",
     "prebuild": "rimraf .build .spec",
     "build": "tsc",
@@ -15,25 +14,13 @@
   },
   "config": {
     "externalConfig": "./appconfig.cfg#api",
-    "url": "http://localhost:1001",
+    "url": "http://localhost:8888",
     "encryptKey": ")^!!!(**",
-    "mongo": {
-      "url": "mongodb://localhost:27017/test",
-      "releaseTimeout": 50000
-    },
-    "redis": {
-      "host": "localhost",
-      "port": 6379,
-      "releaseTimeout": 50000
-    },
-    "rabbitmq": {
-      "url": "amqp://127.0.0.1",
-      "releaseTimeout": 50000,
-      "queue": {
-        "API_SENDER": "backend",
-        "API_RECEIVER": "api",
-        "LOG_RECEIVER": "log"
-      }
+    "gateway": {
+      "oauth": "http://localhost:1001",
+      "files": "http://localhost:1002",
+      "mail": "http://localhost:1003",
+      "log": "http://localhost:1004"
     }
   },
   "dependencies": {
@@ -45,10 +32,11 @@
     "hinos-rabbitmq": "^1.0.4",
     "hinos-redis": "^1.0.4",
     "hinos-requestmatcher": "^1.0.4",
-    "hinos-route": "^1.0.7",
+    "hinos-route": "^1.0.12",
     "hinos-serve": "^1.0.7",
     "hinos-socketio": "^1.0.3",
     "hinos-validation": "^1.0.7",
+    "http-proxy": "^1.16.2",
     "lodash": "^4.17.4"
   },
   "author": "doanthuanthanh88@gmail.com",
@@ -57,7 +45,7 @@
     "@types/chai": "^3.5.2",
     "@types/lodash": "^4.14.64",
     "@types/mocha": "^2.2.41",
-    "@types/node": "^7.0.23",
+    "@types/node": "^7.0.38",
     "chai": "^3.5.0",
     "mocha": "^3.3.0",
     "rimraf": "^2.6.1"
