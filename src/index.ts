@@ -15,7 +15,15 @@ Redis(AppConfig.redis)
 Server.use(cors({
   exposeHeaders: ['token', 'project_id', 'account_id']
 }))
-Server.use(route(path.join(__dirname, 'controller'), { ignorecase: true, root: "/Oauth" }))
+Server.use(cors())
+Server.use(route(path.join(__dirname, 'controller'), {
+  root: "/Oauth",
+  ignorecase: true,
+  onInit(method, path) {
+    if (!AppConfig.routes[method.toUpperCase()]) AppConfig.routes[method.toUpperCase()] = []
+    AppConfig.routes[method.toUpperCase()].push(path)
+  }
+}))
 
 Server.listen(AppConfig.port, async () => {
   await startup()
