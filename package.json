@@ -14,6 +14,7 @@
   "config": {
     "externalConfig": "../config.cfg#files",
     "url": "http://localhost:1002",
+    "routes": {},
     "services": {
       "oauth": "http://localhost:1001"
     },
@@ -35,7 +36,7 @@
     "hinos-cors": "^1.0.0",
     "hinos-mongo": "^1.0.7",
     "hinos-requestmatcher": "^1.0.5",
-    "hinos-route": "^1.0.12",
+    "hinos-route": "^1.1.2",
     "hinos-serve": "^1.1.0",
     "hinos-validation": "^1.1.0",
     "lodash": "^4.17.4"
@@ -44,7 +45,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/chai": "^3.5.2",
-    "@types/lodash": "^4.14.69",
+    "@types/lodash": "^4.14.70",
     "@types/mocha": "^2.2.41",
     "@types/node": "^7.0.38",
     "chai": "^3.5.0",

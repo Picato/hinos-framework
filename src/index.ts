@@ -14,7 +14,14 @@ Server.use(serve({
   '/upload': path.join(__dirname, '..', 'assets', 'upload')
 }))
 Server.use(cors())
-Server.use(route(path.join(__dirname, 'controller'), { ignorecase: true, root: '/Files' }))
+Server.use(route(path.join(__dirname, 'controller'), {
+  ignorecase: true,
+  root: '/Files',
+  onInit(method, path) {    
+    if (!AppConfig.routes[method.toUpperCase()]) AppConfig.routes[method.toUpperCase()] = []
+    AppConfig.routes[method.toUpperCase()].push(path)
+  }
+}))
 
 Server.listen(AppConfig.port, () => {
   FilesService.syncToRemoveTempFiles()
