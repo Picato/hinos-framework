@@ -12,4 +12,9 @@ export class GUIController {
     return fs.createReadStream('./assets/GUI.zip')
   }
 
+  @GET('/Routes')
+  static async getRoutes() {
+    return AppConfig.routes
+  }
+
 }
