@@ -14,6 +14,7 @@ Server.use(route(path.join(__dirname, 'controller'), {
   ignorecase: true,
   root: '/Mail',
   onInit(method, path) {
+    console.log(`${method.toUpperCase()}\t${path}`)
     if (!AppConfig.routes[method.toUpperCase()]) AppConfig.routes[method.toUpperCase()] = []
     AppConfig.routes[method.toUpperCase()].push(path)
   }
