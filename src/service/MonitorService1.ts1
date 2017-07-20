@@ -1,0 +1,80 @@
+import * as httpProxy from 'http-proxy'
+import * as fs from 'fs'
+import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
+import HttpError from '../common/HttpError'
+import { Http } from 'hinos-common/Http'
+
+const proxy = httpProxy.createProxyServer()
+
+@Collection('Service')
+export class Service {
+  _id?: Uuid
+  name?: string
+  link?: string
+  status?: number
+  created_at?: Date
+  updated_at?: Date
+}
+
+export class MonitorService {
+
+  @MONGO()
+  private static mongo: Mongo
+
+  static async check() {
+    const services = await MonitorService.mongo.find<Service>(Service)
+    for (let s of services) {
+      try {
+        const resp = await Http.options(s.link + '/' + s.name)
+      } catch (e) {
+        if (e.status === undefined) {
+          console.log('can not connect')
+          await MonitorService.mongo.update(Service, {
+            _id: s._id,
+            status: -1,
+            updated_at: new Date()
+          })
+          return
+        }
+      }
+      await MonitorService.mongo.update(Service, {
+        _id: s._id,
+        status: 1,
+        updated_at: new Date()
+      })
+    }
+    setTimeout(MonitorService.check, 1000)
+  }
+
+  static async find() {
+    return await MonitorService.mongo.find<Service>(Service)
+  }
+
+  static async saveGateway(gateway) {
+    await MonitorService.mongo.delete(Service, {
+      name: {
+        $nin: Object.keys(gateway)
+      }
+    }, { multiple: true })
+    // {oauth: link}
+    for (let serviceName in gateway) {
+      const service = await GatewayService.mongo.get<Service>(Service, {
+        name: serviceName
+      })
+      if (!service) {
+        await GatewayService.mongo.insert<Service>(Service, {
+          _id: Mongo.uuid(),
+          name: serviceName,
+          link: gateway[serviceName],
+          status: 0,
+          created_at: new Date()
+        })
+      } else {
+        if (service.link !== gateway[serviceName]) {
+          service.link = gateway[serviceName]
+          await GatewayService.mongo.update(Service, service)
+        }
+      }
+    }
+  }
+}

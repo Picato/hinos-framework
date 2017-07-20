@@ -1,0 +1,47 @@
+{
+  des: 'Add',
+    method: 'POST',
+      url: 'http://localhost:1007/Log',
+        requestHeader: {
+    'content-type': 'application/json'
+  },
+  requestBody: {
+    _id: Uuid,
+      status: number,
+        error: string,
+          created_at ?: Date
+  }
+}
+
+{
+  des: 'Get list',
+    method: 'GET',
+      url: 'http://localhost:1007/Log'
+}
+
+{
+  des: 'Update',
+    method: 'PUT',
+      url: 'http://localhost:1007/Log/ITEM_ID',
+        requestHeader: {
+    'content-type': 'application/json'
+  },
+  requestBody: {
+    _id: Uuid,
+      status: number,
+        error: string,
+          created_at ?: Date
+  }
+}
+
+{
+  des: 'Get detail',
+    method: 'GET',
+      url: 'http://localhost:1007/Log/ITEM_ID'
+}
+
+{
+  des: 'Delete',
+    method: 'DELETE',
+      url: 'http://localhost:1007/Log/ITEM_ID'
+}

@@ -4,6 +4,7 @@ import { route } from 'hinos-route'
 import { Mongo } from 'hinos-mongo'
 import { serve } from 'hinos-serve'
 import { cors } from 'hinos-cors'
+import { ServiceService } from './service/ServiceService'
 import './config'
 
 require(`./env.${Server.env}`).default(Server)
@@ -15,14 +16,11 @@ Server.use(serve({
 Server.use(cors())
 Server.use(route(path.join(__dirname, 'controller'), {
   ignorecase: true,
-  onInit(method, path) {
-    console.log(`${method.toUpperCase()}\t${path}`)
-    if (!AppConfig.routes[method.toUpperCase()]) AppConfig.routes[method.toUpperCase()] = []
-    AppConfig.routes[method.toUpperCase()].push(path)
-  }
+  root: '/Monitor'
 }))
 
 Server.listen(AppConfig.port, () => {
+  ServiceService.check()
   console.info(`
     _     _                 
   | |__ (_)_ __   ___  ___  ${AppConfig.name}

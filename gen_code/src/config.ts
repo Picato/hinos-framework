@@ -11,15 +11,19 @@ import uuid from './lib/uuid.type';
 export namespace generation {
   export const Auth = true;
   export const Tables = {
-    Component: {
+    Service: {
       _id: key,
-      project_id: uuid,
-      account_id: uuid,
-      file: string,
-      des: string,
-      group: string,
+      name: string,
+      link: string,
+      status: number.default(0),
       created_at: date.auto('insert'),
       updated_at: date.auto('insert|update')
+    },
+    Log: {
+      _id: key,
+      status: number.default(-1),
+      error: string,
+      created_at: date.auto('insert')
     }
   }
 }
