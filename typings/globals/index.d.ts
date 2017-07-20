@@ -4,7 +4,7 @@ interface IAppConfig {
     name: string;
     port?: number;
     host?: string;
-    routes?: any;
+    routes?: Array<any>
     mongo?: {
         url: string;
         releaseTimeout?: number;
