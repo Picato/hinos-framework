@@ -17,9 +17,9 @@ Server.use(cors())
 Server.use(route(path.join(__dirname, 'controller'), {
   ignorecase: true,
   root: '/Files',
-  onInit(method, path) {    
-    if (!AppConfig.routes[method.toUpperCase()]) AppConfig.routes[method.toUpperCase()] = []
-    AppConfig.routes[method.toUpperCase()].push(path)
+  onInit(method, path) {
+    console.log(`${method.toUpperCase()}\t${path}`)
+    AppConfig.routes.push({ method: method.toUpperCase(), path })
   }
 }))
 
