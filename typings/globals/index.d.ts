@@ -4,15 +4,15 @@ interface IAppConfig {
     name: string;
     port?: number;
     host?: string;
-    gateway?: {
-        files: string
-        mail: string
+    gateway?: any;
+    services?: {
         oauth: string
-        log: string
     }
     encryptKey?: string;
+    timeScan?: number;
+    mongo?: any;
     app: {
-        
+
     }
 }
 

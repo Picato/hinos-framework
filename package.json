@@ -15,24 +15,24 @@
   "config": {
     "externalConfig": "./appconfig.cfg#api",
     "url": "http://localhost:8888",
-    "encryptKey": ")^!!!(**",
-    "gateway": {
-      "oauth": "http://localhost:1001",
-      "files": "http://localhost:1002",
-      "mail": "http://localhost:1003",
-      "log": "http://localhost:1004"
-    }
+    "timeScan": 5000,
+    "services": {
+      "oauth": "http://localhost:1001"
+    },
+    "mongo": {
+      "url": "mongodb://localhost:27017/gateway",
+      "releaseTimeout": 50000
+    },
+    "encryptKey": ")^!!!(**"
   },
   "dependencies": {
     "hinos": "^1.0.8",
-    "hinos-bodyparser": "^1.0.7",
-    "hinos-common": "^1.0.4",
+    "hinos-bodyparser": "^1.1.1",
+    "hinos-common": "^1.0.5",
     "hinos-cors": "^1.0.0",
     "hinos-mongo": "^1.0.7",
-    "hinos-rabbitmq": "^1.0.4",
-    "hinos-redis": "^1.0.4",
     "hinos-requestmatcher": "^1.0.4",
-    "hinos-route": "^1.0.12",
+    "hinos-route": "^1.1.3",
     "hinos-serve": "^1.0.7",
     "hinos-socketio": "^1.0.3",
     "hinos-validation": "^1.0.7",
