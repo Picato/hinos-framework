@@ -11,6 +11,7 @@ interface IAppConfig {
     encryptKey?: string;
     timeScan?: number;
     mongo?: any;
+    proxy?: any;
     app: {
 
     }
