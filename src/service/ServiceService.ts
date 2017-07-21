@@ -2,7 +2,9 @@ import * as _ from 'lodash'
 import { VALIDATE, Checker } from 'hinos-validation'
 import { ImageResize } from 'hinos-bodyparser'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
+import { SOCKETIO, Socketio } from 'hinos-socketio'
 import HttpError from '../common/HttpError'
+import { Http } from 'hinos-common/Http'
 import { LogService, Log } from './LogService'
 import * as portscanner from 'portscanner'
 import * as net from 'net'
@@ -34,11 +36,14 @@ export class ServiceService {
   @MONGO()
   private static mongo: Mongo
 
-  static checkPortUsing(ip, port) {
+  @SOCKETIO()
+  private static socket: Socketio
+
+  static checkPortUsing(ip, port, name) {
     return new Promise((resolve, reject) => {
       portscanner.checkPortStatus(port, ip, function (error, status) {
         if (error) return reject(error)
-        if (status !== 'open') return reject(new Error(`${ip}:${port} is not be using`))
+        if (status !== 'open') return reject(new Error(`Could not connect to "${name}" ${ip}:${port}`))
         resolve()
       })
 
@@ -49,9 +54,10 @@ export class ServiceService {
     const services = await ServiceService.mongo.find<Service>(Service)
     for (let s of services) {
       const [host, port] = s.link.split(':')
+      let msg;
       try {
-        await ServiceService.checkPortUsing(host, +port)
-        await LogService.insert({
+        await ServiceService.checkPortUsing(host, +port, s.name)
+        msg = await LogService.insert({
           service_id: s._id,
           status: Service.Status.ALIVE
         })
@@ -62,7 +68,7 @@ export class ServiceService {
           })
         }
       } catch (error) {
-        await LogService.insert({
+        msg = await LogService.insert({
           service_id: s._id,
           error: error.toString(),
           status: Service.Status.DEAD
@@ -73,6 +79,21 @@ export class ServiceService {
             status: Service.Status.DEAD
           })
         }
+        if (AppConfig.app.mailConfig.mailConfigId && AppConfig.app.mailConfig.secretKey && AppConfig.app.mailConfig.secretKey.length > 0 && AppConfig.app.mailConfig.mailTo && AppConfig.app.mailConfig.mailTo.length > 0) {
+          Http.post(`${AppConfig.services.mail}/Mail/Send/${AppConfig.app.mailConfig.mailConfigId}`, {
+            headers: {
+              token: AppConfig.app.mailConfig.secretKey
+            },
+            data: {
+              subject: `Micro service ${s.name} is downing, please check ASAP !`,
+              text: error.toString(),
+              from: 'Monitor@email.com',
+              to: AppConfig.app.mailConfig.mailTo
+            }
+          })
+        }
+      } finally {
+        ServiceService.socket.send('/msg', AppConfig.app.wsSession, msg)
       }
     }
     setTimeout(ServiceService.check, 10000)

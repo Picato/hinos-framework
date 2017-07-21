@@ -18,9 +18,15 @@ interface IAppConfig {
     encryptKey?: string;
     services: {
         oauth: string
+        mail: string
     },
     app: {
-        
+        wsSession: string
+        mailConfig: {
+            secretKey: string,
+            mailTo: string[],
+            mailConfigId: any
+        }
     }
 }
 

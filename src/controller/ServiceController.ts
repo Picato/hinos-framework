@@ -11,6 +11,12 @@ import { authoriz } from '../service/Authoriz'
 
 export class ServiceController {
 
+  @GET('/WSSession')
+  @INJECT(authoriz(`${AppConfig.name}>Service`, ['SESSION']))
+  static async getWebsocketSession() {
+    return AppConfig.app.wsSession
+  }
+
   @GET('/Service')
   @INJECT(authoriz(`${AppConfig.name}>Service`, ['FIND']))
   @MATCHER({

@@ -18,7 +18,8 @@
     "routes": {},
     "url": "http://localhost:1008",
     "services": {
-      "oauth": "http://localhost:1001"
+      "oauth": "http://localhost:1001",
+      "mail": "http://localhost:1003"
     },
     "encryptKey": ")^!!!(**",
     "mongo": {
@@ -29,9 +30,13 @@
       "host": "localhost",
       "port": 6379,
       "releaseTimeout": 50000
+    },
+    "app": {
+      "wsSession": "b7500f909c9da8fbf9521996c4f1055b"
     }
   },
   "dependencies": {
+    "@types/socket.io": "^1.4.29",
     "hinos": "^1.0.8",
     "hinos-bodyparser": "^1.1.1",
     "hinos-common": "^1.0.4",
@@ -40,6 +45,7 @@
     "hinos-requestmatcher": "^1.0.5",
     "hinos-route": "^1.1.1",
     "hinos-serve": "^1.1.0",
+    "hinos-socketio": "^1.0.4",
     "hinos-validation": "^1.1.0",
     "lodash": "^4.17.4",
     "portscanner": "^2.1.1"
