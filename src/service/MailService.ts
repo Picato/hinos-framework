@@ -125,6 +125,7 @@ export class MailService {
     Checker.option(body, 'text', String, undefined, e => Checker.required(body, 'html', String))
     Checker.required(body, 'from', String)
     Checker.required(body, 'to', Array)
+    if(body.to.length === 0) throw '"To" must be not empty'
     Checker.option(body, 'cc', Array, [])
     Checker.option(body, 'attachments', Array, [])
     body.status = Mail.Status.PENDING

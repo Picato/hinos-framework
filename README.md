@@ -13,7 +13,7 @@ A micro service manage the mail sending and their status
 {
     des: 'Send email',
     method: 'POST',
-    url: 'http://localhost:1003/Send/${MailConfigId}',
+    url: 'http://localhost:1003/Mail/Send/${MailConfigId}',
     requestHeader: {
         'content-type': 'application/json',
         token: '${Token}'
