@@ -1,10 +1,10 @@
 {
   des: 'Add',
   method: 'POST',
-    url: 'http://localhost:1003/Send/595de4206bef5f1d801b989c',
+  url: 'http://localhost:1003/Mail/Send/5972a7e2a540351f88c3c2eb',
   requestHeader: {
     'content-type': 'application/json',
-    token: '595de3aedaf10302d89cf369595de3aedaf10302d89cf36c595de3f9daf10302d89cf36d?2700'
+    token: '4b8f28ebae90c98ff00fa2f92092201f?2700'
   },
   requestBody: {
     subject: 'Test 123',
