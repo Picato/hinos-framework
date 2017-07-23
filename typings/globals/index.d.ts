@@ -1,3 +1,8 @@
+declare namespace SocketIOClient {
+    export interface Socket {
+        onJson(event: string): Promise<any>;
+    }
+}
 interface IAppConfig {
     externalConfig?: string;
     url: string;
@@ -22,6 +27,7 @@ interface IAppConfig {
     },
     app: {
         wsSession: string
+        timeoutSpamMail: number
         mailConfig: {
             secretKey: string,
             mailTo: string[],

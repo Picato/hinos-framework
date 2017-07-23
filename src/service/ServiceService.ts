@@ -20,6 +20,7 @@ export class Service {
   link?: string
   logs?: Log[]
   status?: number
+  lastSent?: Date
   created_at?: Date
   updated_at?: Date
 }
@@ -73,14 +74,12 @@ export class ServiceService {
           error: error.toString(),
           status: Service.Status.DEAD
         })
-        if (s.status !== Service.Status.DEAD) {
-          ServiceService.mongo.update(Service, {
-            _id: s._id,
-            status: Service.Status.DEAD
-          })
+        let item: Service = {
+          _id: s._id,
+          status: Service.Status.DEAD
         }
-        if (AppConfig.app.mailConfig.mailConfigId && AppConfig.app.mailConfig.secretKey && AppConfig.app.mailConfig.secretKey.length > 0 && AppConfig.app.mailConfig.mailTo && AppConfig.app.mailConfig.mailTo.length > 0) {
-          Http.post(`${AppConfig.services.mail}/Mail/Send/${AppConfig.app.mailConfig.mailConfigId}`, {
+        if (AppConfig.app.mailConfig && AppConfig.app.mailConfig.mailConfigId && AppConfig.app.mailConfig.secretKey && AppConfig.app.mailConfig.secretKey.length > 0 && AppConfig.app.mailConfig.mailTo && AppConfig.app.mailConfig.mailTo.length > 0 && (!s.lastSent || (s.lastSent.getTime() - new Date().getTime() >= AppConfig.app.timeoutSpamMail))) {
+          await Http.post(`${AppConfig.services.mail}/Mail/Send/${AppConfig.app.mailConfig.mailConfigId}`, {
             headers: {
               token: AppConfig.app.mailConfig.secretKey
             },
@@ -91,6 +90,10 @@ export class ServiceService {
               to: AppConfig.app.mailConfig.mailTo
             }
           })
+          item.lastSent = new Date()
+        }
+        if (s.status !== Service.Status.DEAD) {
+          ServiceService.mongo.update(Service, item)
         }
       } finally {
         ServiceService.socket.send('/msg', AppConfig.app.wsSession, msg)

@@ -32,12 +32,12 @@
       "releaseTimeout": 50000
     },
     "app": {
-      "wsSession": "b7500f909c9da8fbf9521996c4f1055b"
+      "wsSession": "b7500f909c9da8fbf9521996c4f1055b",
+      "timeoutSpamMail": 1800000
     }
   },
   "dependencies": {
-    "@types/socket.io": "^1.4.29",
-    "hinos": "^1.0.8",
+    "hinos": "^1.1.0",
     "hinos-bodyparser": "^1.1.1",
     "hinos-common": "^1.0.4",
     "hinos-cors": "^1.0.0",
@@ -46,7 +46,7 @@
     "hinos-route": "^1.1.1",
     "hinos-serve": "^1.1.0",
     "hinos-socketio": "^1.0.4",
-    "hinos-validation": "^1.1.0",
+    "hinos-validation": "^1.1.1",
     "lodash": "^4.17.4",
     "portscanner": "^2.1.1"
   },
@@ -54,9 +54,9 @@
   "license": "ISC",
   "devDependencies": {
     "@types/chai": "^3.5.2",
-    "@types/lodash": "^4.14.64",
+    "@types/lodash": "^4.14.71",
     "@types/mocha": "^2.2.41",
-    "@types/node": "^7.0.23",
+    "@types/node": "^7.0.39",
     "chai": "^3.5.0",
     "mocha": "^3.3.0",
     "rimraf": "^2.6.1"
