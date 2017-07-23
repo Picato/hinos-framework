@@ -1,7 +1,6 @@
 import { Context } from 'hinos'
 import HttpError from '../common/HttpError'
 import { Http } from 'hinos-common/Http'
-import MicroService from './MicroService'
 import { AccountService, AccountCached } from './AccountService'
 import { Mongo, Uuid } from 'hinos-mongo'
 
