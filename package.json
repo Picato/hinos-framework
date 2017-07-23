@@ -16,7 +16,7 @@
   "config": {
     "externalConfig": "./appconfig.cfg#api",
     "routes": {},
-    "url": "http://localhost:1007",
+    "url": "http://localhost:1009",
     "services": {
       "oauth": "http://localhost:1001"
     },
@@ -32,27 +32,24 @@
     }
   },
   "dependencies": {
-    "hinos": "^1.0.8",
+    "archiver": "^2.0.0",
+    "hinos": "^1.1.0",
     "hinos-bodyparser": "^1.1.1",
     "hinos-common": "^1.0.4",
     "hinos-cors": "^1.0.0",
     "hinos-mongo": "^1.0.7",
-    "hinos-rabbitmq": "^1.0.4",
-    "hinos-redis": "^1.0.4",
     "hinos-requestmatcher": "^1.0.5",
     "hinos-route": "^1.1.1",
-    "hinos-serve": "^1.1.0",
-    "hinos-socketio": "^1.0.3",
-    "hinos-validation": "^1.1.0",
+    "hinos-validation": "^1.1.1",
     "lodash": "^4.17.4"
   },
   "author": "doanthuanthanh88@gmail.com",
   "license": "ISC",
   "devDependencies": {
     "@types/chai": "^3.5.2",
-    "@types/lodash": "^4.14.64",
+    "@types/lodash": "^4.14.71",
     "@types/mocha": "^2.2.41",
-    "@types/node": "^7.0.23",
+    "@types/node": "^7.0.39",
     "chai": "^3.5.0",
     "mocha": "^3.3.0",
     "rimraf": "^2.6.1"

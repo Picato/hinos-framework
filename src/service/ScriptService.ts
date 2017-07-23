@@ -1,0 +1,151 @@
+import * as _ from 'lodash'
+import { VALIDATE, Checker } from 'hinos-validation'
+import { ImageResize } from 'hinos-bodyparser'
+import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
+import HttpError from '../common/HttpError'
+import * as archiver from 'archiver'
+import * as fs from 'fs'
+
+/************************************************
+ ** ScriptService || 4/10/2017, 10:19:24 AM **
+ ************************************************/
+
+@Collection('Script')
+export class Script {
+  _id?: Uuid
+  project_id?: Uuid
+  account_id?: Uuid
+  name?: string
+  _name?: string
+  ext?: string
+  content?: string
+  tag?: string
+  created_at?: Date
+  updated_at?: Date
+}
+
+export class ScriptService {
+  @MONGO()
+  private static mongo: Mongo
+
+  static async download(names: string[], ctx) {
+    const rs = await ScriptService.mongo.find<Script>(Script, {
+      $where: {
+        _name: {
+          $in: names
+        }
+      }
+    })
+    if (rs.length === 0) return
+    ctx.status = 200
+    if (rs.length > 1) {
+      ctx.res.manual = true
+      const archive = archiver('zip', {
+        store: true
+      })
+      archive.pipe(ctx.res)
+      for (let r of rs) {
+        archive.append(r.content, { name: r.name + '.' + r.ext })
+      }
+      archive.finalize()
+      ctx.set('Content-Type', 'application/zip');
+      ctx.set('Content-Disposition', `attachment; filename=cmd.zip`);
+    } else {
+      ctx.set('Content-Disposition', `attachment; filename=${rs[0].name}.${rs[0].ext}`);
+      return new Buffer(rs[0].content, 'utf8')
+    }
+    return undefined
+  }
+
+  static async find(fil = {}) {
+    const rs = await ScriptService.mongo.find<Script>(Script, fil)
+    return rs
+  }
+
+  static async get(_id: any) {
+    const rs = await ScriptService.mongo.get<Script>(Script, _id)
+    return rs
+  }
+
+  static async replaceContent(content: string) {
+    const key: any = {}
+    for (const c of content.split('\n')) {
+      if (/^@[^\r|\n]+$/.test(c)) {
+        const k = c.substr(1).trim()
+        key[k] = `#!${k}\r\n`
+      }
+    }
+    const rs = await ScriptService.mongo.find<Script>(Script, {
+      $where: {
+        _name: {
+          $in: Object.keys(key).map(e => e.toLowerCase())
+        }
+      }
+    })
+    for (let r of rs) {
+      key[r.name] = `#${r.name}\r\n${r.content}\r\n`
+    }
+    for (let k in key) {
+      content = content.replace(new RegExp(`^@${k}$`, 'm'), key[k])
+    }
+    return content
+  }
+
+  @VALIDATE(async (body: Script) => {
+    body._id = <Uuid>Mongo.uuid()
+    Checker.required(body, 'project_id', Uuid)
+    Checker.required(body, 'account_id', Uuid)
+    Checker.required(body, 'name', String)
+    const existed = await ScriptService.mongo.get<Script>(Script, {
+      _name: body.name.toLowerCase()
+    })
+    if (existed) throw HttpError.BAD_REQUEST(`Existed script name "${body.name}"`)
+    body._name = body.name.toLowerCase()
+    Checker.required(body, 'content', String)
+    Checker.required(body, 'tag', Array)
+    Checker.required(body, 'ext', String)
+    body.content = await ScriptService.replaceContent(body.content)
+    body.created_at = new Date()
+    body.updated_at = new Date()
+  })
+  static async insert(body: Script, validate?: Function) {
+    const rs = await ScriptService.mongo.insert<Script>(Script, body)
+    return rs
+  }
+
+  @VALIDATE(async (body: Script) => {
+    Checker.required(body, '_id', Uuid)
+    Checker.required(body, 'account_id', Uuid)
+    Checker.option(body, 'content', String)
+    await Checker.option(body, 'name', String, async () => {
+      body._name = body.name.toLowerCase()
+    })
+    Checker.option(body, 'tag', Array)
+    Checker.option(body, 'ext', String)
+    body.content = await ScriptService.replaceContent(body.content)
+    body.updated_at = new Date()
+  })
+  static async update(body: Script, validate?: Function) {
+    const old = await ScriptService.mongo.get<Script>(Script, body._id, { _name: 1 })
+    if (old._name !== body._name) {
+      const existed = await ScriptService.mongo.get<Script>(Script, {
+        _id: {
+          $ne: old._id
+        },
+        _name: body._name
+      })
+      if (existed) throw HttpError.BAD_REQUEST(`Existed script name "${body.name}"`)
+    }
+    const rs = await ScriptService.mongo.update(Script, body)
+    if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
+  }
+
+  @VALIDATE((_id: Uuid) => {
+    Checker.required(_id, [, '_id'], Uuid)
+  })
+  static async delete(_id: Uuid) {
+    const rs = await ScriptService.mongo.delete(Script, _id)
+    if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to delete')
+  }
+}
+

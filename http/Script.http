@@ -1,0 +1,53 @@
+{
+  des: 'Add',
+    method: 'POST',
+      url: 'http://localhost:1007/Script',
+        requestHeader: {
+    'content-type': 'application/json'
+  },
+  requestBody: {
+    _id: Uuid,
+      project_id: Uuid,
+        account_id: Uuid,
+          content: string,
+            tag: string,
+              created_at ?: Date,
+              updated_at ?: Date
+  }
+}
+
+{
+  des: 'Get list',
+    method: 'GET',
+      url: 'http://localhost:1007/Script'
+}
+
+{
+  des: 'Update',
+    method: 'PUT',
+      url: 'http://localhost:1007/Script/ITEM_ID',
+        requestHeader: {
+    'content-type': 'application/json'
+  },
+  requestBody: {
+    _id: Uuid,
+      project_id: Uuid,
+        account_id: Uuid,
+          content: string,
+            tag: string,
+              created_at ?: Date,
+              updated_at ?: Date
+  }
+}
+
+{
+  des: 'Get detail',
+    method: 'GET',
+      url: 'http://localhost:1007/Script/ITEM_ID'
+}
+
+{
+  des: 'Delete',
+    method: 'DELETE',
+      url: 'http://localhost:1007/Script/ITEM_ID'
+}

@@ -11,13 +11,23 @@ import uuid from './lib/uuid.type';
 export namespace generation {
   export const Auth = true;
   export const Tables = {
-    Component: {
+    Script: {
       _id: key,
       project_id: uuid,
       account_id: uuid,
-      file: string,
-      des: string,
-      group: string,
+      name: string,
+      content: string,
+      tag: string,
+      created_at: date.auto('insert'),
+      updated_at: date.auto('insert|update')
+    },
+    Batch: {
+      _id: key,
+      project_id: uuid,
+      account_id: uuid,
+      name: string,
+      script_ids: array,
+      tag: string,
       created_at: date.auto('insert'),
       updated_at: date.auto('insert|update')
     }
