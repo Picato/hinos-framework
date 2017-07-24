@@ -1,6 +1,4 @@
-import * as _ from 'lodash'
 import { VALIDATE, Checker } from 'hinos-validation'
-import { ImageResize } from 'hinos-bodyparser'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import { REDIS, Redis } from 'hinos-redis'
 import HttpError from '../common/HttpError'
@@ -69,7 +67,7 @@ export class RoleService {
     body.created_at = new Date()
     body.updated_at = new Date()
   })
-  static async insert(body: Role, validate?: Function) {
+  static async insert(body: Role) {
     const rs = await RoleService.mongo.insert<Role>(Role, body)
     // Reload cache
     await RoleService.reloadCachedRole(body.project_id)
@@ -86,7 +84,7 @@ export class RoleService {
     Checker.option(body, 'mob', Array)
     body.updated_at = new Date()
   })
-  static async update(body: Role, validate?: Function) {
+  static async update(body: Role) {
     const rs = await RoleService.mongo.update(Role, body)
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
     // Reload cache

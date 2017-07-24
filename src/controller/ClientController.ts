@@ -1,13 +1,10 @@
-import { Context } from 'hinos'
 import { GET, POST, PUT, DELETE, HEAD, INJECT } from 'hinos-route'
-import { md5, base64 } from 'hinos-common/Encrypt'
+import { md5 } from 'hinos-common/Encrypt'
 import { BODYPARSER } from 'hinos-bodyparser'
 import { MATCHER } from 'hinos-requestmatcher'
 import { Mongo, Uuid } from 'hinos-mongo'
-import HttpError from '../common/HttpError'
-import { Account, AccountService } from '../service/AccountService'
+import { AccountService } from '../service/AccountService'
 import { authoriz } from '../service/Authoriz'
-import * as fbgraph from 'fbgraph'
 
 /************************************************
  ** AccountController || 4/10/2017, 10:19:24 AM **
@@ -104,7 +101,7 @@ export default class AccountController {
     ctx.state.actions = query.actions
     await next()
   })
-  static async authoriz({ state, headers, ctx }) {
+  static async authoriz({ state, ctx }) {
     const ac = await AccountService.authoriz(state)
     ctx.set({ account_id: ac.account_id, project_id: ac.project_id })
   }

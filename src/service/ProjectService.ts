@@ -1,6 +1,4 @@
-import * as _ from 'lodash'
 import { VALIDATE, Checker } from 'hinos-validation'
-import { ImageResize } from 'hinos-bodyparser'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import { REDIS, Redis } from 'hinos-redis'
 import HttpError from '../common/HttpError'
@@ -87,7 +85,7 @@ export class ProjectService {
     body.created_at = new Date()
     body.updated_at = new Date()
   })
-  static async insert(body: Project, validate?: Function) {
+  static async insert(body: Project) {
     const prj = await ProjectService.mongo.insert<Project>(Project, body)
     if (prj.status === Project.Status.ACTIVED) await ProjectService.reloadCachedPlugins(prj._id, prj.plugins)
     // Create default role
@@ -105,7 +103,7 @@ export class ProjectService {
     Checker.option(body, 'plugins', Object)
     body.updated_at = new Date()
   })
-  static async update(body: Project, validate?: Function) {
+  static async update(body: Project) {
     const old = await ProjectService.mongo.update<Project>(Project, body, {
       return: true
     })
@@ -152,7 +150,7 @@ export class ProjectService {
     }
   }
 
-  static async getCachedPlugins(projectId: Uuid, roles?: any) {
+  static async getCachedPlugins(projectId: Uuid) {
     return await ProjectService.redis.get(`$plugins:${projectId}`)
   }
 

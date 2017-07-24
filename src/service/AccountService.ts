@@ -1,11 +1,10 @@
 import * as _ from 'lodash'
 import { VALIDATE, Checker } from 'hinos-validation'
-import { ImageResize } from 'hinos-bodyparser'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import { Redis, REDIS } from 'hinos-redis'
 import { md5 } from 'hinos-common/Encrypt'
 import HttpError from '../common/HttpError'
-import { Role, Action } from './RoleService'
+import { Role } from './RoleService'
 import { ProjectService } from './ProjectService'
 import { RoleService } from './RoleService'
 import * as fbgraph from 'fbgraph'
@@ -71,7 +70,6 @@ export class AccountService {
       },
       $fields: { project_id: 1, _id: 1, role_ids: 1, secret_key: 1 }
     })
-    let count = 0
     for (const cached of caches) {
       await AccountService.setCachedToken(cached.secret_key, {
         project_id: cached.project_id,
@@ -132,7 +130,7 @@ export class AccountService {
     await AccountService.setCachedToken(acc.secret_key)
   }
 
-  static async getMe({ projectId, accountId }) {
+  static async getMe({ accountId }) {
     const me = await AccountService.mongo.get<Account>(Account, accountId, { username: 1, recover_by: 1, more: 1, created_at: 1, updated_at: 1 })
     return me
   }
@@ -275,7 +273,7 @@ export class AccountService {
     body.created_at = new Date()
     body.updated_at = new Date()
   })
-  static async insert(body: Account, validate?: Function) {
+  static async insert(body: Account) {
     const existed = await AccountService.mongo.get(Account, {
       username: body.username,
       project_id: body.project_id
@@ -295,7 +293,7 @@ export class AccountService {
     Checker.option(body, 'more', Object)
     body.updated_at = new Date()
   })
-  static async update(body: Account, validate?: Function) {
+  static async update(body: Account) {
     const old = await AccountService.mongo.update<Account>(Account, body, {
       return: true
     })
