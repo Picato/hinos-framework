@@ -4,12 +4,11 @@ import * as archiver from 'archiver'
 import { ImageResize } from 'hinos-bodyparser'
 
 export default class Utils {
-  private static getAssetPath(...path) {
-    return path.join(path.indexOf('assets') === 0 ? '' : 'assets', ...path)
-  }
+
   public static getUploadFile(assetPath: string) {
     return Utils.getAssetPath(assetPath)
   }
+
   public static deleteUploadFiles(files: string | string[], sizes?: ImageResize[]): void {
     if (!files) return
     const remove = (f: string, sizes?: ImageResize[]) => {
@@ -28,9 +27,10 @@ export default class Utils {
       remove(Utils.getAssetPath(f.split('?')[0]), sizes)
     }
   }
+
   public static zip(inPath: { path: string, name: string } | { path: string, name: string }[], outPath) {
     return new Promise((resolve, reject) => {
-      var archive = archiver('zip', {
+      const archive = archiver('zip', {
         zlib: { level: 9 }
       })
       const output = fs.createWriteStream(Utils.getAssetPath(outPath))
@@ -39,12 +39,17 @@ export default class Utils {
       archive.pipe(output)
       if (inPath instanceof Array) {
         for (const p of inPath) {
-          archive = archive.append(fs.createReadStream(Utils.getAssetPath(p.path)), { name: p.name })
+          archive.append(fs.createReadStream(Utils.getAssetPath(p.path)), { name: p.name })
         }
       } else {
-        archive = archive.append(fs.createReadStream(Utils.getAssetPath(inPath.path)), { name: inPath.name })
+        archive.append(fs.createReadStream(Utils.getAssetPath(inPath.path)), { name: inPath.name })
       }
       archive.finalize()
     })
   }
+
+  private static getAssetPath(...path) {
+    return path.join(path.indexOf('assets') === 0 ? '' : 'assets', ...path)
+  }
+
 }

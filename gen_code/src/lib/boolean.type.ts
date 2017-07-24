@@ -1,20 +1,12 @@
-import type from './_.type'
+import Type from './_.type'
 
-class BooleanType extends type<boolean> {
+class BooleanType extends Type<boolean> {
   constructor() {
     super('Boolean', 'boolean')
   }
 
-  public static required(required: boolean = true) {
-    const b = new BooleanType()
-    return b.required(required)
-  }
-
-  public static default(dfValue: boolean) {
-    const b = new BooleanType()
-    return b.default(dfValue)
-  }
-
 }
-const boolean = BooleanType
-export default boolean
+
+export default function () {
+  return new BooleanType()
+}

@@ -32,15 +32,15 @@ export class FilesController {
     {
       autoCreate: true,
       returnType: Object,
-      returnPath: "() => `upload/${state.auth.projectId}`",
-      name: "files",
-      mimes: "() => `${state.config.ext}`",
+      returnPath: '() => `upload/${state.auth.projectId}`',
+      name: 'files',
+      mimes: '() => `${state.config.ext}`',
       limits: {
-        fileSize: "() => state.config.maxSize"
+        fileSize: '() => state.config.maxSize'
       },
-      uploadDir: "() => `assets/upload/${state.auth.projectId}`",
-      maxCount: "() => state.config.maxFile",
-      resize: "() => state.config.resize"
+      uploadDir: '() => `assets/upload/${state.auth.projectId}`',
+      maxCount: '() => state.config.maxFile',
+      resize: '() => state.config.resize'
     }
   ], (err, next) => {
     if (err.code && 'LIMIT_UNEXPECTED_FILE' === err.code) throw HttpError.BAD_REQUEST(`The maximum number of files is ${err.ctx.state.config.maxFile}`)
@@ -167,19 +167,5 @@ export class FilesController {
     })
     return rs
   }
-
-  // @DELETE('/Files/:files')
-  // @INJECT(authoriz(`${AppConfig.name}>Files`, ['DELETE']))
-  // @MATCHER({
-  //   params: {
-  //     files: String
-  //   }
-  // })
-  // static async del({ params, state }) {
-  //   await FilesService.delete({
-  //     files: params.files,
-  //     project_id: state.auth.projectId
-  //   })
-  // }
 
 }

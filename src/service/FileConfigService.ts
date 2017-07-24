@@ -9,6 +9,7 @@ import HttpError from '../common/HttpError'
  ************************************************/
 
 @Collection('FileConfig')
+/* tslint:disable */
 export class FileConfig {
   _id?: Uuid
   project_id?: Uuid
@@ -27,6 +28,7 @@ export class FileConfig {
   created_at?: Date
   updated_at?: Date
 }
+/* tslint:enable */
 
 export class FileConfigService {
   @MONGO()
@@ -43,14 +45,14 @@ export class FileConfigService {
   }
 
   @VALIDATE((body: FileConfig) => {
-    body._id = <Uuid>Mongo.uuid()
+    body._id = Mongo.uuid() as Uuid
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
     Checker.required(body, 'name', String)
     Checker.option(body, 'config', Object, {
       maxSize: 2046,
       maxFile: 1,
-      ext: ".*"
+      ext: '.*'
     })
     body.created_at = new Date()
     body.updated_at = new Date()
@@ -78,4 +80,3 @@ export class FileConfigService {
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to delete')
   }
 }
-

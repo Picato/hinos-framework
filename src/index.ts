@@ -26,11 +26,11 @@ Server.use(route(path.join(__dirname, 'controller'), {
 Server.listen(AppConfig.port, () => {
   FilesService.syncToRemoveTempFiles()
   console.info(`
-    _     _                 
+    _     _
   | |__ (_)_ __   ___  ___  ${AppConfig.name}
   | '_ \\| | '_ \\ / _ \\/ __|
-  | | | | | | | | (_) \\__ \\ 
+  | | | | | | | | (_) \\__ \\
   |_| |_|_|_| |_|\\___/|___/ ${AppConfig.port}
-      
+
   `)
 })

@@ -11,6 +11,7 @@ import { FileConfigService } from './FileConfigService'
  ************************************************/
 
 @Collection('Files')
+/* tslint:disable */
 export class Files {
   _id?: Uuid
   config_id?: Uuid
@@ -22,6 +23,7 @@ export class Files {
   created_at?: Date
   updated_at?: Date
 }
+/* tslint:enable */
 
 export namespace Files {
   export const Status = {
@@ -62,7 +64,7 @@ export class FilesService {
   }
 
   @VALIDATE((body: Files) => {
-    body._id = <Uuid>Mongo.uuid()
+    body._id = Mongo.uuid() as Uuid
     Checker.required(body, 'config_id', Uuid)
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
@@ -105,4 +107,3 @@ export class FilesService {
     Utils.deleteUploadFiles(item.files, item.sizes)
   }
 }
-
