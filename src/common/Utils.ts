@@ -3,12 +3,12 @@ import * as fs from 'fs'
 import { ImageResize } from 'hinos-bodyparser'
 
 export default class Utils {
-
-  static getUploadFile(assetPath: string) {
+  
+  public static getUploadFile(assetPath: string) {
     return Utils.getAssetPath(assetPath)
   }
 
-  static deleteUploadFiles(files: string | string[], sizes?: ImageResize[]): void {
+  public static deleteUploadFiles(files: string | string[], sizes?: ImageResize[]): void {
     if (!files) return
     const remove = (f: string, sizes?: ImageResize[]) => {
       try {
@@ -27,8 +27,8 @@ export default class Utils {
     }
   }
 
-  private static getAssetPath(...path) {
-    return path.join(path.indexOf('assets') === 0 ? '' : 'assets', ...path)
+  private static getAssetPath(...paths: string[]) {
+    return path.join(paths.indexOf('assets') === 0 ? '' : 'assets', ...paths)
   }
 
 }

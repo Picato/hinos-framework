@@ -1,9 +1,7 @@
 import * as httpProxy from 'http-proxy'
-import * as fs from 'fs'
 import { VALIDATE, Checker } from 'hinos-validation'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
-import { Http } from 'hinos-common/Http'
 
 const proxy = httpProxy.createProxyServer()
 
@@ -49,7 +47,7 @@ export class GatewayService {
     body.created_at = new Date()
     body.updated_at = new Date()
   })
-  static async insert(body: Service, validate?: Function) {
+  static async insert(body: Service) {
     const rs = await GatewayService.mongo.insert<Service>(Service, body)
     return rs
   }
