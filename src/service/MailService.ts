@@ -20,6 +20,7 @@ export interface Attachments {
 }
 
 @Collection('Mail')
+/* tslint:disable */
 export class Mail {
   _id?: Uuid
   config_id?: Uuid
@@ -37,6 +38,7 @@ export class Mail {
   created_at?: Date
   updated_at?: Date
 }
+/* tslint:enable */
 
 export namespace Mail {
   export const Status = {
@@ -88,24 +90,6 @@ export class MailService {
     await MailService.sendMail(_.pick(mail, ['attachments', 'cc', 'from', 'html', 'subject', 'to', 'text']), config)
   }
 
-  private static async sendMail(mailOptions: Mail, config: MailConfig) {
-    return new Promise((resolve, reject) => {
-      try {
-        const transporter = nodemailer.createTransport(config)
-        try {
-          transporter.sendMail(mailOptions as nodemailer.SendMailOptions, (error, info) => {
-            if (error) return reject(HttpError.INTERNAL(error.message))
-            resolve(info)
-          })
-        } catch (e) {
-          reject(HttpError.INTERNAL(e))
-        }
-      } catch (e) {
-        reject(HttpError.INTERNAL(e))
-      }
-    })
-  }
-
   static async find(fil = {}) {
     const rs = await MailService.mongo.find<Mail>(Mail, fil)
     return rs
@@ -117,15 +101,18 @@ export class MailService {
   }
 
   @VALIDATE((body: Mail) => {
-    body._id = <Uuid>Mongo.uuid()
+    body._id = Mongo.uuid() as Uuid
     Checker.required(body, 'config_id', Uuid)
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
     Checker.required(body, 'subject', String)
-    Checker.option(body, 'text', String, () => { }, e => Checker.required(body, 'html', String))
+    Checker.option(body, 'text', String, undefined, e => {
+      // Maybe body.text === ''
+      if (!body.text) Checker.required(body, 'html', String)
+    })
     Checker.required(body, 'from', String)
     Checker.required(body, 'to', Array)
-    if (body.to.length === 0) throw '"To" must be not empty'
+    if (body.to.length === 0) throw new Error(`"To" must be not empty`)
     Checker.option(body, 'cc', Array, [])
     Checker.option(body, 'attachments', Array, [])
     body.status = Mail.Status.PENDING
@@ -171,5 +158,23 @@ export class MailService {
     const rs = await MailService.mongo.delete(Mail, _id)
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to delete')
   }
-}
 
+  private static async sendMail(mailOptions: Mail, config: MailConfig) {
+    return new Promise((resolve, reject) => {
+      try {
+        const transporter = nodemailer.createTransport(config)
+        try {
+          transporter.sendMail(mailOptions as nodemailer.SendMailOptions, (error, info) => {
+            if (error) return reject(HttpError.INTERNAL(error.message))
+            resolve(info)
+          })
+        } catch (e) {
+          reject(HttpError.INTERNAL(e))
+        }
+      } catch (e) {
+        reject(HttpError.INTERNAL(e))
+      }
+    })
+  }
+
+}

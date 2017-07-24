@@ -1,6 +1,6 @@
 import * as _ from 'lodash'
-import { VALIDATE, Checker } from 'hinos-validation'
-import { ImageResize } from 'hinos-bodyparser'
+import { VALIDATE, Checker } from 'hinos-validation'>>>file
+import { ImageResize } from 'hinos-bodyparser'<<<file
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import HttpError from '../common/HttpError'>>>file
 import Utils from '../common/Utils'<<<file
@@ -10,9 +10,11 @@ import Utils from '../common/Utils'<<<file
  ************************************************/
 
 @Collection('${tbl}')
+/* tslint:disable */
 export class ${Tbl} {
-	${$bean}
+  ${$bean}
 }
+/* tslint:enable */
 
 export class ${Tbl}Service {
 	@MONGO()
@@ -69,4 +71,3 @@ export class ${Tbl}Service {
 		if(rs === 0) throw HttpError.NOT_FOUND('Could not found item to delete') <<<normal        
 	}
 }
-

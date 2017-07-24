@@ -9,6 +9,7 @@ import HttpError from '../common/HttpError'
  ************************************************/
 
 @Collection('MailConfig')
+/* tslint:disable */
 export class MailConfig {
   _id?: Uuid
   project_id?: Uuid
@@ -18,6 +19,7 @@ export class MailConfig {
   created_at?: Date
   updated_at?: Date
 }
+/* tslint:enable */
 
 export class MailConfigService {
   @MONGO()
@@ -34,7 +36,7 @@ export class MailConfigService {
   }
 
   @VALIDATE((body: MailConfig) => {
-    body._id = <Uuid>Mongo.uuid()
+    body._id = Mongo.uuid() as Uuid
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
     Checker.required(body, 'name', String)
@@ -66,4 +68,3 @@ export class MailConfigService {
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to delete')
   }
 }
-

@@ -25,8 +25,8 @@ export class MailController {
     const rs = await MailService.test({
       from: body.name,
       to: body.to,
-      subject: "Test",
-      text: ""
+      subject: 'Test email sending',
+      text: ''
     }, body.config)
   }
 

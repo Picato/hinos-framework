@@ -26,13 +26,16 @@ if (appconfig.externalConfig) {
         vl[k] = loadNewVar(vl[k], str, svl)
       } else {
         let re = /\$\{\[([^\]]+)\]([^}]+)?\}/g
-        let m
-        while ((m = re.exec(svl)) !== null) {
+        let m = re.exec(svl)
+        while (m !== null) {
+          /* tslint:disable */
           if (!m[2]) {
             svl = eval(`config['${m[1]}']`)
           } else {
             svl = svl.replace(`\$\{\[${m[1]}\]${m[2]}\}`, eval(`config['${m[1]}']${m[2]}`))
           }
+          /* tslint:enable */
+          m = re.exec(svl)
         }
         vl[str] = svl
       }

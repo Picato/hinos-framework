@@ -1,21 +1,7 @@
-import type from './_.type'
+import Type from './_.type'
 import * as _ from 'lodash'
 
-class ArrayType extends type<any> {
-  //Publish
-  public static required(required: boolean = true) {
-    const b = new ArrayType()
-    return b.required(required)
-  }
-  public static schema(_schema: any) {
-    const b = new ArrayType()
-    return b.schema(_schema)
-  }
-  public static default(dfValue: Array<any>) {
-    const b = new ArrayType()
-    return b.default(dfValue)
-  }
-
+class ArrayType extends Type<any> {
   public _schema: any
 
   constructor() {
@@ -69,24 +55,23 @@ class ArrayType extends type<any> {
       else cnt = `Checker.option(${item ? `${item}` : ''}${this.fieldName},'${this.fieldName}',  Array, (${this.fieldName})=>{${this.checkWhenHas(item, t)}})`
     } else {
       if (this._dfValue) {
-        cnt = `Checker.option(${item ? `${item}` : ''}, '${this.fieldName}', Array, ${type.ostringify(this._dfValue, null, '\t')})`
+        cnt = `Checker.option(${item ? `${item}` : ''}, '${this.fieldName}', Array, ${Type.ostringify(this._dfValue, null, '\t')})`
         if (this._schema) cnt += this.checkWhenHas(`${item}`, t)
       } else {
         if (this._required) {
           cnt = `Checker.required(${item ? `${item}` : ''}, '${this.fieldName}', Array)`
           if (this._schema) cnt += this.checkWhenHas(`${item}`, t)
+        } else if (this._schema) {
+          cnt = `Checker.option(${item ? `${item}` : ''}, '${this.fieldName}', Array, undefined, (${this.fieldName})=>{${this.checkWhenHas(item, t)}})`
         } else {
-          if (this._schema)
-            cnt = `Checker.option(${item ? `${item}` : ''}, '${this.fieldName}', Array, undefined, (${this.fieldName})=>{${this.checkWhenHas(item, t)}})`
-          else
-            cnt = `Checker.option(${item ? `${item}` : ''}, '${this.fieldName}', Array)`
+          cnt = `Checker.option(${item ? `${item}` : ''}, '${this.fieldName}', Array)`
         }
       }
     }
     return cnt
   }
-
-
 }
-const object = ArrayType
-export default object
+
+export default function () {
+  return new ArrayType()
+}
