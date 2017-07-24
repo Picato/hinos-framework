@@ -27,8 +27,8 @@ export default class Utils {
     }
   }
 
-  private static getAssetPath(...path) {
-    return path.join(path.indexOf('assets') === 0 ? '' : 'assets', ...path)
+  private static getAssetPath(...paths: string[]) {
+    return path.join(paths.indexOf('assets') === 0 ? '' : 'assets', ...paths)
   }
 
 }
