@@ -1,6 +1,4 @@
-import * as _ from 'lodash'
 import { VALIDATE, Checker } from 'hinos-validation'
-import { ImageResize } from 'hinos-bodyparser'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
 
@@ -57,7 +55,7 @@ export class FileConfigService {
     body.created_at = new Date()
     body.updated_at = new Date()
   })
-  static async insert(body: FileConfig, validate?: Function) {
+  static async insert(body: FileConfig) {
     const rs = await FileConfigService.mongo.insert<FileConfig>(FileConfig, body)
     return rs
   }
@@ -67,7 +65,7 @@ export class FileConfigService {
     Checker.option(body, 'config', Object)
     Checker.option(body, 'name', String)
   })
-  static async update(body: FileConfig, validate?: Function) {
+  static async update(body: FileConfig) {
     const rs = await FileConfigService.mongo.update(FileConfig, body)
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
   }

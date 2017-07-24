@@ -1,10 +1,8 @@
-import * as _ from 'lodash'
 import { VALIDATE, Checker } from 'hinos-validation'
 import { ImageResize } from 'hinos-bodyparser'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
 import Utils from '../common/Utils'
-import { FileConfigService } from './FileConfigService'
 
 /************************************************
  ** FilesService || 4/10/2017, 10:19:24 AM **
@@ -74,7 +72,7 @@ export class FilesService {
     body.created_at = new Date()
     body.updated_at = new Date()
   })
-  static async insert(body: Files, validate?: Function) {
+  static async insert(body: Files) {
     try {
       const rs = await FilesService.mongo.insert<Files>(Files, body)
       return rs
@@ -91,7 +89,7 @@ export class FilesService {
     Checker.option(body, 'status', Number, Files.Status.TEMP)
     body.updated_at = new Date()
   })
-  static async store(body: Files, validate?: Function) {
+  static async store(body: Files) {
     const rs = await FilesService.mongo.update(Files, body)
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to store')
   }

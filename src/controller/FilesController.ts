@@ -1,9 +1,9 @@
 import * as _ from 'lodash'
 import * as path from 'path'
-import { GET, POST, PUT, DELETE, HEAD, INJECT } from 'hinos-route'
+import { GET, POST, PUT, INJECT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
 import { MATCHER } from 'hinos-requestmatcher'
-import { Mongo, Uuid } from 'hinos-mongo'
+import { Uuid } from 'hinos-mongo'
 import { Files, FilesService } from '../service/FilesService'
 import { FileConfigService } from '../service/FileConfigService'
 import { authoriz } from '../service/Authoriz'
@@ -42,7 +42,7 @@ export class FilesController {
       maxCount: '() => state.config.maxFile',
       resize: '() => state.config.resize'
     }
-  ], (err, next) => {
+  ], err => {
     if (err.code && 'LIMIT_UNEXPECTED_FILE' === err.code) throw HttpError.BAD_REQUEST(`The maximum number of files is ${err.ctx.state.config.maxFile}`)
     throw err
   })
