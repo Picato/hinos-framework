@@ -1,6 +1,4 @@
-import * as _ from 'lodash'
 import { VALIDATE, Checker } from 'hinos-validation'
-import { ImageResize } from 'hinos-bodyparser'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
 
@@ -44,7 +42,7 @@ export class MailConfigService {
     body.created_at = new Date()
     body.updated_at = new Date()
   })
-  static async insert(body: MailConfig, validate?: Function) {
+  static async insert(body: MailConfig) {
     const rs = await MailConfigService.mongo.insert<MailConfig>(MailConfig, body)
     return rs
   }
@@ -55,7 +53,7 @@ export class MailConfigService {
     Checker.option(body, 'MailConfig', Object)
     body.updated_at = new Date()
   })
-  static async update(body: MailConfig, validate?: Function) {
+  static async update(body: MailConfig) {
     const rs = await MailConfigService.mongo.update(MailConfig, body)
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
   }

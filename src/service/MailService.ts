@@ -1,6 +1,5 @@
 import * as _ from 'lodash'
 import { VALIDATE, Checker } from 'hinos-validation'
-import { ImageResize } from 'hinos-bodyparser'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
 import { MailConfig, MailConfigService } from './MailConfigService'
@@ -106,8 +105,8 @@ export class MailService {
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
     Checker.required(body, 'subject', String)
-    Checker.option(body, 'text', String, undefined, e => {
-      // Maybe body.text === ''
+    Checker.option(body, 'text', String, undefined, () => {
+      // Incase body.text === ''
       if (!body.text) Checker.required(body, 'html', String)
     })
     Checker.required(body, 'from', String)
@@ -119,7 +118,7 @@ export class MailService {
     body.created_at = new Date()
     body.updated_at = new Date()
   })
-  static async insert(body: Mail, validate?: Function) {
+  static async insert(body: Mail) {
     const rs = await MailService.mongo.insert<Mail>(Mail, body)
     return rs
   }
@@ -129,7 +128,7 @@ export class MailService {
     body.status = Mail.Status.PENDING
     body.updated_at = new Date()
   })
-  static async resend(body: Mail, validate?: Function) {
+  static async resend(body: Mail) {
     const rs = await MailService.mongo.update(Mail, body)
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
   }
@@ -146,7 +145,7 @@ export class MailService {
     Checker.option(body, 'attachments', Array)
     body.updated_at = new Date()
   })
-  static async update(body: Mail, validate?: Function) {
+  static async update(body: Mail) {
     const rs = await MailService.mongo.update(Mail, body)
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
   }

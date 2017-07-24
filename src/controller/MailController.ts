@@ -1,4 +1,4 @@
-import { GET, POST, PUT, DELETE, HEAD, INJECT } from 'hinos-route'
+import { GET, POST, PUT, DELETE, INJECT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
 import { MATCHER } from 'hinos-requestmatcher'
 import { Mongo, Uuid } from 'hinos-mongo'
@@ -22,7 +22,7 @@ export class MailController {
     }
   })
   static async test({ body }) {
-    const rs = await MailService.test({
+    await MailService.test({
       from: body.name,
       to: body.to,
       subject: 'Test email sending',
@@ -101,7 +101,7 @@ export class MailController {
       _id: Mongo.uuid
     }
   })
-  static async resend({ params, body, state }) {
+  static async resend({ params, state }) {
     await MailService.resend({
       _id: {
         _id: params._id,
