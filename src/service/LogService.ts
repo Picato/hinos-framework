@@ -9,6 +9,7 @@ import HttpError from '../common/HttpError'
  ************************************************/
 
 @Collection('Log')
+/* tslint:disable */
 export class Log {
   _id?: Uuid
   project_id?: Uuid
@@ -19,6 +20,7 @@ export class Log {
   created_at?: Date
   updated_at?: Date
 }
+/* tslint:enable */
 
 export class LogService {
   @MONGO()
@@ -35,7 +37,7 @@ export class LogService {
   }
 
   @VALIDATE((body: Log) => {
-    body._id = <Uuid>Mongo.uuid()
+    body._id = Mongo.uuid() as Uuid
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
     Checker.required(body, 'type', Number)
@@ -68,4 +70,3 @@ export class LogService {
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to delete')
   }
 }
-

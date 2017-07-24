@@ -1,6 +1,6 @@
 import * as _ from 'lodash'
 
-export default class type<T> {
+export default class Type<T> {
   public fieldName: string
   protected _required: boolean = true
   protected _dfValue: T
@@ -10,11 +10,11 @@ export default class type<T> {
 
   public static ostringify = (a, b?, c?) => {
     if (_.isNil(a)) return a
-    return JSON.stringify(a, b, c).replace(/\"([^(\")"]+)\":/g, "$1:").replace(/"?\$Native\(([^\)]+)\)"?/g, '$1')
+    return JSON.stringify(a, b, c).replace(/\"([^(\")"]+)\":/g, '$1:').replace(/"?\$Native\(([^\)]+)\)"?/g, '$1')
   }
 
   public static required(required: boolean = true) {
-
+    // Overide here
   }
 
   public required(required: boolean = true) {
@@ -67,5 +67,5 @@ export default class type<T> {
   public genHttpField() {
     return `${this.fieldName}${this._required ? '' : '?'}: ${this.beanType}`
   }
-
+  
 }

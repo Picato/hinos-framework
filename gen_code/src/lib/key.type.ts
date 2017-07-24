@@ -1,6 +1,6 @@
-import type from './_.type'
+import Type from './_.type'
 
-class KeyType extends type<string> {
+class KeyType extends Type<string> {
 
   constructor() {
     super('Uuid')
@@ -14,12 +14,13 @@ class KeyType extends type<string> {
   }
 
   public validateInsert(item) {
-    return `${item ? `${item}.` : ''}${this.fieldName} = <${this.dataType}>Mongo.uuid()`
+    return `${item ? `${item}.` : ''}${this.fieldName} = Mongo.uuid() as ${this.dataType}`
   }
   public validateUpdate(item) {
     return `Checker.required(${item ? `${item}` : ''}, '${this.fieldName}', ${this.dataType})`
   }
-
 }
-const key = new KeyType()
-export default key
+
+export default function () {
+  return new KeyType()
+}
