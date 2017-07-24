@@ -2,7 +2,7 @@ import * as _ from 'lodash'
 import { VALIDATE, Checker } from 'hinos-validation'
 import { ImageResize } from 'hinos-bodyparser'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
-import { REDIS, Redis } from "hinos-redis"
+import { REDIS, Redis } from 'hinos-redis'
 import HttpError from '../common/HttpError'
 import { RoleService } from './RoleService'
 import { AccountService } from './AccountService'
@@ -12,6 +12,7 @@ import { AccountService } from './AccountService'
  ************************************************/
 
 @Collection('Project')
+/* tslint:disable */
 export class Project {
   _id?: Uuid
   name?: string
@@ -22,6 +23,7 @@ export class Project {
   created_at?: Date
   updated_at?: Date
 }
+/* tslint:enable */
 
 export namespace Project {
   export const Status = {
@@ -142,11 +144,11 @@ export class ProjectService {
     if (!plugins) {
       await ProjectService.redis.del(`$plugins:${projectId}`)
       const rs = await RoleService.reloadCachedRole(projectId, true)
-      console.log(`Removed ${rs} roles into cached ${projectId}`);
+      console.log(`Removed ${rs} roles into cached ${projectId}`)
     } else {
       await ProjectService.redis.set(`$plugins:${projectId}`, plugins)
       const rs = await RoleService.reloadCachedRole(projectId)
-      console.log(`Loaded ${rs} roles into cached ${projectId}`);
+      console.log(`Loaded ${rs} roles into cached ${projectId}`)
     }
   }
 
@@ -155,4 +157,3 @@ export class ProjectService {
   }
 
 }
-

@@ -15,6 +15,7 @@ import * as fbgraph from 'fbgraph'
  ************************************************/
 
 @Collection('Account')
+/* tslint:disable */
 export class Account {
   _id?: Uuid
   app?: string
@@ -31,11 +32,14 @@ export class Account {
   token?: string[]
   native?: boolean
 }
+/* tslint:enable */
 
 export class AccountCached {
+  /* tslint:disable */
   project_id: Uuid
   account_id: Uuid
   role_ids: Uuid[]
+  /* tslint:enable */
 
   static cast(_this) {
     return {
@@ -81,7 +85,7 @@ export class AccountService {
   static getMeFacebook(token: string): Promise<{ id: string, email: string }> {
     return new Promise((resolve, reject) => {
       fbgraph.setAccessToken(token)
-      fbgraph.get("/me?fields=email", (err, res) => {
+      fbgraph.get('/me?fields=email', (err, res) => {
         if (err) return reject(err)
         resolve(res)
       })
@@ -175,7 +179,7 @@ export class AccountService {
     for (const role of accRole) {
       for (const r of role.api) {
         if (new RegExp(`^${r.path}$`, 'gi').test(path) && _.some(actions, (a) => {
-          for (var auAction of r.actions) {
+          for (const auAction of r.actions) {
             if (new RegExp(`^${auAction}$`, 'gi').test(a)) {
               return true
             }
@@ -239,7 +243,7 @@ export class AccountService {
       recover_by: 'YourEmail@gmail',
       status: Account.Status.ACTIVED,
       role_ids: [role._id],
-      native: true,
+      native: true
     })
     // Update owner after create account
     await ProjectService.update({
@@ -345,4 +349,3 @@ export class AccountService {
   }
 
 }
-

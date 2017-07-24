@@ -4,9 +4,8 @@ import { route } from 'hinos-route'
 import { Mongo } from 'hinos-mongo'
 import { Redis } from 'hinos-redis'
 import { cors } from 'hinos-cors'
+import startup from './service/_StartupService'
 import './config'
-
-import startup from "./service/_StartupService"
 
 require(`./env.${Server.env}`).default(Server)
 
@@ -17,7 +16,7 @@ Server.use(cors({
 }))
 Server.use(cors())
 Server.use(route(path.join(__dirname, 'controller'), {
-  root: "/Oauth",
+  root: '/Oauth',
   ignorecase: true,
   onInit(method, path) {
     console.log(`${method.toUpperCase()}\t${path}`)
@@ -28,11 +27,11 @@ Server.use(route(path.join(__dirname, 'controller'), {
 Server.listen(AppConfig.port, async () => {
   await startup()
   console.info(`
-    _     _                 
+    _     _
   | |__ (_)_ __   ___  ___  ${AppConfig.name}
   | '_ \\| | '_ \\ / _ \\/ __|
-  | | | | | | | | (_) \\__ \\ 
+  | | | | | | | | (_) \\__ \\
   |_| |_|_|_| |_|\\___/|___/ ${AppConfig.port}
-      
+
   `)
 })

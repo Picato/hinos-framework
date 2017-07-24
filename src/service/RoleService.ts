@@ -9,12 +9,13 @@ import HttpError from '../common/HttpError'
  ** RoleService || 4/10/2017, 10:19:24 AM **
  ************************************************/
 
-export class Action {
+export interface Action {
   path: string
   actions: string[]
 }
 
 @Collection('Role')
+/* tslint:disable */
 export class Role {
   _id?: Uuid
   name?: string
@@ -26,6 +27,7 @@ export class Role {
   created_at?: Date
   updated_at?: Date
 }
+/* tslint:enable */
 
 export class RoleService {
   @MONGO()
@@ -124,4 +126,3 @@ export class RoleService {
   }
 
 }
-
