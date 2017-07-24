@@ -1,5 +1,6 @@
-import { Server } from 'hinos'
+import { helmet } from 'hinos-helmet'
 
-export default function env(Server: Server) {
-  console.log('Production mode', Server.toString())
+export default function env(Server) {
+  console.log('Production mode')
+  Server.use(helmet.default())
 }
