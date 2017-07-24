@@ -1,8 +1,5 @@
-import * as _ from 'lodash'
 import { VALIDATE, Checker } from 'hinos-validation'
-import { ImageResize } from 'hinos-bodyparser'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
-import HttpError from '../common/HttpError'
 
 /************************************************
  ** LogService || 4/10/2017, 10:19:24 AM **
@@ -35,7 +32,7 @@ export class LogService {
     Checker.required(body, 'service_id', Uuid)
     body.created_at = new Date()
   })
-  static async insert(body: Log, validate?: Function) {
+  static async insert(body: Log) {
     const rs = await LogService.mongo.insert<Log>(Log, body)
     return rs
   }

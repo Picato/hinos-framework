@@ -1,8 +1,8 @@
-import { GET, POST, PUT, DELETE, HEAD, INJECT } from 'hinos-route'
+import { GET, POST, INJECT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
 import { MATCHER } from 'hinos-requestmatcher'
-import { Mongo, Uuid } from 'hinos-mongo'
-import { MonitorConfig, MonitorConfigService } from '../service/MonitorConfigService'
+import { Uuid } from 'hinos-mongo'
+import { MonitorConfigService } from '../service/MonitorConfigService'
 import { authoriz } from '../service/Authoriz'
 
 /************************************************

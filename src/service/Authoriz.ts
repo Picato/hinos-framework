@@ -1,7 +1,7 @@
 import { Context } from 'hinos'
 import HttpError from '../common/HttpError'
 import { Http } from 'hinos-common/Http'
-import { Mongo, Uuid } from 'hinos-mongo'
+import { Mongo } from 'hinos-mongo'
 
 export function authoriz(path: string, actions: string[]) {
   return async ({ ctx, headers }: Context, next: Function) => {

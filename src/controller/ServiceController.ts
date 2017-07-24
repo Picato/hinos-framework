@@ -1,8 +1,8 @@
-import { GET, POST, PUT, DELETE, HEAD, INJECT } from 'hinos-route'
+import { GET, POST, DELETE, INJECT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
 import { MATCHER } from 'hinos-requestmatcher'
 import { Mongo } from 'hinos-mongo'
-import { Service, ServiceService } from '../service/ServiceService'
+import { ServiceService } from '../service/ServiceService'
 import { authoriz } from '../service/Authoriz'
 
 /************************************************
