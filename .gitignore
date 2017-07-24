@@ -2,4 +2,3 @@ node_modules/
 .build/
 .spec/
 !assets/GUI.zip
-package-lock.json

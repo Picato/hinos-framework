@@ -8,6 +8,7 @@ import { Http } from 'hinos-common/Http'
 const proxy = httpProxy.createProxyServer()
 
 @Collection('Service')
+/* tslint:disable */
 export class Service {
   _id?: Uuid
   name?: string
@@ -15,6 +16,7 @@ export class Service {
   created_at?: Date
   updated_at?: Date
 }
+/* tslint:enable */
 
 export class GatewayService {
 
@@ -28,7 +30,7 @@ export class GatewayService {
   }
 
   static forward({ req, res, params }) {
-    return new Promise((resolve, reject) => {      
+    return new Promise((resolve, reject) => {
       proxy.web(req, res, { target: AppConfig.gateway[params.service] }, (err) => {
         if (err) return reject(err)
         resolve()
@@ -40,9 +42,8 @@ export class GatewayService {
     return await GatewayService.mongo.find<Service>(Service, fil)
   }
 
-
   @VALIDATE((body: Service) => {
-    body._id = <Uuid>Mongo.uuid()
+    body._id = Mongo.uuid() as Uuid
     Checker.required(body, 'name', String)
     Checker.required(body, 'link', String)
     body.created_at = new Date()

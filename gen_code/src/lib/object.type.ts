@@ -1,21 +1,7 @@
-import type from './_.type'
+import Type from './_.type'
 import * as _ from 'lodash'
 
-class ObjectType extends type<any> {
-  //Publish
-  public static required(required: boolean = true) {
-    const b = new ObjectType()
-    return b.required(required)
-  }
-  public static schema(_schema: any) {
-    const b = new ObjectType()
-    return b.schema(_schema)
-  }
-  public static default(dfValue: any) {
-    const b = new ObjectType()
-    return b.default(dfValue)
-  }
-
+class ObjectType extends Type<any> {
   public _schema: any
 
   constructor() {
@@ -66,25 +52,26 @@ class ObjectType extends type<any> {
       else cnt = `Checker.option(${item ? `${item}` : ''}, '${this.fieldName}', Object, undefined, (${this.fieldName})=>{${this.checkWhenHas('', this.fieldName, t)}})`
     } else {
       if (this._dfValue) {
-        cnt = `Checker.option(${item ? `${item}` : ''}, '${this.fieldName}', Object, ${type.ostringify(this._dfValue, null, '\t')})`
+        cnt = `Checker.option(${item ? `${item}` : ''}, '${this.fieldName}', Object, ${Type.ostringify(this._dfValue, null, '\t')})`
         if (this._schema) cnt += this.checkWhenHas(`${item}.`, this.fieldName, t)
       } else {
         if (this._required) {
           cnt = `Checker.required(${item ? `${item}` : ''}, '${this.fieldName}', Object)`
           if (this._schema) cnt += this.checkWhenHas(`${item}.`, this.fieldName, t)
         } else {
-          if (this._schema)
+          if (this._schema) {
             cnt = `Checker.option(${item ? `${item}` : ''}, '${this.fieldName}', Object, undefined, (${this.fieldName})=>{${this.checkWhenHas('', this.fieldName, t)}})`
-          else
+          } else {
             cnt = `Checker.option(${item ? `${item}` : ''}, '${this.fieldName}', Object)`
+          }
         }
       }
 
     }
     return cnt
   }
-
-
 }
-const object = ObjectType
-export default object
+
+export default function () {
+  return new ObjectType()
+}
