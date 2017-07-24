@@ -1,18 +1,10 @@
-import type from './_.type'
+import Type from './_.type'
 
-class FileType extends type<any> {
-  //Publish
-  public static required(required: boolean = true) {
-    const b = new FileType()
-    return b.required(required)
-  }
-  public static config(_config: any) {
-    const b = new FileType()
-    return b.config(_config)
-  }
+class FileType extends Type<any> {
 
   public _config: any
   public gdataType
+
   constructor() {
     super('String', 'string')
   }
@@ -41,7 +33,8 @@ class FileType extends type<any> {
   public genBeanCollection() {
     return `${this.fieldName}?: ${this.dataType}<${this.gdataType}>`
   }
-
 }
-const file = FileType
-export default file
+
+export default function () {
+  return new FileType()
+}

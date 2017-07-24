@@ -36,8 +36,10 @@ export class ScriptController {
   static async find({ query }) {
     let where: any = {}
     if (query.name) where.name = new RegExp(query.name, 'i')
-    if (query.tag) where.tag = {
-      $in: [query.tag.toLowerCase()]
+    if (query.tag) {
+      where.tag = {
+        $in: [query.tag.toLowerCase()]
+      }
     }
     const rs = await ScriptService.find({
       $where: where,

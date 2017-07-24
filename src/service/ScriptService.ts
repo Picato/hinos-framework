@@ -11,6 +11,7 @@ import * as fs from 'fs'
  ************************************************/
 
 @Collection('Script')
+/* tslint:disable */
 export class Script {
   _id?: Uuid
   project_id?: Uuid
@@ -23,6 +24,7 @@ export class Script {
   created_at?: Date
   updated_at?: Date
 }
+/* tslint:enable */
 
 export class ScriptService {
   @MONGO()
@@ -48,10 +50,10 @@ export class ScriptService {
         archive.append(r.content, { name: r.name + '.' + r.ext })
       }
       archive.finalize()
-      ctx.set('Content-Type', 'application/zip');
-      ctx.set('Content-Disposition', `attachment; filename=cmd.zip`);
+      ctx.set('Content-Type', 'application/zip')
+      ctx.set('Content-Disposition', `attachment; filename=cmd.zip`)
     } else {
-      ctx.set('Content-Disposition', `attachment; filename=${rs[0].name}.${rs[0].ext}`);
+      ctx.set('Content-Disposition', `attachment; filename=${rs[0].name}.${rs[0].ext}`)
       return new Buffer(rs[0].content, 'utf8')
     }
     return undefined
@@ -92,7 +94,7 @@ export class ScriptService {
   }
 
   @VALIDATE(async (body: Script) => {
-    body._id = <Uuid>Mongo.uuid()
+    body._id = Mongo.uuid() as Uuid
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
     Checker.required(body, 'name', String)
@@ -148,4 +150,3 @@ export class ScriptService {
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to delete')
   }
 }
-
