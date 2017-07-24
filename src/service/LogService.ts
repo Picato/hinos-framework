@@ -9,6 +9,7 @@ import HttpError from '../common/HttpError'
  ************************************************/
 
 @Collection('Log')
+/* tslint:disable */
 export class Log {
   _id?: Uuid
   service_id?: Uuid
@@ -16,6 +17,7 @@ export class Log {
   error?: string
   created_at?: Date
 }
+/* tslint:enable */
 
 export class LogService {
   @MONGO()
@@ -27,7 +29,7 @@ export class LogService {
   }
 
   @VALIDATE((body: Log) => {
-    body._id = <Uuid>Mongo.uuid()
+    body._id = Mongo.uuid() as Uuid
     Checker.required(body, 'status', Number)
     Checker.option(body, 'error', String)
     Checker.required(body, 'service_id', Uuid)
@@ -38,4 +40,3 @@ export class LogService {
     return rs
   }
 }
-

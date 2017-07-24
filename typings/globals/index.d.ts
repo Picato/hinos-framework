@@ -28,6 +28,7 @@ interface IAppConfig {
     app: {
         wsSession: string
         timeoutSpamMail: number
+        timeoutPingService: number
         mailConfig: {
             secretKey: string,
             mailTo: string[],

@@ -14,6 +14,7 @@ import * as net from 'net'
  ************************************************/
 
 @Collection('Service')
+/* tslint:disable */
 export class Service {
   _id?: Uuid
   name?: string
@@ -24,6 +25,7 @@ export class Service {
   created_at?: Date
   updated_at?: Date
 }
+/* tslint:enable */
 
 export namespace Service {
   export const Status = {
@@ -54,8 +56,8 @@ export class ServiceService {
   static async check() {
     const services = await ServiceService.mongo.find<Service>(Service)
     for (let s of services) {
+      let msg
       const [host, port] = s.link.split(':')
-      let msg;
       try {
         await ServiceService.checkPortUsing(host, +port, s.name)
         msg = await LogService.insert({
@@ -99,7 +101,7 @@ export class ServiceService {
         ServiceService.socket.send('/msg', AppConfig.app.wsSession, msg)
       }
     }
-    setTimeout(ServiceService.check, 10000)
+    setTimeout(ServiceService.check, AppConfig.app.timeoutPingService)
   }
 
   static async find(fil = {}) {
@@ -116,9 +118,8 @@ export class ServiceService {
     return rs
   }
 
-
   @VALIDATE((body: Service) => {
-    body._id = <Uuid>Mongo.uuid()
+    body._id = Mongo.uuid() as Uuid
     Checker.required(body, 'name', String)
     Checker.required(body, 'link', String)
     Checker.option(body, 'status', Number, 0)
@@ -138,4 +139,3 @@ export class ServiceService {
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to delete')
   }
 }
-

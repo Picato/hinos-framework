@@ -4,7 +4,7 @@ import { Http } from 'hinos-common/Http'
 import { Mongo, Uuid } from 'hinos-mongo'
 
 export function authoriz(path: string, actions: string[]) {
-  return async ({ ctx, headers }, next: Function) => {
+  return async ({ ctx, headers }: Context, next: Function) => {
     const res: Http.Response = await Http.head(`${AppConfig.services.oauth}/Oauth/Authoriz?path=${path}&actions=${actions.join(',')}`, {
       headers: {
         token: headers.token

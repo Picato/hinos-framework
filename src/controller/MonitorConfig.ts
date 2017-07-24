@@ -22,8 +22,8 @@ export class MonitorConfigController {
   @BODYPARSER()
   @MATCHER({
     body: {
-      mailTo: Array,
-      mailConfigId: Uuid
+      mail_to: Array,
+      mail_config_id: Uuid
     }
   })
   static async config({ body, state }) {

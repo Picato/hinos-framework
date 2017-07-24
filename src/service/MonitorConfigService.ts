@@ -14,19 +14,26 @@ import * as net from 'net'
  ************************************************/
 
 @Collection('MonitorConfig')
+/* tslint:disable */
 export class MonitorConfig {
   _id?: Uuid
-  mailTo: string[]
-  mailConfigId: Uuid
-  secretKey: string
+  mail_to: string[]
+  mail_config_id: Uuid
+  secret_key: string
 }
+/* tslint:enable */
 
 export class MonitorConfigService {
   @MONGO()
   private static mongo: Mongo
 
   static async loadConfig() {
-    AppConfig.app.mailConfig = await MonitorConfigService.get()
+    const data = await MonitorConfigService.get()
+    AppConfig.app.mailConfig = {
+      mailConfigId: data.mail_config_id,
+      mailTo: data.mail_to,
+      secretKey: data.secret_key
+    }
   }
 
   static async getMailConfig({ token }) {
@@ -45,9 +52,13 @@ export class MonitorConfigService {
       }
     })
     if (!resp.body) throw HttpError.CONDITION('Need gen secret key before save configuration')
-    let config = await MonitorConfigService.mongo.find<MonitorConfig>(MonitorConfig)
-    data.secretKey = resp.body
-    AppConfig.app.mailConfig = data
+    const config = await MonitorConfigService.mongo.find<MonitorConfig>(MonitorConfig)
+    data.secret_key = resp.body
+    AppConfig.app.mailConfig = {
+      mailConfigId: data.mail_config_id,
+      mailTo: data.mail_to,
+      secretKey: data.secret_key
+    }
     if (config.length > 0) {
       data._id = config[0]._id
       await MonitorConfigService.mongo.update(MonitorConfig, data)
@@ -61,4 +72,3 @@ export class MonitorConfigService {
     return config.length > 0 ? config[0] : null
   }
 }
-
