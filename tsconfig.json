@@ -4,9 +4,13 @@
         "target": "ESNext",
         "declaration": false,
         "sourceMap": false,
+        "preserveConstEnums": true,
         "removeComments": true,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "newLine": "LF",
         "typeRoots": [
             "node_modules/@types",
             "typings"

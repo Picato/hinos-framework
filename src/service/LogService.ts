@@ -1,6 +1,4 @@
-import * as _ from 'lodash'
 import { VALIDATE, Checker } from 'hinos-validation'
-import { ImageResize } from 'hinos-bodyparser'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
 
@@ -46,7 +44,7 @@ export class LogService {
     body.created_at = new Date()
     body.updated_at = new Date()
   })
-  static async insert(body: Log, validate?: Function) {
+  static async insert(body: Log) {
     const rs = await LogService.mongo.insert<Log>(Log, body)
     return rs
   }
@@ -57,7 +55,7 @@ export class LogService {
     Checker.required(body, 'account_id', Uuid)
     body.updated_at = new Date()
   })
-  static async update(body: Log, validate?: Function) {
+  static async update(body: Log) {
     const rs = await LogService.mongo.update(Log, body)
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
   }
