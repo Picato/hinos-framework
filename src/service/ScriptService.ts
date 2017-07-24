@@ -1,10 +1,7 @@
-import * as _ from 'lodash'
 import { VALIDATE, Checker } from 'hinos-validation'
-import { ImageResize } from 'hinos-bodyparser'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
 import * as archiver from 'archiver'
-import * as fs from 'fs'
 
 /************************************************
  ** ScriptService || 4/10/2017, 10:19:24 AM **
@@ -110,7 +107,7 @@ export class ScriptService {
     body.created_at = new Date()
     body.updated_at = new Date()
   })
-  static async insert(body: Script, validate?: Function) {
+  static async insert(body: Script) {
     const rs = await ScriptService.mongo.insert<Script>(Script, body)
     return rs
   }
@@ -127,7 +124,7 @@ export class ScriptService {
     body.content = await ScriptService.replaceContent(body.content)
     body.updated_at = new Date()
   })
-  static async update(body: Script, validate?: Function) {
+  static async update(body: Script) {
     const old = await ScriptService.mongo.get<Script>(Script, body._id, { _name: 1 })
     if (old._name !== body._name) {
       const existed = await ScriptService.mongo.get<Script>(Script, {

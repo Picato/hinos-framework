@@ -1,8 +1,8 @@
-import { GET, POST, PUT, DELETE, HEAD, INJECT } from 'hinos-route'
+import { GET, POST, PUT, DELETE, INJECT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
 import { MATCHER } from 'hinos-requestmatcher'
 import { Mongo } from 'hinos-mongo'
-import { Script, ScriptService } from '../service/ScriptService'
+import { ScriptService } from '../service/ScriptService'
 import { authoriz } from '../service/Authoriz'
 
 /************************************************
@@ -18,7 +18,6 @@ export class ScriptController {
     }
   })
   static async download(ctx) {
-    let where: any = {}
     if (!ctx.query.name || ctx.query.name.length === 0) return
     return await ScriptService.download(ctx.query.name, ctx)
   }
