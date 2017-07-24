@@ -1,14 +1,9 @@
-import type from './_.type'
+import Type from './_.type'
 
-class UuidType extends type<string> {
+class UuidType extends Type<string> {
 
   constructor() {
     super('Uuid', 'Uuid')
-  }
-
-  public static required(required: boolean = true) {
-    const b = new UuidType()
-    return b.required(required)
   }
 
   public assignInController() {
@@ -17,7 +12,8 @@ class UuidType extends type<string> {
   public assignUpController() {
     return `${this.fieldName}: Mongo.uuid`
   }
-
 }
-const uuid = UuidType
-export default uuid
+
+export default function () {
+  return new UuidType()
+}
