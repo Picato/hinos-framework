@@ -1,5 +1,5 @@
-# hinos-service@template
-Template project which create micro services base on hinos-framework
+# hinos-auto-script
+Store and support to write commands which build and execute on system
 
 # Prerequisite
 If you nodejs verision < 8.0 then you need add bellow code in package.json

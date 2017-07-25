@@ -4,6 +4,7 @@ import { MATCHER } from 'hinos-requestmatcher'
 import { Mongo } from 'hinos-mongo'
 import { ScriptService } from '../service/ScriptService'
 import { authoriz } from '../service/Authoriz'
+import HttpError from '../common/HttpError'
 
 /************************************************
  ** ScriptController || 4/10/2017, 10:19:24 AM **
@@ -14,12 +15,18 @@ export class ScriptController {
   @GET('/Download')
   @MATCHER({
     query: {
-      name: e => e.split(',').map(e => e.trim().toLowerCase())
+      name: e => e.split(',').map(e => e.trim().toLowerCase()),
+      id: e => e.split(',').map(e => Mongo.uuid(e.trim()))
     }
   })
   static async download(ctx) {
-    if (!ctx.query.name || ctx.query.name.length === 0) return
-    return await ScriptService.download(ctx.query.name, ctx)
+    if (ctx.query.name && ctx.query.name.length > 0) {
+      return await ScriptService.download({ _name: { $in: ctx.query.name } }, ctx)
+    }
+    if (ctx.query.id && ctx.query.id.length > 0) {
+      return await ScriptService.download({ _id: { $in: ctx.query.id } }, ctx)
+    }
+    throw HttpError.NOT_FOUND()
   }
 
   @GET('/')
@@ -28,17 +35,28 @@ export class ScriptController {
     query: {
       page: Number,
       recordsPerPage: Number,
-      name: String,
       tag: String
     }
   })
-  static async find({ query }) {
+  static async find({ query, state }) {
     let where: any = {}
-    if (query.name) where.name = new RegExp(query.name, 'i')
     if (query.tag) {
-      where.tag = {
-        $in: [query.tag.toLowerCase()]
-      }
+      where.$and = [
+        {
+          $or: [
+            { project_id: state.auth.projectId },
+            { is_private: false }
+          ]
+        },
+        {
+          $or: [
+            { tag: { $in: [query.tag.toLowerCase()] } },
+            { name: new RegExp(query.tag, 'i') }
+          ]
+        }
+      ]
+    } else {
+      where.project_id = state.auth.projectId
     }
     const rs = await ScriptService.find({
       $where: where,
@@ -70,6 +88,7 @@ export class ScriptController {
       name: String,
       ext: String,
       content: String,
+      is_private: Boolean,
       tag: e => e.split(',').map(e => e.trim().toLowerCase())
     }
   })
@@ -91,6 +110,7 @@ export class ScriptController {
       name: String,
       ext: String,
       content: String,
+      is_private: Boolean,
       tag: e => e.split(',').map(e => e.trim().toLowerCase())
     }
   })

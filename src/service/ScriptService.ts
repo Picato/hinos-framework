@@ -27,15 +27,17 @@ export class ScriptService {
   @MONGO()
   private static mongo: Mongo
 
-  static async download(names: string[], ctx) {
+  static async download(where: { [key: string]: any }, ctx) {
+    if (where._name) {
+      where.$or = [{
+        is_private: false
+        // project_id: projectId
+      }]
+    }
     const rs = await ScriptService.mongo.find<Script>(Script, {
-      $where: {
-        _name: {
-          $in: names
-        }
-      }
+      $where: where
     })
-    if (rs.length === 0) return
+    if (rs.length === 0) throw HttpError.NOT_FOUND()
     ctx.status = 200
     if (rs.length > 1) {
       ctx.res.manual = true
@@ -66,7 +68,7 @@ export class ScriptService {
     return rs
   }
 
-  static async replaceContent(content: string) {
+  static async replaceContent(content: string, projectId: Uuid) {
     const key: any = {}
     for (const c of content.split('\n')) {
       if (/^@[^\r|\n]+$/.test(c)) {
@@ -78,7 +80,11 @@ export class ScriptService {
       $where: {
         _name: {
           $in: Object.keys(key).map(e => e.toLowerCase())
-        }
+        },
+        $or: [{
+          is_private: false,
+          project_id: projectId
+        }]
       }
     })
     for (let r of rs) {
@@ -103,7 +109,8 @@ export class ScriptService {
     Checker.required(body, 'content', String)
     Checker.required(body, 'tag', Array)
     Checker.required(body, 'ext', String)
-    body.content = await ScriptService.replaceContent(body.content)
+    Checker.option(body, 'is_private', Boolean, false)
+    body.content = await ScriptService.replaceContent(body.content, body.project_id)
     body.created_at = new Date()
     body.updated_at = new Date()
   })
@@ -121,7 +128,8 @@ export class ScriptService {
     })
     Checker.option(body, 'tag', Array)
     Checker.option(body, 'ext', String)
-    body.content = await ScriptService.replaceContent(body.content)
+    Checker.option(body, 'is_private', Boolean)
+    body.content = await ScriptService.replaceContent(body.content, body.project_id)
     body.updated_at = new Date()
   })
   static async update(body: Script) {
