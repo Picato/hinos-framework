@@ -13,7 +13,7 @@ A micro service manage authentication, authoiziation for others micro services
 {
   des: 'Register',
   method: 'POST',
-  url: 'http://localhost:1001/Register',
+  url: 'http://localhost:1001/Oauth/Register',
   requestHeader: {
     'content-type': 'application/json', 
     pj: '${ProjectId}',
@@ -34,7 +34,7 @@ A micro service manage authentication, authoiziation for others micro services
 {
   des: 'Login',
   method: 'POST',
-  url: 'http://localhost:1001/Login',
+  url: 'http://localhost:1001/Oauth/Login',
   requestHeader: {
     'content-type': 'application/json',
     pj: '${ProjectId}',
@@ -51,7 +51,7 @@ A micro service manage authentication, authoiziation for others micro services
 {
   des: 'Keep alive session help it not expired',
   method: 'HEAD',
-  url: 'http://localhost:1001/Ping',
+  url: 'http://localhost:1001/Oauth/Ping',
   requestHeader: {
     token: '${Token}'
   }
@@ -61,7 +61,7 @@ A micro service manage authentication, authoiziation for others micro services
 {
   des: 'Logout',
   method: 'GET',
-  url: 'http://localhost:1001/Logout',
+  url: 'http://localhost:1001/Oauth/Logout',
   requestHeader: {
     token: '${Token}'
   }
@@ -71,7 +71,18 @@ A micro service manage authentication, authoiziation for others micro services
 {
   des: 'Check authorization',
   method: 'HEAD',
-  url: 'http://localhost:1001/Authoriz?path=test&actions=INSERT',
+  url: 'http://localhost:1001/Oauth/Authoriz?path=test&actions=INSERT',
+  requestHeader: {
+    'content-type': 'application/json',
+    token: '${Token}'
+  }
+}
+```
+```js
+{
+  des: 'Get roles for web',
+  method: 'GET',
+  url: 'http://localhost:1001/Oauth/MyRoles?type=web',
   requestHeader: {
     'content-type': 'application/json',
     token: '${Token}'
@@ -82,7 +93,7 @@ A micro service manage authentication, authoiziation for others micro services
 {
   des: 'Get my information',
   method: 'GET',
-  url: 'http://localhost:1001/Me',
+  url: 'http://localhost:1001/Oauth/Me',
   requestHeader: {
     token: '${Token}'
   }
@@ -92,7 +103,7 @@ A micro service manage authentication, authoiziation for others micro services
 {
   des: 'Update my information',
   method: 'PUT',
-  url: 'http://localhost:1001/Me',
+  url: 'http://localhost:1001/Oauth/Me',
   requestHeader: {
     'content-type': 'application/json', 
     token: '${Token}'
@@ -111,7 +122,7 @@ A micro service manage authentication, authoiziation for others micro services
 {
   des: 'Generate secret key help use api without login',
   method: 'PUT',
-  url: 'http://localhost:1001/Secretkey',
+  url: 'http://localhost:1001/Oauth/Secretkey',
   requestHeader: {
     'content-type': 'application/json',
     token: '5954a67b396f111aa86d0da45954a6b0396f111aa86d0da65954acf154320a291040f6c8?2700'
@@ -122,7 +133,7 @@ A micro service manage authentication, authoiziation for others micro services
 {
   des: 'get secret key',
   method: 'GET',
-  url: 'http://localhost:1001/Secretkey',
+  url: 'http://localhost:1001/Oauth/Secretkey',
   requestHeader: {
     'content-type': 'application/json',
     token: '5954a67b396f111aa86d0da45954a6b0396f111aa86d0da65954acf154320a291040f6c8?2700'

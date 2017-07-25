@@ -135,6 +135,11 @@ export class AccountService {
     return me
   }
 
+  static async getRoles({ accountId }) {
+    const me = await AccountService.mongo.get<Account>(Account, accountId, { role_ids: 1 })
+    return me.role_ids
+  }
+
   static async ping({ token = undefined as string, projectId = undefined as Uuid }) {
     const plugins = await ProjectService.getCachedPlugins(projectId)
     await AccountService.touchCachedToken(token, plugins.oauth.session_expired)
@@ -267,7 +272,11 @@ export class AccountService {
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'status', Number)
     Checker.required(body, 'recover_by', String)
-    Checker.option(body, 'role_ids', Array, [])
+    Checker.option(body, 'role_ids', Array, () => {
+      body.role_ids = body.role_ids.map(Mongo.uuid)
+    }, () => {
+      body.role_ids = []
+    })
     Checker.option(body, 'more', Object, {})
     body.token = []
     body.created_at = new Date()
@@ -289,7 +298,9 @@ export class AccountService {
     Checker.option(body, 'password', String)
     Checker.option(body, 'status', Number)
     Checker.option(body, 'recover_by', String)
-    Checker.option(body, 'role_ids', Array)
+    Checker.option(body, 'role_ids', Array, () => {
+      body.role_ids = body.role_ids.map(Mongo.uuid)
+    })
     Checker.option(body, 'more', Object)
     body.updated_at = new Date()
   })

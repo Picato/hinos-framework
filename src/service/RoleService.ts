@@ -104,6 +104,12 @@ export class RoleService {
     await RoleService.reloadCachedRole(key.project_id)
   }
 
+  static async getMyRole(roleIds: Uuid[], { projectId }) {
+    const myRoles = roleIds.map(e => e.toString())
+    const roles = await RoleService.getCachedRole(projectId)
+    return roles.filter(e => myRoles.includes(e._id.toString()))
+  }
+
   ////////////// Cached
 
   static async reloadCachedRole(projectId: Uuid, isRemoved?: boolean) {
