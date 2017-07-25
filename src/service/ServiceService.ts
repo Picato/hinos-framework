@@ -78,21 +78,24 @@ export class ServiceService {
           status: Service.Status.DEAD
         }
         if (AppConfig.app.mailConfig && AppConfig.app.mailConfig.mailConfigId && AppConfig.app.mailConfig.secretKey && AppConfig.app.mailConfig.secretKey.length > 0 && AppConfig.app.mailConfig.mailTo && AppConfig.app.mailConfig.mailTo.length > 0 && (!s.lastSent || (s.lastSent.getTime() - new Date().getTime() >= AppConfig.app.timeoutSpamMail))) {
-          await Http.post(`${AppConfig.services.mail}/Mail/Send/${AppConfig.app.mailConfig.mailConfigId}`, {
-            headers: {
-              token: AppConfig.app.mailConfig.secretKey
-            },
-            data: {
-              subject: `Micro service ${s.name} is downing, please check ASAP !`,
-              text: error.toString(),
-              from: 'Monitor@email.com',
-              to: AppConfig.app.mailConfig.mailTo
+          try {
+            await Http.post(`${AppConfig.services.mail}/Mail/Send/${AppConfig.app.mailConfig.mailConfigId}`, {
+              headers: {
+                token: AppConfig.app.mailConfig.secretKey
+              },
+              data: {
+                subject: `Micro service ${s.name} is downing, please check ASAP !`,
+                text: error.toString(),
+                from: 'Monitor@email.com',
+                to: AppConfig.app.mailConfig.mailTo
+              }
+            })
+            item.lastSent = new Date()
+          } finally {
+            if (s.status !== Service.Status.DEAD) {
+              ServiceService.mongo.update(Service, item)
             }
-          })
-          item.lastSent = new Date()
-        }
-        if (s.status !== Service.Status.DEAD) {
-          ServiceService.mongo.update(Service, item)
+          }
         }
       } finally {
         ServiceService.socket.send('/msg', AppConfig.app.wsSession, msg)
