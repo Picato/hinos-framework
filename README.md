@@ -6,19 +6,19 @@ Manage all of APIs
 Config gateway IP in the package.json file
 
 ```js
-    "url": "http://localhost:8888",
+    "url": "http://localhost:6110",
     "gateway": {
-        "oauth": "http://localhost:1001",
-        "files": "http://localhost:1002",
-        "mail": "http://localhost:1003",
-        "log": "http://localhost:1004"
+        "oauth": "http://localhost:6111",
+        "files": "http://localhost:6112",
+        "mail": "http://localhost:6113",
+        "log": "http://localhost:6114"
     }
 ```
 
 Note: key in gate must be same root path service
 Example: 
--  Link oauth service is 'http://localhost:1001/oauth/Account' then key must be __oauth__
--  Link mail service is 'http://localhost:1003/mail then key must be __mail__
+-  Link oauth service is 'http://localhost:6111/oauth/Account' then key must be __oauth__
+-  Link mail service is 'http://localhost:6113/mail then key must be __mail__
 
 # Prerequisite
 If you nodejs verision < 8.0 then you need add bellow code in package.json

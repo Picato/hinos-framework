@@ -15,10 +15,10 @@
   },
   "config": {
     "externalConfig": "./appconfig.cfg#api",
-    "url": "http://localhost:8888",
+    "url": "http://localhost:6110",
     "timeScan": 5000,
     "services": {
-      "oauth": "http://localhost:1001"
+      "oauth": "http://localhost:6111"
     },
     "mongo": {
       "url": "mongodb://localhost:27017/gateway",
