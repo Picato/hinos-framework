@@ -16,9 +16,9 @@
   "config": {
     "externalConfig": "./appconfig.cfg#api",
     "routes": {},
-    "url": "http://localhost:1009",
+    "url": "http://localhost:6116",
     "services": {
-      "oauth": "http://localhost:1001"
+      "oauth": "http://localhost:6111"
     },
     "encryptKey": ")^!!!(**",
     "mongo": {

@@ -1,7 +1,7 @@
 {
   des: 'Add',
     method: 'POST',
-      url: 'http://localhost:1007/Script',
+      url: 'http://localhost:6115/Script',
         requestHeader: {
     'content-type': 'application/json'
   },
@@ -19,13 +19,13 @@
 {
   des: 'Get list',
     method: 'GET',
-      url: 'http://localhost:1007/Script'
+      url: 'http://localhost:6115/Script'
 }
 
 {
   des: 'Update',
     method: 'PUT',
-      url: 'http://localhost:1007/Script/ITEM_ID',
+      url: 'http://localhost:6115/Script/ITEM_ID',
         requestHeader: {
     'content-type': 'application/json'
   },
@@ -43,11 +43,11 @@
 {
   des: 'Get detail',
     method: 'GET',
-      url: 'http://localhost:1007/Script/ITEM_ID'
+      url: 'http://localhost:6115/Script/ITEM_ID'
 }
 
 {
   des: 'Delete',
     method: 'DELETE',
-      url: 'http://localhost:1007/Script/ITEM_ID'
+      url: 'http://localhost:6115/Script/ITEM_ID'
 }
