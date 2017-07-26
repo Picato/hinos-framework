@@ -1,7 +1,7 @@
 {
   des: 'Add',
     method: 'POST',
-      url: 'http://localhost:1007/Log',
+      url: 'http://localhost:6115/Log',
         requestHeader: {
     'content-type': 'application/json'
   },
@@ -16,13 +16,13 @@
 {
   des: 'Get list',
     method: 'GET',
-      url: 'http://localhost:1007/Log'
+      url: 'http://localhost:6115/Log'
 }
 
 {
   des: 'Update',
     method: 'PUT',
-      url: 'http://localhost:1007/Log/ITEM_ID',
+      url: 'http://localhost:6115/Log/ITEM_ID',
         requestHeader: {
     'content-type': 'application/json'
   },
@@ -37,11 +37,11 @@
 {
   des: 'Get detail',
     method: 'GET',
-      url: 'http://localhost:1007/Log/ITEM_ID'
+      url: 'http://localhost:6115/Log/ITEM_ID'
 }
 
 {
   des: 'Delete',
     method: 'DELETE',
-      url: 'http://localhost:1007/Log/ITEM_ID'
+      url: 'http://localhost:6115/Log/ITEM_ID'
 }

@@ -16,10 +16,10 @@
   "config": {
     "externalConfig": "./appconfig.cfg#api",
     "routes": {},
-    "url": "http://localhost:1008",
+    "url": "http://localhost:6115",
     "services": {
-      "oauth": "http://localhost:1001",
-      "mail": "http://localhost:1003"
+      "oauth": "http://localhost:6111",
+      "mail": "http://localhost:6113"
     },
     "encryptKey": ")^!!!(**",
     "mongo": {
