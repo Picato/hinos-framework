@@ -1,7 +1,7 @@
 {
   des: 'Add log',
   method: 'POST',
-  url: 'http://localhost:1004/Log',
+  url: 'http://localhost:6114/Log',
   requestHeader: {
     'content-type': 'application/json',
     token: '595c7179d28ff924b0f5c623595c7179d28ff924b0f5c626595db078daf10302d89cf363?3600'
@@ -19,7 +19,7 @@
 {
   des: 'Update',
   method: 'PUT',
-  url: 'http://localhost:1004/Log/595a03396a7f9504609c11ae',
+  url: 'http://localhost:6114/Log/595a03396a7f9504609c11ae',
   requestHeader: {
     'content-type': 'application/json',
     token: '59566907ad1fd629540c4b3d59566927ad1fd629540c4b42595a022b9c1147109c9394b6?2700'
@@ -32,13 +32,13 @@
 {
   des: 'Get list',
     method: 'GET',
-      url: 'http://localhost:1001/Log'
+      url: 'http://localhost:6111/Log'
 }
 
 {
   des: 'Update',
     method: 'PUT',
-      url: 'http://localhost:1001/Log/ITEM_ID',
+      url: 'http://localhost:6111/Log/ITEM_ID',
         requestHeader: {
     'content-type': 'application/json'
   },
@@ -55,11 +55,11 @@
 {
   des: 'Get detail',
     method: 'GET',
-      url: 'http://localhost:1001/Log/ITEM_ID'
+      url: 'http://localhost:6111/Log/ITEM_ID'
 }
 
 {
   des: 'Delete',
   method: 'DELETE',
-  url: 'http://localhost:1001/Log/ITEM_ID'
+  url: 'http://localhost:6111/Log/ITEM_ID'
 }

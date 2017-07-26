@@ -7,7 +7,7 @@ A micro service manage logs
 {
   des: 'Add log',
   method: 'POST',
-  url: 'http://localhost:1004/Log',
+  url: 'http://localhost:6114/Log',
   requestHeader: {
     'content-type': 'application/json',
     token: '${Token}'
@@ -27,7 +27,7 @@ A micro service manage logs
 {
   des: 'Update log',
   method: 'PUT',
-  url: 'http://localhost:1004/Log/595a03396a7f9504609c11ae',
+  url: 'http://localhost:6114/Log/595a03396a7f9504609c11ae',
   requestHeader: {
     'content-type': 'application/json',
     token: '${Token}'
@@ -42,7 +42,7 @@ A micro service manage logs
 {
   des: 'Get list logs',
   method: 'GET',
-  url: 'http://localhost:1001/Log',
+  url: 'http://localhost:6111/Log',
   requestHeader: {
     token: '${Token}'
   }
@@ -53,7 +53,7 @@ A micro service manage logs
 {
   des: 'Get log detail',
   method: 'GET',
-  url: 'http://localhost:1001/Log/${LogId}',
+  url: 'http://localhost:6111/Log/${LogId}',
   requestHeader: {
     token: '${Token}'
   }
@@ -64,7 +64,7 @@ A micro service manage logs
 {
   des: 'Delete log',
   method: 'DELETE',
-  url: 'http://localhost:1001/Log/${LogId}'
+  url: 'http://localhost:6111/Log/${LogId}'
   requestHeader: {
     token: '${Token}'
   }
