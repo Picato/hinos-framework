@@ -1,7 +1,7 @@
 {
   des: 'Add',
     method: 'POST',
-      url: 'http://localhost:1001/Config',
+      url: 'http://localhost:6111/Config',
         requestHeader: {
     'content-type': 'application/json'
   },
@@ -18,13 +18,13 @@
 {
   des: 'Get list',
     method: 'GET',
-      url: 'http://localhost:1001/Config'
+      url: 'http://localhost:6111/Config'
 }
 
 {
   des: 'Update',
     method: 'PUT',
-      url: 'http://localhost:1001/Config/ITEM_ID',
+      url: 'http://localhost:6111/Config/ITEM_ID',
         requestHeader: {
     'content-type': 'application/json'
   },
@@ -41,11 +41,11 @@
 {
   des: 'Get detail',
     method: 'GET',
-      url: 'http://localhost:1001/Config/ITEM_ID'
+      url: 'http://localhost:6111/Config/ITEM_ID'
 }
 
 {
   des: 'Delete',
     method: 'DELETE',
-      url: 'http://localhost:1001/Config/ITEM_ID'
+      url: 'http://localhost:6111/Config/ITEM_ID'
 }

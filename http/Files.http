@@ -1,7 +1,7 @@
 {
   des: 'Upload temp files',
   method: 'POST',
-  url: 'http://localhost:1002/Upload/595c71ce14996d27e8f0d1c1',
+  url: 'http://localhost:6112/Upload/595c71ce14996d27e8f0d1c1',
   requestHeader: {
     'content-type': 'multipart/form-data',
     token: '595de3aedaf10302d89cf369595de3aedaf10302d89cf36c595de3f9daf10302d89cf36d?2700'
@@ -14,7 +14,7 @@
 {
   des: 'Store temp files',
   method: 'PUT',
-  url: 'http://localhost:1002/Store',
+  url: 'http://localhost:6112/Store',
   requestHeader: {
     token: '595c7179d28ff924b0f5c623595c7179d28ff924b0f5c626595c8e1670199129fc70da96?2700'
   },
@@ -26,7 +26,7 @@
 {
   des: 'Delete files',
   method: 'PUT',
-  url: 'http://localhost:1002/Remove',
+  url: 'http://localhost:6112/Remove',
   requestHeader: {
     'content-type': 'application/json',
     token: '595c7179d28ff924b0f5c623595c7179d28ff924b0f5c626595c8e1670199129fc70da96?2700'
@@ -39,13 +39,13 @@
 {
   des: 'Get list',
     method: 'GET',
-      url: 'http://localhost:1001/Files'
+      url: 'http://localhost:6111/Files'
 }
 
 {
   des: 'Update',
     method: 'PUT',
-      url: 'http://localhost:1001/Files/ITEM_ID',
+      url: 'http://localhost:6111/Files/ITEM_ID',
         requestHeader: {
     'content-type': 'application/json'
   },
@@ -64,11 +64,11 @@
 {
   des: 'Get detail',
     method: 'GET',
-      url: 'http://localhost:1001/Files/ITEM_ID'
+      url: 'http://localhost:6111/Files/ITEM_ID'
 }
 
 {
   des: 'Delete',
     method: 'DELETE',
-      url: 'http://localhost:1001/Files/ITEM_ID'
+      url: 'http://localhost:6111/Files/ITEM_ID'
 }
