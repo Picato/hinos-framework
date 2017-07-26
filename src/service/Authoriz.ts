@@ -19,3 +19,16 @@ export function authoriz(path: string, actions: string[]) {
     await next()
   }
 }
+
+export function suAuthoriz() {
+  return async ({ headers }: Context, next: Function) => {
+    const res: Http.Response = await Http.head(`${AppConfig.services.oauth}/Oauth/Authoriz`, {
+      headers: {
+        token: headers.token
+      }
+    })
+    if (res.statusCode !== 204) throw HttpError.INTERNAL(res.error)
+    if (Object.keys(res.headers).includes('token')) throw HttpError.AUTHORIZ('This api need super admin permission')
+    await next()
+  }
+}

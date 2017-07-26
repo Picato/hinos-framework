@@ -3,7 +3,7 @@ import { BODYPARSER } from 'hinos-bodyparser'
 import { MATCHER } from 'hinos-requestmatcher'
 import { Mongo } from 'hinos-mongo'
 import { GatewayService } from '../service/GatewayService'
-import { authoriz } from '../service/Authoriz'
+import { suAuthoriz } from '../service/Authoriz'
 import * as fs from 'fs'
 
 /************************************************
@@ -18,7 +18,7 @@ export class GatewayController {
   }
 
   @GET('/Gateway/Service')
-  @INJECT(authoriz(`${AppConfig.name}>Service`, ['FIND']))
+  @INJECT(suAuthoriz())
   @MATCHER({
     query: {
       page: Number,
@@ -36,7 +36,7 @@ export class GatewayController {
   }
 
   @POST('/Gateway/Service')
-  @INJECT(authoriz(`${AppConfig.name}>Service`, ['INSERT']))
+  @INJECT(suAuthoriz())
   @BODYPARSER()
   @MATCHER({
     body: {
@@ -50,7 +50,7 @@ export class GatewayController {
   }
 
   @DELETE('/Gateway/Service/:_id')
-  @INJECT(authoriz(`${AppConfig.name}>Service`, ['DELETE']))
+  @INJECT(suAuthoriz())
   @MATCHER({
     params: {
       _id: Mongo.uuid
