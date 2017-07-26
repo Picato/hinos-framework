@@ -129,7 +129,7 @@ export class ProjectService {
   })
   static async delete(_id: Uuid) {
     const rs = await ProjectService.mongo.delete(Project, _id)
-    if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to delete')
+    if (rs === 0) throw HttpError.NOT_FOUND('Could not found project to delete')
     await RoleService.delete({
       project_id: _id
     })

@@ -41,6 +41,14 @@ export class RoleService {
         path: '.*',
         actions: ['.*']
       }],
+      web: [{
+        path: '.*',
+        actions: ['.*']
+      }],
+      mob: [{
+        path: '.*',
+        actions: ['.*']
+      }],
       project_id: projectId
     })
     return rs
@@ -99,7 +107,7 @@ export class RoleService {
     const rs = await RoleService.mongo.delete(Role, key, {
       multiple: !key._id
     })
-    if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to delete')
+    if (rs === 0) throw HttpError.NOT_FOUND('Could not found role to delete')
     // Reload cache
     await RoleService.reloadCachedRole(key.project_id)
   }

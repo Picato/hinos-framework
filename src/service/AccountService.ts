@@ -176,6 +176,7 @@ export class AccountService {
   }
 
   static async authoriz({ token = undefined as string, path = undefined as string, actions = [] }) {
+    if (token === AppConfig.app.suid) return undefined
     const cached = await AccountService.authen(token)
     const roles = await RoleService.getCachedRole(cached.project_id)
     const accRole = roles.filter(e => cached.role_ids.map(e => e.toString()).indexOf(e._id.toString() !== -1))
@@ -331,7 +332,7 @@ export class AccountService {
     const old = await AccountService.mongo.delete<Account>(Account, _id, {
       return: true
     })
-    if (!old) throw HttpError.NOT_FOUND('Could not found item to delete')
+    if (!old) throw HttpError.NOT_FOUND('Could not found account to delete')
     // Remove cached
     for (const tk of old.token) {
       await AccountService.setCachedToken(tk)
