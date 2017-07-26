@@ -1,7 +1,7 @@
 {
   des: 'Add',
   method: 'POST',
-  url: 'http://localhost:1003/Mail/Send/5972a7e2a540351f88c3c2eb',
+  url: 'http://localhost:6113/Mail/Send/5972a7e2a540351f88c3c2eb',
   requestHeader: {
     'content-type': 'application/json',
     token: '4b8f28ebae90c98ff00fa2f92092201f?2700'
@@ -18,13 +18,13 @@
 {
   des: 'Get list',
     method: 'GET',
-      url: 'http://localhost:1001/Mail'
+      url: 'http://localhost:6111/Mail'
 }
 
 {
   des: 'Update',
     method: 'PUT',
-      url: 'http://localhost:1001/Mail/ITEM_ID',
+      url: 'http://localhost:6111/Mail/ITEM_ID',
         requestHeader: {
     'content-type': 'application/json'
   },
@@ -47,11 +47,11 @@
 {
   des: 'Get detail',
     method: 'GET',
-      url: 'http://localhost:1001/Mail/ITEM_ID'
+      url: 'http://localhost:6111/Mail/ITEM_ID'
 }
 
 {
   des: 'Delete',
     method: 'DELETE',
-      url: 'http://localhost:1001/Mail/ITEM_ID'
+      url: 'http://localhost:6111/Mail/ITEM_ID'
 }
