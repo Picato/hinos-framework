@@ -14,10 +14,10 @@
   },
   "config": {
     "externalConfig": "../config.cfg#oauth",
-    "url": "http://localhost:1001",
+    "url": "http://localhost:6111",
     "routes": [],
     "services": {
-      "oauth": "http://localhost:1001"
+      "oauth": "http://localhost:6111"
     },
     "encryptKey": ")^!!!(**",
     "mongo": {

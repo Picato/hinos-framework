@@ -1,7 +1,7 @@
 {
   des: 'Add',
   method: 'POST',
-  url: 'http://localhost:1001/role',
+  url: 'http://localhost:6111/role',
   requestHeader: {
     'content-type': 'application/json',
     token: '5954a3981f52ff1604d6f1c55954a39f1f52ff1604d6f1c65954a5db9a67b807acd122f3?2700'
@@ -21,13 +21,13 @@
 {
   des: 'Get list',
     method: 'GET',
-      url: 'http://localhost:1001/role'
+      url: 'http://localhost:6111/role'
 }
 
 {
   des: 'Update',
     method: 'PUT',
-      url: 'http://localhost:1001/role/ITEM_ID',
+      url: 'http://localhost:6111/role/ITEM_ID',
         requestHeader: {
     'content-type': 'application/json'
   },
@@ -45,11 +45,11 @@
 {
   des: 'Get detail',
     method: 'GET',
-      url: 'http://localhost:1001/role/ITEM_ID'
+      url: 'http://localhost:6111/role/ITEM_ID'
 }
 
 {
   des: 'Delete',
     method: 'DELETE',
-      url: 'http://localhost:1001/role/ITEM_ID'
+      url: 'http://localhost:6111/role/ITEM_ID'
 }

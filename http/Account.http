@@ -3,7 +3,7 @@
 {
   des: 'Add',
   method: 'POST',
-  url: 'http://localhost:1001/account',
+  url: 'http://localhost:6111/account',
   requestHeader: {
     'content-type': 'application/json'
   },
@@ -21,13 +21,13 @@
 {
   des: 'Get list',
     method: 'GET',
-      url: 'http://localhost:1001/account'
+      url: 'http://localhost:6111/account'
 }
 
 {
   des: 'Update',
     method: 'PUT',
-      url: 'http://localhost:1001/account/ITEM_ID',
+      url: 'http://localhost:6111/account/ITEM_ID',
         requestHeader: {
     'content-type': 'application/json'
   },
@@ -49,7 +49,7 @@
 {
   des: 'Get detail',
     method: 'GET',
-      url: 'http://localhost:1001/account/ITEM_ID'
+      url: 'http://localhost:6111/account/ITEM_ID'
 }
 
 {
@@ -58,5 +58,5 @@
   requestHeader: {
     token: '5954d6a70453fd0448c2d6845954d6a70453fd0448c2d6875954d95a399bc904ccdc1f6e?2700'
   },
-  url: 'http://localhost:1001/account/5954d6a70453fd0448c2d687'
+  url: 'http://localhost:6111/account/5954d6a70453fd0448c2d687'
 }
