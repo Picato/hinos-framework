@@ -1,5 +1,5 @@
-# hinos-service@template
-Template project which create micro services base on hinos-framework
+# hinos-api-monitor
+Monitor all of services
 
 # Prerequisite
 If you nodejs verision < 8.0 then you need add bellow code in package.json
