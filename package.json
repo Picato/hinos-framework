@@ -22,7 +22,7 @@
     },
     "encryptKey": ")^!!!(**",
     "mongo": {
-      "url": "mongodb://localhost:27017/test",
+      "url": "mongodb://localhost:27017/script",
       "releaseTimeout": 50000
     },
     "redis": {
