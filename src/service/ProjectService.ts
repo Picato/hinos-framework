@@ -104,6 +104,12 @@ export class ProjectService {
     body.updated_at = new Date()
   })
   static async update(body: Project) {
+    body._id = {
+      _id: body._id,
+      native: {
+        $exists: false
+      }
+    }
     const old = await ProjectService.mongo.update<Project>(Project, body, {
       return: true
     })

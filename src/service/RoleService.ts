@@ -22,6 +22,7 @@ export class Role {
   api?: Action[]
   web?: Action[]
   mob?: Action[]
+  native?: boolean
   created_at?: Date
   updated_at?: Date
 }
@@ -49,6 +50,7 @@ export class RoleService {
         path: '.*',
         actions: ['.*']
       }],
+      native: true,
       project_id: projectId
     })
     return rs
