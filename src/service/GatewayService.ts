@@ -11,6 +11,8 @@ export class Service {
   _id?: Uuid
   name?: string
   link?: string
+  project_id?: Uuid
+  account_id?: Uuid
   created_at?: Date
   updated_at?: Date
 }
@@ -23,13 +25,13 @@ export class GatewayService {
 
   static async loadGateway() {
     const services = await GatewayService.find({ $recordsPerPage: 0, $fields: { name: 1, link: 1 } })
-    AppConfig.gateway = {}
-    services.forEach(e => AppConfig.gateway[e.name] = e.link)
+    AppConfig.app.gateway = {}
+    services.forEach(e => AppConfig.app.gateway[e.name] = e.link)
   }
 
   static forward({ req, res, params }) {
     return new Promise((resolve, reject) => {
-      const target = AppConfig.gateway[params.service]
+      const target = AppConfig.app.gateway[params.service]
       if (!target) return reject(HttpError.NOT_FOUND(`Could not found service "${params.service}" in gateway`))
       proxy.web(req, res, { target }, (err) => {
         if (err) return reject(err)
@@ -46,24 +48,30 @@ export class GatewayService {
     body._id = Mongo.uuid() as Uuid
     Checker.required(body, 'name', String)
     Checker.required(body, 'link', String)
+    Checker.required(body, 'project_id', Uuid)
+    Checker.required(body, 'account_id', Uuid)
     body.created_at = new Date()
     body.updated_at = new Date()
   })
   static async insert(body: Service) {
+    const existed = await GatewayService.mongo.get<Service>(Service, {
+      name: body.name
+    })
+    if (existed) throw HttpError.BAD_REQUEST(`The service "${body.name}" is used by someone`)
     const rs = await GatewayService.mongo.insert<Service>(Service, body)
-    AppConfig.gateway[rs.name] = rs.link
+    AppConfig.app.gateway[rs.name] = rs.link
     return rs
   }
 
-  @VALIDATE((_id: Uuid) => {
-    Checker.required(_id, [, '_id'], Uuid)
+  @VALIDATE((where) => {
+    Checker.required(where, '_id', Object)
   })
-  static async delete(_id: Uuid) {
-    const rs = await GatewayService.mongo.delete<Service>(Service, _id, {
+  static async delete(where) {
+    const rs = await GatewayService.mongo.delete<Service>(Service, where, {
       return: true
     })
     if (rs) throw HttpError.NOT_FOUND('Could not found item to delete')
-    delete AppConfig.gateway[rs.name]
+    delete AppConfig.app.gateway[rs.name]
   }
 
 }

@@ -1,20 +1,19 @@
 interface IAppConfig {
-    externalConfig?: string;
-    url: string;
-    name: string;
-    port?: number;
-    host?: string;
-    gateway?: any;
+    externalConfig?: string
+    url: string
+    name: string
+    port?: number
+    host?: string    
     services?: {
         oauth: string
     }
-    encryptKey?: string;
-    timeScan?: number;
-    mongo?: any;
-    proxy?: any;
+    encryptKey?: string
+    mongo?: any
+    proxy?: any
     app: {
-
+        gateway?: any
+        suid: string
     }
 }
 
-declare const AppConfig: IAppConfig;
+declare const AppConfig: IAppConfig

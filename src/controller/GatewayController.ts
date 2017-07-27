@@ -1,9 +1,9 @@
-import { GET, POST, DELETE, INJECT, ALL } from 'hinos-route'
+import { GET, PUT, DELETE, INJECT, ALL } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
 import { MATCHER } from 'hinos-requestmatcher'
 import { Mongo } from 'hinos-mongo'
 import { GatewayService } from '../service/GatewayService'
-import { suAuthoriz } from '../service/Authoriz'
+import { authoriz } from '../service/Authoriz'
 import * as fs from 'fs'
 
 /************************************************
@@ -18,15 +18,16 @@ export class GatewayController {
   }
 
   @GET('/Gateway/Service')
-  @INJECT(suAuthoriz())
+  @INJECT(authoriz(`${AppConfig.name}>Gateway`, ['FIND']))
   @MATCHER({
     query: {
       page: Number,
       recordsPerPage: Number
     }
   })
-  static async find({ query }) {
-    let where = {}
+  static async find({ query, state }) {
+    let where: any = {}
+    if (state.auth) where.project_id = state.auth.projectId
     const rs = await GatewayService.find({
       $where: where,
       $page: query.page,
@@ -35,29 +36,42 @@ export class GatewayController {
     return rs
   }
 
-  @POST('/Gateway/Service')
-  @INJECT(suAuthoriz())
+  @PUT('/Gateway/Service')
+  @INJECT(authoriz(`${AppConfig.name}>Gateway`, ['UPDATE']))
   @BODYPARSER()
   @MATCHER({
     body: {
-      name: String,
-      link: String
+      name: e => e.toLowerCase(),
+      link: e => e.toLowerCase()
     }
   })
-  static async add({ body }) {
+  static async add({ body, state }) {
+    if (state.auth) {
+      body.project_id = state.auth.projectId
+      body.account_id = state.auth.accountId
+    }
     const rs = await GatewayService.insert(body)
     return rs
   }
 
   @DELETE('/Gateway/Service/:_id')
-  @INJECT(suAuthoriz())
+  @INJECT(authoriz(`${AppConfig.name}>Gateway`, ['DELETE']))
   @MATCHER({
     params: {
       _id: Mongo.uuid
     }
   })
-  static async del({ params }) {
-    await GatewayService.delete(params._id)
+  static async del({ params, state }) {
+    let where: any = {}
+    if (state.auth) {
+      where._id = {
+        _id: params._id,
+        project_id: state.auth.projectId
+      }
+    } else {
+      where._id = params._id
+    }
+    await GatewayService.delete(where)
   }
 
   @ALL(/^\/([^\/]+)/i)

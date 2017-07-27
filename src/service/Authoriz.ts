@@ -5,30 +5,20 @@ import { Mongo } from 'hinos-mongo'
 
 export function authoriz(path: string, actions: string[]) {
   return async ({ ctx, headers }: Context, next: Function) => {
-    const res: Http.Response = await Http.head(`${AppConfig.services.oauth}/Oauth/Authoriz?path=${path}&actions=${actions.join(',')}`, {
-      headers: {
-        token: headers.token
+    if (headers.token !== AppConfig.app.suid) {
+      const res: Http.Response = await Http.head(`${AppConfig.services.oauth}/Oauth/Authoriz?path=${path}&actions=${actions.join(',')}`, {
+        headers: {
+          token: headers.token
+        }
+      })
+      if (res.statusCode !== 204) throw HttpError.INTERNAL(res.error)
+      ctx.state.auth = {
+        token: res.headers.token,
+        projectId: Mongo.uuid(res.headers.project_id),
+        accountId: Mongo.uuid(res.headers.account_id)
       }
-    })
-    if (res.statusCode !== 204) throw HttpError.INTERNAL(res.error)
-    ctx.state.auth = {
-      token: res.headers.token,
-      projectId: Mongo.uuid(res.headers.project_id),
-      accountId: Mongo.uuid(res.headers.account_id)
     }
     await next()
   }
 }
 
-export function suAuthoriz() {
-  return async ({ headers }: Context, next: Function) => {
-    const res: Http.Response = await Http.head(`${AppConfig.services.oauth}/Oauth/Authoriz`, {
-      headers: {
-        token: headers.token
-      }
-    })
-    if (res.statusCode !== 204) throw HttpError.INTERNAL(res.error)
-    if (Object.keys(res.headers).includes('token')) throw HttpError.AUTHORIZ('This api need super admin permission')
-    await next()
-  }
-}
