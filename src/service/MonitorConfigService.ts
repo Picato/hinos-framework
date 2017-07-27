@@ -10,6 +10,7 @@ import { Http } from 'hinos-common/Http'
 /* tslint:disable */
 export class MonitorConfig {
   _id?: Uuid
+  project_id: Uuid
   mail_to: string[]
   mail_config_id: Uuid
   secret_key: string
@@ -21,11 +22,13 @@ export class MonitorConfigService {
   private static mongo: Mongo
 
   static async loadConfig() {
-    const data = await MonitorConfigService.get()
-    AppConfig.app.mailConfig = {
-      mailConfigId: data.mail_config_id,
-      mailTo: data.mail_to,
-      secretKey: data.secret_key
+    const configs = await MonitorConfigService.find()
+    for (let cf of configs) {
+      AppConfig.app.configs[cf.project_id.toString()] = {
+        mailConfigId: cf.mail_config_id,
+        mailTo: cf.mail_to,
+        secretKey: cf.secret_key
+      }
     }
   }
 
@@ -45,23 +48,29 @@ export class MonitorConfigService {
       }
     })
     if (!resp.body) throw HttpError.CONDITION('Need gen secret key before save configuration')
-    const config = await MonitorConfigService.mongo.find<MonitorConfig>(MonitorConfig)
+    const config = await MonitorConfigService.mongo.get<MonitorConfig>(MonitorConfig, {
+      project_id: data.project_id
+    })
     data.secret_key = resp.body
-    AppConfig.app.mailConfig = {
-      mailConfigId: data.mail_config_id,
-      mailTo: data.mail_to,
-      secretKey: data.secret_key
-    }
-    if (config.length > 0) {
-      data._id = config[0]._id
+    if (config) {
+      data._id = config._id
       await MonitorConfigService.mongo.update(MonitorConfig, data)
     } else {
       await MonitorConfigService.mongo.insert<MonitorConfig>(MonitorConfig, data)
     }
+    AppConfig.app.configs[data.project_id.toString()] = {
+      mailConfigId: data.mail_config_id,
+      mailTo: data.mail_to,
+      secretKey: data.secret_key
+    }
   }
 
-  static async get() {
-    let config = await MonitorConfigService.mongo.find<MonitorConfig>(MonitorConfig)
-    return config.length > 0 ? config[0] : null
+  static async get(projectId: Uuid) {
+    let config = await MonitorConfigService.mongo.get<MonitorConfig>(MonitorConfig, { project_id: projectId })
+    return config
+  }
+
+  static async find() {
+    return await MonitorConfigService.mongo.find<MonitorConfig>(MonitorConfig)
   }
 }

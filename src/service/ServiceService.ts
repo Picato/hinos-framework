@@ -18,6 +18,7 @@ export class Service {
   link?: string
   logs?: Log[]
   status?: number
+  project_id?: Uuid
   lastSent?: Date
   created_at?: Date
   updated_at?: Date
@@ -77,17 +78,18 @@ export class ServiceService {
           _id: s._id,
           status: Service.Status.DEAD
         }
-        if (AppConfig.app.mailConfig && AppConfig.app.mailConfig.mailConfigId && AppConfig.app.mailConfig.secretKey && AppConfig.app.mailConfig.secretKey.length > 0 && AppConfig.app.mailConfig.mailTo && AppConfig.app.mailConfig.mailTo.length > 0 && (!s.lastSent || (s.lastSent.getTime() - new Date().getTime() >= AppConfig.app.timeoutSpamMail))) {
+        const mailConfig = AppConfig.app.configs[s.project_id.toString()]
+        if (mailConfig && mailConfig.mailConfigId && mailConfig.mailTo && mailConfig.mailTo.length > 0 && (!s.lastSent || (s.lastSent.getTime() - new Date().getTime() >= AppConfig.app.timeoutSpamMail))) {
           try {
-            await Http.post(`${AppConfig.services.mail}/Mail/Send/${AppConfig.app.mailConfig.mailConfigId}`, {
+            await Http.post(`${AppConfig.services.mail}/Mail/Send/${mailConfig.mailConfigId}`, {
               headers: {
-                token: AppConfig.app.mailConfig.secretKey
+                token: mailConfig.secretKey
               },
               data: {
                 subject: `Micro service ${s.name} is downing, please check ASAP !`,
                 text: error.toString(),
                 from: 'Monitor@email.com',
-                to: AppConfig.app.mailConfig.mailTo
+                to: mailConfig.mailTo
               }
             })
             item.lastSent = new Date()
@@ -98,7 +100,7 @@ export class ServiceService {
           }
         }
       } finally {
-        ServiceService.socket.send('/msg', AppConfig.app.wsSession, msg)
+        ServiceService.socket.send('/msg', s.project_id.toString(), msg)
       }
     }
     setTimeout(ServiceService.check, AppConfig.app.timeoutPingService)
@@ -122,6 +124,7 @@ export class ServiceService {
     body._id = Mongo.uuid() as Uuid
     Checker.required(body, 'name', String)
     Checker.required(body, 'link', String)
+    Checker.required(body, 'project_id', Uuid)
     Checker.option(body, 'status', Number, 0)
     body.created_at = new Date()
     body.updated_at = new Date()
@@ -131,11 +134,12 @@ export class ServiceService {
     return rs
   }
 
-  @VALIDATE((_id: Uuid) => {
-    Checker.required(_id, [, '_id'], Uuid)
+  @VALIDATE((where) => {
+    Checker.required(where, '_id', Uuid)
+    Checker.required(where, 'project_id', Uuid)
   })
-  static async delete(_id: Uuid) {
-    const rs = await ServiceService.mongo.delete(Service, _id)
+  static async delete(where) {
+    const rs = await ServiceService.mongo.delete(Service, where)
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to delete')
   }
 }

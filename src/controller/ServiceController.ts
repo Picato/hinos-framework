@@ -13,8 +13,8 @@ export class ServiceController {
 
   @GET('/WSSession')
   @INJECT(authoriz(`${AppConfig.name}>Service`, ['SESSION']))
-  static async getWebsocketSession() {
-    return AppConfig.app.wsSession
+  static async getWebsocketSession({ state }) {
+    return state.auth.projectId.toString()
   }
 
   @GET('/Service')
@@ -25,8 +25,9 @@ export class ServiceController {
       recordsPerPage: Number
     }
   })
-  static async find({ query }) {
-    let where = {}
+  static async find({ query, state }) {
+    let where: any = {}
+    where.project_id = state.auth.projectId
     const rs = await ServiceService.find({
       $where: where,
       $page: query.page,
@@ -45,7 +46,8 @@ export class ServiceController {
       status: Number
     }
   })
-  static async add({ body }) {
+  static async add({ body, state }) {
+    body.project_id = state.auth.projectId
     const rs = await ServiceService.insert(body)
     return rs
   }
@@ -57,8 +59,11 @@ export class ServiceController {
       _id: Mongo.uuid
     }
   })
-  static async del({ params }) {
-    await ServiceService.delete(params._id)
+  static async del({ params, state }) {
+    await ServiceService.delete({
+      _id: params._id,
+      project_id: state.auth.projectId
+    })
   }
 
 }

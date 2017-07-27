@@ -9,15 +9,8 @@ interface IAppConfig {
     name: string;
     port?: number;
     host?: string;
-    routes?: any;
     mongo?: {
         url: string;
-        releaseTimeout?: number;
-    };
-    redis?: {
-        host: string;
-        port: number;
-        db?: string;
         releaseTimeout?: number;
     };
     encryptKey?: string;
@@ -26,13 +19,14 @@ interface IAppConfig {
         mail: string
     },
     app: {
-        wsSession: string
         timeoutSpamMail: number
         timeoutPingService: number
-        mailConfig: {
-            secretKey: string,
-            mailTo: string[],
-            mailConfigId: any
+        configs: {
+            [projectId: string]: {
+                secretKey: string,
+                mailTo: string[],
+                mailConfigId: any
+            }
         }
     }
 }
