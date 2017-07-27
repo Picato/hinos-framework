@@ -48,8 +48,8 @@ export class GatewayService {
     body._id = Mongo.uuid() as Uuid
     Checker.required(body, 'name', String)
     Checker.required(body, 'link', String)
-    Checker.required(body, 'project_id', Uuid)
-    Checker.required(body, 'account_id', Uuid)
+    // Checker.required(body, 'project_id', Uuid)
+    // Checker.required(body, 'account_id', Uuid)
     body.created_at = new Date()
     body.updated_at = new Date()
   })

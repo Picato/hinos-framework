@@ -28,6 +28,7 @@ export class GatewayController {
   static async find({ query, state }) {
     let where: any = {}
     if (state.auth) where.project_id = state.auth.projectId
+    else where.project_id = { $exists: false }
     const rs = await GatewayService.find({
       $where: where,
       $page: query.page,
