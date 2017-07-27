@@ -14,8 +14,7 @@
     "pm2": "cross-var \"pm2 start . --env production --name $npm_package_name\""
   },
   "config": {
-    "externalConfig": "./appconfig.cfg#api",
-    "routes": {},
+    "externalConfig": "../config.cfg#autoScript",
     "url": "http://localhost:6116",
     "services": {
       "oauth": "http://localhost:6111"
@@ -23,11 +22,6 @@
     "encryptKey": ")^!!!(**",
     "mongo": {
       "url": "mongodb://localhost:27017/script",
-      "releaseTimeout": 50000
-    },
-    "redis": {
-      "host": "localhost",
-      "port": 6379,
       "releaseTimeout": 50000
     }
   },
