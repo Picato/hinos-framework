@@ -19,6 +19,7 @@
     "services": {
       "oauth": "http://localhost:6111"
     },
+    "routes": {},
     "encryptKey": ")^!!!(**",
     "mongo": {
       "url": "mongodb://localhost:27017/script",
