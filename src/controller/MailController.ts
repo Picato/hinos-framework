@@ -1,8 +1,8 @@
 import { GET, POST, PUT, DELETE, INJECT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
 import { MATCHER } from 'hinos-requestmatcher'
-import { Mongo, Uuid } from 'hinos-mongo'
-import { Mail, MailService } from '../service/MailService'
+import { Mongo } from 'hinos-mongo'
+import { MailService } from '../service/MailService'
 import { authoriz } from '../service/Authoriz'
 
 /************************************************
@@ -30,29 +30,21 @@ export class MailController {
     }, body.config)
   }
 
-  @POST('/Send/:configId')
-  @INJECT(authoriz(`${AppConfig.name}>Mail`, ['INSERT']))
-  @BODYPARSER()
+  @PUT('/Resend/:_id')
+  @INJECT(authoriz(`${AppConfig.name}>Mail`, ['RESEND']))
   @MATCHER({
     params: {
-      configId: Uuid
-    },
-    body: {
-      subject: String,
-      text: String,
-      html: String,
-      from: String,
-      to: Array,
-      cc: Array,
-      attachments: Array
+      _id: Mongo.uuid
     }
   })
-  static async add({ body, state, params }) {
-    body.project_id = state.auth.projectId
-    body.account_id = state.auth.accountId
-    body.config_id = params.configId
-    const rs = await MailService.insert(body) as Mail
-    return rs
+  static async resend({ params, state }) {
+    await MailService.resend({
+      _id: {
+        _id: params._id,
+        project_id: state.auth.projectId
+      },
+      account_id: state.auth.accountId
+    })
   }
 
   @GET('/')
@@ -92,23 +84,6 @@ export class MailController {
       project_id: state.auth.projectId
     })
     return rs
-  }
-
-  @PUT('/Resend/:_id')
-  @INJECT(authoriz(`${AppConfig.name}>Mail`, ['UPDATE']))
-  @MATCHER({
-    params: {
-      _id: Mongo.uuid
-    }
-  })
-  static async resend({ params, state }) {
-    await MailService.resend({
-      _id: {
-        _id: params._id,
-        project_id: state.auth.projectId
-      },
-      account_id: state.auth.accountId
-    })
   }
 
   @DELETE('/:_id')
