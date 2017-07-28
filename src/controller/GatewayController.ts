@@ -4,18 +4,12 @@ import { MATCHER } from 'hinos-requestmatcher'
 import { Mongo } from 'hinos-mongo'
 import { GatewayService } from '../service/GatewayService'
 import { authoriz } from '../service/Authoriz'
-import * as fs from 'fs'
 
 /************************************************
  ** GatewayController || 4/10/2017, 10:19:24 AM **
  ************************************************/
 
 export class GatewayController {
-
-  @GET('/Gateway/GUI')
-  static async getGUI() {
-    return fs.createReadStream('./assets/GUI.zip')
-  }
 
   @GET('/Gateway/Service')
   @INJECT(authoriz(`${AppConfig.name}>Gateway`, ['FIND']))
