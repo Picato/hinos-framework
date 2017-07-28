@@ -9,7 +9,7 @@ import HttpError from '../common/HttpError'
 
 export interface Action {
   path: string
-  actions: string[]
+  actions: string
 }
 
 @Collection('Role')
@@ -36,20 +36,25 @@ export class RoleService {
   private static redis: Redis
 
   static async createDefaultAdminRole(projectId: Uuid) {
+    // Add User role
+    await RoleService.insert({
+      name: 'User',
+      api: [
+        { path: '>Me$', actions: '.*' },
+        { path: '>Mail$', actions: 'SEND|GET|RESEND' },
+        { path: '>Log$', actions: 'FIND|GET|INSERT|UPDATE' },
+        { path: '>Files$', actions: 'UPLOAD|STORE|DELETE' }
+      ],
+      web: [],
+      mob: [],
+      project_id: projectId
+    })
+    // Admin role
     const rs = await RoleService.insert({
       name: 'Admin',
-      api: [{
-        path: '.*',
-        actions: ['.*']
-      }],
-      web: [{
-        path: '.*',
-        actions: ['.*']
-      }],
-      mob: [{
-        path: '.*',
-        actions: ['.*']
-      }],
+      api: [{ path: '.*', actions: '.*' }],
+      web: [{ path: '.*', actions: '.*' }],
+      mob: [{ path: '.*', actions: '.*' }],
       native: true,
       project_id: projectId
     })

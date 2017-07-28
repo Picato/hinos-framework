@@ -153,7 +153,7 @@ export default class AccountController {
   }
 
   @GET('/MyRoles')
-  @INJECT(authoriz(`${AppConfig.name}>MyRole`, ['GET_INFOR']))
+  @INJECT(authoriz(`${AppConfig.name}>MyRole`, ['GET_ROLES']))
   @MATCHER({
     query: {
       type: String
