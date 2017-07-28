@@ -29,10 +29,7 @@ export class ScriptService {
 
   static async download(where: { [key: string]: any }, ctx) {
     if (where._name) {
-      where.$or = [{
-        is_private: false
-        // project_id: projectId
-      }]
+      where.$or = [{ is_private: false }]
     }
     const rs = await ScriptService.mongo.find<Script>(Script, {
       $where: where
@@ -81,10 +78,7 @@ export class ScriptService {
         _name: {
           $in: Object.keys(key).map(e => e.toLowerCase())
         },
-        $or: [{
-          is_private: false,
-          project_id: projectId
-        }]
+        $or: [{ is_private: false }, { project_id: projectId }]
       }
     })
     for (let r of rs) {

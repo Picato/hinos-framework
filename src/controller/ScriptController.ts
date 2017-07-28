@@ -50,8 +50,8 @@ export class ScriptController {
         },
         {
           $or: [
-            { tag: { $in: [query.tag.toLowerCase()] } },
-            { name: new RegExp(query.tag, 'i') }
+            { name: new RegExp(query.tag, 'i') },
+            { tag: { $in: [query.tag.toLowerCase()] } }
           ]
         }
       ]
@@ -62,7 +62,7 @@ export class ScriptController {
       $where: where,
       $page: query.page,
       $recordsPerPage: query.recordsPerPage,
-      $sort: { _name: 1 },
+      $sort: { is_private: -1, _name: 1 },
       $fields: { content: 0 }
     })
     return rs
