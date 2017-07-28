@@ -42,7 +42,7 @@ export default class AccountController {
   @MATCHER({
     headers: {
       pj: Uuid,
-      role_id: vl => vl instanceof Array ? vl.map(Mongo.uuid) : [Mongo.uuid(vl)]
+      role_id: Mongo.uuid
     },
     body: {
       username: String,
@@ -50,7 +50,7 @@ export default class AccountController {
       recover_by: String,
       token: String,
       app: String,
-      more: Object
+      more: Mongo.autocast
     }
   })
   static async register({ body, headers }) {
@@ -94,7 +94,7 @@ export default class AccountController {
     },
     query: {
       path: String,
-      actions: vl => vl.split(',')
+      actions: vl => vl.split(',').map(e => e.trim())
     }
   })
   @INJECT(async ({ headers, query, ctx }, next: Function) => {
@@ -142,7 +142,7 @@ export default class AccountController {
     body: {
       password: md5,
       recover_by: String,
-      more: Object
+      more: Mongo.autocast
     }
   })
   static async updateMe({ body, state }) {

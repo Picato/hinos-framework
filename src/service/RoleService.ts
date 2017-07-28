@@ -36,6 +36,15 @@ export class RoleService {
   private static redis: Redis
 
   static async createDefaultAdminRole(projectId: Uuid) {
+    // Admin role
+    const rs = await RoleService.insert({
+      name: 'Admin',
+      api: [{ path: '.*', actions: '.*' }],
+      web: [{ path: '.*', actions: '.*' }],
+      mob: [{ path: '.*', actions: '.*' }],
+      native: true,
+      project_id: projectId
+    })
     // Add User role
     await RoleService.insert({
       name: 'User',
@@ -47,15 +56,6 @@ export class RoleService {
       ],
       web: [],
       mob: [],
-      project_id: projectId
-    })
-    // Admin role
-    const rs = await RoleService.insert({
-      name: 'Admin',
-      api: [{ path: '.*', actions: '.*' }],
-      web: [{ path: '.*', actions: '.*' }],
-      mob: [{ path: '.*', actions: '.*' }],
-      native: true,
       project_id: projectId
     })
     return rs

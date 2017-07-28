@@ -43,7 +43,7 @@ export class AccountCached {
   static cast(_this) {
     return {
       project_id: Mongo.uuid(_this.project_id),
-      role_ids: _this.role_ids.map(Mongo.uuid),
+      role_ids: Mongo.uuid(_this.role_ids),
       account_id: Mongo.uuid(_this.account_id)
     } as AccountCached
   }
@@ -183,12 +183,7 @@ export class AccountService {
     for (const role of accRole) {
       for (const r of role.api) {
         if (new RegExp(`^${r.path}$`, 'gi').test(path) && _.some(actions, (a) => {
-          for (const auAction of r.actions) {
-            if (new RegExp(`^${auAction}$`, 'gi').test(a)) {
-              return true
-            }
-          }
-          return false
+          return new RegExp(`^${r.actions}$`, 'gi').test(a)
         })) {
           return cached
         }
@@ -274,7 +269,7 @@ export class AccountService {
     Checker.required(body, 'status', Number)
     Checker.required(body, 'recover_by', String)
     Checker.option(body, 'role_ids', Array, () => {
-      body.role_ids = body.role_ids.map(Mongo.uuid)
+      body.role_ids = Mongo.uuid(body.role_ids)
     }, () => {
       body.role_ids = []
     })
@@ -300,7 +295,7 @@ export class AccountService {
     Checker.option(body, 'status', Number)
     Checker.option(body, 'recover_by', String)
     Checker.option(body, 'role_ids', Array, () => {
-      body.role_ids = body.role_ids.map(Mongo.uuid)
+      body.role_ids = Mongo.uuid(body.role_ids)
     })
     Checker.option(body, 'more', Object)
     body.updated_at = new Date()

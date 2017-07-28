@@ -87,11 +87,12 @@ export class ProjectService {
   })
   static async insert(body: Project) {
     const prj = await ProjectService.mongo.insert<Project>(Project, body)
-    if (prj.status === Project.Status.ACTIVED) await ProjectService.reloadCachedPlugins(prj._id, prj.plugins)
     // Create default role
     const role = await RoleService.createDefaultAdminRole(prj._id)
     // Create default admin account
     await AccountService.createDefaultAdminAccount(prj._id, role)
+    // Reload cached
+    await ProjectService.reloadCachedPlugins(prj._id, prj.plugins)
     return prj
   }
 
@@ -118,12 +119,10 @@ export class ProjectService {
       if (old.status !== body.status && body.status === Project.Status.INACTIVED) {
         // Remove cached
         await ProjectService.reloadCachedPlugins(body._id)
-        await RoleService.reloadCachedRole(body._id, true)
         return
       } else if (old.status !== body.status && body.status === Project.Status.ACTIVED) {
         // Reload cached
         await ProjectService.reloadCachedPlugins(body._id, body.plugins)
-        await RoleService.reloadCachedRole(body._id)
         return
       }
     }

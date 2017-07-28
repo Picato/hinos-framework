@@ -1,3 +1,4 @@
+import * as _ from 'lodash'
 import { GET, POST, PUT, DELETE, INJECT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
 import { MATCHER } from 'hinos-requestmatcher'
@@ -16,21 +17,27 @@ export class AccountController {
   @MATCHER({
     query: {
       page: Number,
-      recordsPerPage: Number
+      recordsPerPage: Number,
+      where: Mongo.autocast,
+      sort: Object,
+      fields: Object
     }
   })
   @INJECT(authoriz(`${AppConfig.name}>Account`, ['FIND']))
   static async find({ query, state }) {
-    let where = {
-      project_id: state.auth.projectId
-    }
+    let where: any = query.where || {}
+    let sort: any = query.sort || {}
+    let fields: any = query.fields || {}
+
+    _.merge(where, { project_id: state.auth.projectId })
+    _.merge(fields, { token: 0, password: 0, project_id: 0 })
+
     const rs: Account[] = await AccountService.find({
       $where: where,
       $page: query.page,
       $recordsPerPage: query.recordsPerPage,
-      $fields: {
-        token: 0, password: 0, project_id: 0
-      }
+      $sort: sort,
+      $fields: fields
     })
     return rs
   }
@@ -60,7 +67,7 @@ export class AccountController {
       status: Number,
       recover_by: String,
       role_ids: Array,
-      more: Object,
+      more: Mongo.autocast,
       secret_key: String
     }
   })
@@ -82,7 +89,7 @@ export class AccountController {
       status: Number,
       recover_by: String,
       role_ids: Array,
-      more: Object
+      more: Mongo.autocast
     }
   })
   static async update({ params, body, state }) {
