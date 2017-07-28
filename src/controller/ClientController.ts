@@ -1,3 +1,4 @@
+import * as _ from 'lodash'
 import { GET, POST, PUT, INJECT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
 import { MATCHER } from 'hinos-requestmatcher'
@@ -16,20 +17,26 @@ export class ClientController {
   @MATCHER({
     query: {
       page: Number,
-      recordsPerPage: Number
+      recordsPerPage: Number,
+      where: Mongo.autocast,
+      sort: Object,
+      fields: Object
     }
   })
   static async find({ query, state }) {
-    let where = {
-      project_id: state.auth.projectId
-    }
+    let where: any = query.where || {}
+    let sort: any = query.sort || { updated_at: -1 }
+    let fields: any = query.fields || {}
+
+    _.merge(where, { project_id: state.auth.projectId })
+    _.merge(fields, { project_id: 0 })
+
     const rs = await LogService.find({
       $where: where,
       $page: query.page,
       $recordsPerPage: query.recordsPerPage,
-      $sort: {
-        updated_at: -1
-      }
+      $sort: sort,
+      $fields: fields
     })
     return rs
   }
@@ -53,6 +60,7 @@ export class ClientController {
   @INJECT(authoriz(`${AppConfig.name}>Log`, ['INSERT']))
   @BODYPARSER()
   static async add({ body, state }) {
+    body = Mongo.autocast(body)
     body.project_id = state.auth.projectId
     body.account_id = state.auth.accountId
     const rs = await LogService.insert(body) as Log
@@ -68,6 +76,7 @@ export class ClientController {
     }
   })
   static async update({ params, body, state }) {
+    body = Mongo.autocast(body)
     body._id = {
       _id: params._id,
       project_id: state.auth.projectId
