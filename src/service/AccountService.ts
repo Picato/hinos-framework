@@ -198,7 +198,7 @@ export class AccountService {
 
   static async login(user: { username: string, password: string, projectId: Uuid, app?: string }) {
     const acc = await AccountService.mongo.get<Account>(Account, {
-      username: user.username,
+      username: new RegExp(`^${user.username}$`, 'i'),
       project_id: user.projectId
     }, { password: 1, app: 1, token: 1, status: 1, _id: 1, project_id: 1, role_ids: 1 })
     if (!acc) throw HttpError.NOT_FOUND(`Could not found username ${user.username}`)
@@ -280,7 +280,7 @@ export class AccountService {
   })
   static async insert(body: Account) {
     const existed = await AccountService.mongo.get(Account, {
-      username: body.username,
+      username: new RegExp(`^${body.username}$`, 'i'),
       project_id: body.project_id
     })
     // Check username must be not existed
