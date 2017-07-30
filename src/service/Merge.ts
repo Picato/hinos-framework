@@ -11,21 +11,21 @@ import { ExpensiveNote, SpendingsService } from './SpendingsService'
 export async function changeToNewServer() {
   Mongo({ key: 'sct', url: 'mongodb://localhost:27017/sochitieu' })
   Mongo({ key: 'oauthOld', url: 'mongodb://localhost:27017/oauthv2bk' })
-  Mongo({ key: 'oauthNew', url: 'mongodb://localhost:27017/oauthv4' })
+  Mongo({ key: 'oauthNew', url: 'mongodb://localhost:27017/oauth' })
   const oldProjectId = Mongo.uuid('58b689a97c949123ea7360a0')
-  const newProjectId = Mongo.uuid('597b50abeeadbc27d83b349d')
-  const newRoleId = Mongo.uuid('597b50abeeadbc27d83b349f')
+  const newProjectId = Mongo.uuid('597d7ded1c07314f60df9dcc')
+  const newRoleId = Mongo.uuid('597d7ded1c07314f60df9dce')
   const oldAccs = await Mongo.pool('oauthOld').find<any>('account', {
     $where: {
       'project_id': oldProjectId,
       is_nature: {
         $exists: false
       }
-    }
+    },
+    $recordsPerPage: 0
   })
   for (let i in oldAccs) {
     oldAccs[i].old_id = oldAccs[i]._id
-    oldAccs[i].role_ids = oldAccs[i].role_ids.map(Mongo.uuid)
     oldAccs[i].project_id = newProjectId
     oldAccs[i].role_ids = [newRoleId]
   }
