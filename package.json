@@ -15,14 +15,13 @@
   },
   "config": {
     "externalConfig": "./appconfig.cfg#api",
-    "routes": {},
-    "url": "http://localhost:1007",
+    "url": "http://localhost:1001",
     "services": {
-      "oauth": "http://localhost:1001"
+      "oauth": "http://localhost:6111"
     },
     "encryptKey": ")^!!!(**",
     "mongo": {
-      "url": "mongodb://localhost:27017/test",
+      "url": "mongodb://localhost:27017/sochitieu",
       "releaseTimeout": 50000
     },
     "redis": {

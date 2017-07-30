@@ -14,13 +14,11 @@ Server.use(serve({
 }))
 Server.use(cors())
 Server.use(route(path.join(__dirname, 'controller'), {
-  ignorecase: true,
-  onInit(method, path) {
-    console.log(`${method.toUpperCase()}\t${path}`)
-    if (!AppConfig.routes[method.toUpperCase()]) AppConfig.routes[method.toUpperCase()] = []
-    AppConfig.routes[method.toUpperCase()].push(path)
-  }
+  ignorecase: true
 }))
+
+// import { changeToNewServer } from './service/Merge'
+// changeToNewServer()
 
 Server.listen(AppConfig.port, () => {
   console.info(`
