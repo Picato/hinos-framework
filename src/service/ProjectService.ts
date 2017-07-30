@@ -147,11 +147,11 @@ export class ProjectService {
     if (!plugins) {
       await ProjectService.redis.del(`$plugins:${projectId}`)
       const rs = await RoleService.reloadCachedRole(projectId, true)
-      console.log(`Removed ${rs} roles into cached ${projectId}`)
+      console.log(`Removed ${rs} roles into cached`)
     } else {
       await ProjectService.redis.set(`$plugins:${projectId}`, plugins)
       const rs = await RoleService.reloadCachedRole(projectId)
-      console.log(`Loaded ${rs} roles into cached ${projectId}`)
+      console.log(`Loaded ${rs} roles into cached`)
     }
   }
 

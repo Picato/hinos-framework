@@ -55,7 +55,7 @@ export default class AccountController {
   })
   static async register({ body, headers }) {
     body.project_id = headers.pj
-    body.role_ids = headers.role_id
+    body.role_ids = headers.role_id ? [headers.role_id] : undefined
     if ('facebook' === body.app) {
       const { id, email } = await AccountService.getMeFacebook(body.token)
       body.username = id
