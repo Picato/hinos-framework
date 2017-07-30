@@ -41,10 +41,10 @@ export default class AccountController {
   @BODYPARSER()
   @MATCHER({
     headers: {
-      pj: Uuid
+      pj: Uuid,
+      role_id: Uuid
     },
     body: {
-      role_id: Uuid,
       username: String,
       password: md5,
       recover_by: String,
@@ -55,7 +55,7 @@ export default class AccountController {
   })
   static async register({ body, headers }) {
     body.project_id = headers.pj
-    body.role_ids = body.role_id ? [body.role_id] : undefined
+    body.role_ids = headers.role_id ? [headers.role_id] : undefined
     if ('facebook' === body.app) {
       const { id, email } = await AccountService.getMeFacebook(body.token)
       body.username = id

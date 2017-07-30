@@ -12,9 +12,9 @@ require(`./env.${Server.env}`).default(Server)
 Mongo(AppConfig.mongo)
 Redis(AppConfig.redis)
 Server.use(cors({
+  allowHeaders: ['pj', 'role_id'],
   exposeHeaders: ['token', 'project_id', 'account_id']
 }))
-Server.use(cors())
 Server.use(route(path.join(__dirname, 'controller'), {
   root: '/Oauth',
   ignorecase: true,
