@@ -33,7 +33,7 @@ export async function changeToNewServer() {
   for (let acc of newAccs) {
     await Mongo.pool('sct').update('ExpensiveNote', {
       _id: {
-        user_id: acc._old_id
+        user_id: acc.old_id
       },
       user_id: acc._id
     })
