@@ -88,6 +88,7 @@ export class AccountController {
       password: md5,
       status: Number,
       recover_by: String,
+      secret_key: String,
       role_ids: Array,
       more: Mongo.autocast
     }

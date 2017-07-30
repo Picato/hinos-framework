@@ -294,6 +294,7 @@ export class AccountService {
     Checker.option(body, 'password', String)
     Checker.option(body, 'status', Number)
     Checker.option(body, 'recover_by', String)
+    Checker.option(body, 'secret_key', String)
     Checker.option(body, 'role_ids', Array, () => {
       body.role_ids = Mongo.uuid(body.role_ids)
     })
