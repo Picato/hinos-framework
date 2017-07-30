@@ -202,10 +202,10 @@ export class AccountService {
       project_id: user.projectId
     }, { password: 1, app: 1, token: 1, status: 1, _id: 1, project_id: 1, role_ids: 1 })
     if (!acc) throw HttpError.NOT_FOUND(`Could not found username ${user.username}`)
-    await Checker.option(user, 'app', String, () => {
-      if (!acc.app.includes(user.app)) throw HttpError.AUTHEN('Login via social error')
-    }, () => {
+    await Checker.option(user, 'password', String, () => {
       if (acc.password !== user.password) throw HttpError.BAD_REQUEST('Password is not matched')
+    }, () => {
+      if (!acc.app.includes(user.app)) throw HttpError.AUTHEN('Login via social error')
     })
     if (acc.status !== Account.Status.ACTIVED) throw HttpError.BAD_REQUEST('Account not actived')
     const plugins = await ProjectService.getCachedPlugins(acc.project_id)
