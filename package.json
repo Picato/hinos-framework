@@ -1,5 +1,5 @@
 {
-  "name": "sochitieuv3api",
+  "name": "sochitieu-api-v3",
   "version": "1.0.0",
   "description": "Android app Sochitieu",
   "main": ".build/index.js",
