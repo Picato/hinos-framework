@@ -2,7 +2,7 @@ import { GET, POST, PUT, DELETE, HEAD, INJECT } from 'hinos-route'
 import { md5 } from 'hinos-common/Encrypt'
 import { BODYPARSER } from 'hinos-bodyparser'
 import { MATCHER } from 'hinos-requestmatcher'
-import { Mongo, Uuid } from 'hinos-mongo'
+import { Mongo } from 'hinos-mongo'
 import { AccountService } from '../service/AccountService'
 import { RoleService } from '../service/RoleService'
 import { authoriz } from '../service/Authoriz'
@@ -18,7 +18,7 @@ export default class AccountController {
   @BODYPARSER()
   @MATCHER({
     headers: {
-      pj: Uuid
+      pj: Mongo.uuid
     },
     body: {
       app: String,
@@ -41,8 +41,8 @@ export default class AccountController {
   @BODYPARSER()
   @MATCHER({
     headers: {
-      pj: Uuid,
-      role_id: Uuid
+      pj: Mongo.uuid,
+      role_id: Mongo.uuid
     },
     body: {
       username: String,
