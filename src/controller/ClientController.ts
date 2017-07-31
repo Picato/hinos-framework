@@ -42,7 +42,7 @@ export default class AccountController {
   @MATCHER({
     headers: {
       pj: Mongo.uuid,
-      role_id: Mongo.uuid
+      role: Mongo.uuid
     },
     body: {
       username: String,
@@ -55,7 +55,7 @@ export default class AccountController {
   })
   static async register({ body, headers }) {
     body.project_id = headers.pj
-    body.role_ids = headers.role_id ? [headers.role_id] : undefined
+    body.role_ids = headers.role ? [headers.role] : undefined
     if ('facebook' === body.app) {
       const { id, email } = await AccountService.getMeFacebook(body.token)
       body.username = id
