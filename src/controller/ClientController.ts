@@ -41,26 +41,27 @@ export default class AccountController {
   @BODYPARSER()
   @MATCHER({
     headers: {
-      pj: Uuid
+      pj: Uuid,
+      role_id: Uuid
     },
     body: {
-      role_id: Uuid,
       username: String,
       password: md5,
       recover_by: String,
       token: String,
       app: String,
-      more: Mongo.autocast
+      more: Object
     }
   })
   static async register({ body, headers }) {
     body.project_id = headers.pj
-    body.role_ids = body.role_id ? [body.role_id] : undefined
+    body.role_ids = headers.role_id ? [headers.role_id] : undefined
     if ('facebook' === body.app) {
       const { id, email } = await AccountService.getMeFacebook(body.token)
       body.username = id
       body.recover_by = email
     }
+    if (body.more) body.more = Mongo.autocast(body.more)
     const acc = await AccountService.register(body)
     return acc
   }
@@ -142,11 +143,12 @@ export default class AccountController {
     body: {
       password: md5,
       recover_by: String,
-      more: Mongo.autocast
+      more: Object
     }
   })
   static async updateMe({ body, state }) {
     body._id = state.auth.accountId
+    if (body.more) body.more = Mongo.autocast(body.more)
     await AccountService.update(body)
     const me = await AccountService.getMe(state)
     return me

@@ -18,28 +18,33 @@ export class AccountController {
     query: {
       page: Number,
       recordsPerPage: Number,
-      where: Mongo.autocast,
+      where: Object,
       sort: Object,
       fields: Object
     }
   })
   @INJECT(authoriz(`${AppConfig.name}>Account`, ['FIND']))
   static async find({ query, state }) {
-    let where: any = query.where || {}
+    let where: any = Mongo.autocast(query.where || {})
     let sort: any = query.sort || {}
     let fields: any = query.fields || {}
 
     _.merge(where, { project_id: state.auth.projectId })
     _.merge(fields, { token: 0, password: 0, project_id: 0 })
 
-    const rs: Account[] = await AccountService.find({
+    const rs = await AccountService.find({
       $where: where,
       $page: query.page,
       $recordsPerPage: query.recordsPerPage,
       $sort: sort,
       $fields: fields
     })
-    return rs
+    return rs.map(e => {
+      delete e.token
+      delete e.password
+      delete e.project_id
+      return e
+    })
   }
 
   @GET('/Account/:_id')
@@ -67,12 +72,13 @@ export class AccountController {
       status: Number,
       recover_by: String,
       role_ids: Array,
-      more: Mongo.autocast,
+      more: Object,
       secret_key: String
     }
   })
   static async add({ body, state }) {
     body.project_id = state.auth.projectId
+    if (body.more) body.more = Mongo.autocast(body.more)
     const rs: Account = await AccountService.insert(body)
     return rs
   }
@@ -90,7 +96,7 @@ export class AccountController {
       recover_by: String,
       secret_key: String,
       role_ids: Array,
-      more: Mongo.autocast
+      more: Object
     }
   })
   static async update({ params, body, state }) {
@@ -98,6 +104,7 @@ export class AccountController {
       _id: params._id,
       project_id: state.auth.projectId
     }
+    if (body.more) body.more = Mongo.autocast(body.more)
     await AccountService.update(body)
   }
 

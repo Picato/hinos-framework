@@ -1,7 +1,7 @@
 {
   des: 'Ping',
   method: 'HEAD',
-  url: 'http://localhost:6111/ping',
+  url: 'http://localhost:6111/Oauth/ping',
   requestHeader: {
     token: '59537948fe62661758907241-5953872037976522480c5c58-59547a442398ab24e8febef1?900'
   }
@@ -10,7 +10,7 @@
 {
   des: 'Logout',
   method: 'GET',
-  url: 'http://localhost:6111/logout',
+  url: 'http://localhost:6111/Oauth/logout',
   requestHeader: {
     token: '59537948fe62661758907241-5953872037976522480c5c58-59547a442398ab24e8febef1?900'
   }
@@ -19,7 +19,7 @@
 {
   des: 'Authro',
   method: 'HEAD',
-  url: 'http://localhost:6111/authoriz?path=test&actions=INSERT',
+  url: 'http://localhost:6111/Oauth/authoriz?path=test&actions=INSERT',
   requestHeader: {
     'content-type': 'application/json',
     token: '59537948fe62661758907241-5953872037976522480c5c58-59547a442398ab24e8febef1?900'
@@ -29,7 +29,7 @@
 {
   des: 'Get me',
   method: 'GET',
-  url: 'http://localhost:6111/me',
+  url: 'http://localhost:6111/Oauth/me',
   requestHeader: {
     token: '5954a67b396f111aa86d0da45954a6b0396f111aa86d0da65954ad1054320a291040f6c9'
   }
@@ -38,7 +38,7 @@
 {
   des: 'Update me',
   method: 'PUT',
-  url: 'http://localhost:6111/me',
+  url: 'http://localhost:6111/Oauth/me',
   requestHeader: {
     'content-type': 'application/json', 
     token: '5954da82554ba717fcbbf59e5954da82554ba717fcbbf5a15954da95554ba717fcbbf5a2?2700'
@@ -56,7 +56,7 @@
 {
   des: 'Login',
   method: 'POST',
-  url: 'http://localhost:6111/login',
+  url: 'http://localhost:6111/Oauth/login',
   requestHeader: {
     'content-type': 'application/json',
     pj: '5954da82554ba717fcbbf59e',
@@ -70,7 +70,7 @@
 {
   des: 'Login via facebook',
   method: 'POST',
-  url: 'http://localhost:6111/Login',
+  url: 'http://localhost:6111/Oauth/Login',
   requestHeader: {
     'content-type': 'application/json',
     pj: '595e63adb088320f382d243e'
@@ -84,7 +84,7 @@
 {
   des: 'Generate secret key',
   method: 'PUT',
-  url: 'http://localhost:6111/secretkey',
+  url: 'http://localhost:6111/Oauth/secretkey',
   requestHeader: {
     'content-type': 'application/json',
     token: '5954a67b396f111aa86d0da45954a6b0396f111aa86d0da65954acf154320a291040f6c8?2700'
@@ -94,7 +94,7 @@
 {
   des: 'get secret key',
   method: 'GET',
-  url: 'http://localhost:6111/secretkey',
+  url: 'http://localhost:6111/Oauth/secretkey',
   requestHeader: {
     'content-type': 'application/json',
     token: '5954a67b396f111aa86d0da45954a6b0396f111aa86d0da65954acf154320a291040f6c8?2700'
@@ -104,7 +104,7 @@
 {
   des: 'Register via facebook',
   method: 'POST',
-  url: 'http://localhost:6111/Register',
+  url: 'http://localhost:6111/Oauth/Register',
   requestHeader: {
     'content-type': 'application/json', 
     pj: '595e63adb088320f382d243e',
@@ -121,7 +121,7 @@
 {
   des: 'Register',
   method: 'POST',
-  url: 'http://localhost:6111/register',
+  url: 'http://localhost:6111/Oauth/register',
   requestHeader: {
     'content-type': 'application/json', 
     pj: '59537948fe62661758907241',

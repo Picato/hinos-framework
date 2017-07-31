@@ -1,3 +1,4 @@
+import * as _ from 'lodash'
 import { GET, POST, PUT, DELETE, INJECT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
 import { MATCHER } from 'hinos-requestmatcher'
@@ -13,14 +14,28 @@ export class RoleController {
 
   @GET('/Role')
   @INJECT(authoriz(`${AppConfig.name}>Role`, ['FIND']))
-  static async find({ query, state }) {
-    let where = {
-      project_id: state.auth.projectId
+  @MATCHER({
+    query: {
+      page: Number,
+      recordsPerPage: Number,
+      where: Object,
+      sort: Object,
+      fields: Object
     }
+  })
+  static async find({ query, state }) {
+    let where: any = Mongo.autocast(query.where || {})
+    let sort: any = query.sort || {}
+    let fields: any = query.fields || {}
+
+    _.merge(where, { project_id: state.auth.projectId })
+
     const rs: Role[] = await RoleService.find({
       $where: where,
-      $page: +query.page,
-      $recordsPerPage: +query.recordsPerPage
+      $page: query.page,
+      $sort: sort,
+      $fields: fields,
+      $recordsPerPage: query.recordsPerPage
     })
     return rs
   }
