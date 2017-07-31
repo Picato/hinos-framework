@@ -1,7 +1,7 @@
 import { GET, POST, INJECT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
 import { MATCHER } from 'hinos-requestmatcher'
-import { Uuid } from 'hinos-mongo'
+import { Mongo } from 'hinos-mongo'
 import { MonitorConfigService } from '../service/MonitorConfigService'
 import { authoriz } from '../service/Authoriz'
 
@@ -23,7 +23,7 @@ export class MonitorConfigController {
   @MATCHER({
     body: {
       mail_to: Array,
-      mail_config_id: Uuid
+      mail_config_id: Mongo.uuid
     }
   })
   static async config({ body, state }) {
