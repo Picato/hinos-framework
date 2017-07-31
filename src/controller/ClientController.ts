@@ -18,18 +18,17 @@ export class ClientController {
     query: {
       page: Number,
       recordsPerPage: Number,
-      where: Mongo.autocast,
+      where: Object,
       sort: Object,
       fields: Object
     }
   })
   static async find({ query, state }) {
-    let where: any = query.where || {}
+    let where: any = Mongo.autocast(query.where || {})
     let sort: any = query.sort || { updated_at: -1 }
     let fields: any = query.fields || {}
 
     _.merge(where, { project_id: state.auth.projectId })
-    _.merge(fields, { project_id: 0 })
 
     const rs = await LogService.find({
       $where: where,
@@ -38,7 +37,10 @@ export class ClientController {
       $sort: sort,
       $fields: fields
     })
-    return rs
+    return rs.map(e => {
+      delete e.project_id
+      return e
+    })
   }
 
   @GET('/:_id')
