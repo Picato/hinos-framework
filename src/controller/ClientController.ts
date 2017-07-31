@@ -1,7 +1,7 @@
 import { POST, INJECT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
 import { MATCHER } from 'hinos-requestmatcher'
-import { Uuid } from 'hinos-mongo'
+import { Mongo } from 'hinos-mongo'
 import { Mail, MailService } from '../service/MailService'
 import { authoriz } from '../service/Authoriz'
 
@@ -16,7 +16,7 @@ export class ClientController {
   @BODYPARSER()
   @MATCHER({
     params: {
-      configId: Uuid
+      configId: Mongo.uuid
     },
     body: {
       subject: String,
