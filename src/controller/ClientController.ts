@@ -3,7 +3,7 @@ import * as path from 'path'
 import { POST, PUT, INJECT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
 import { MATCHER } from 'hinos-requestmatcher'
-import { Uuid } from 'hinos-mongo'
+import { Mongo } from 'hinos-mongo'
 import { Files, FilesService } from '../service/FilesService'
 import { FileConfigService } from '../service/FileConfigService'
 import { authoriz } from '../service/Authoriz'
@@ -20,7 +20,7 @@ export class ClientController {
   @INJECT(authoriz(`${AppConfig.name}>Files`, ['UPLOAD']))
   @MATCHER({
     params: {
-      configId: Uuid
+      configId: Mongo.uuid
     }
   })
   @INJECT(async ({ params, ctx }, next: Function) => {
@@ -52,7 +52,7 @@ export class ClientController {
       name: String
     },
     params: {
-      configId: Uuid
+      configId: Mongo.uuid
     },
     body: {
       files: async (vl, { state, query }) => {

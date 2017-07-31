@@ -1,6 +1,6 @@
 import { GET, INJECT } from 'hinos-route'
 import { MATCHER } from 'hinos-requestmatcher'
-import { Uuid } from 'hinos-mongo'
+import { Mongo } from 'hinos-mongo'
 import { FilesService } from '../service/FilesService'
 import { authoriz } from '../service/Authoriz'
 
@@ -16,7 +16,7 @@ export class FilesController {
     query: {
       page: Number,
       recordsPerPage: Number,
-      config_id: Uuid
+      config_id: Mongo.uuid
     }
   })
   static async find({ query, state }) {
