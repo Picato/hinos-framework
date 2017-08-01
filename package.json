@@ -33,7 +33,7 @@
     "hinos-common": "^1.0.5",
     "hinos-cors": "^1.0.0",
     "hinos-helmet": "^1.0.0",
-    "hinos-mongo": "^1.0.7",
+    "hinos-mongo": "^1.0.9",
     "hinos-requestmatcher": "^1.0.5",
     "hinos-route": "^1.1.3",
     "hinos-validation": "^1.1.1",
