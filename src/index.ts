@@ -25,7 +25,9 @@ Socketio({ server: Server.server })
 Socketio.pool().bind('/msg')
 
 Server.listen(AppConfig.port, () => {
-  MonitorConfigService.loadConfig().then(ServiceService.check)
+  MonitorConfigService.loadConfig().then(() => {
+    setTimeout(ServiceService.check, 10000)
+  })
   console.info(`
     _     _
   | |__ (_)_ __   ___  ___  ${AppConfig.name}
