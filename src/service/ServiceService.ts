@@ -93,6 +93,8 @@ export class ServiceService {
               }
             })
             item.lastSent = new Date()
+          } catch (e) {
+            ServiceService.socket.send('/msg', s.project_id.toString(), `Send mail failed ${e}`)
           } finally {
             if (s.status !== Service.Status.DEAD) {
               ServiceService.mongo.update(Service, item)
