@@ -86,7 +86,6 @@ export class FilesService {
     Checker.required(body._id, 'files', Object)
     Checker.required(body._id, 'project_id', Uuid)
     Checker.required(body._id, 'account_id', Uuid)
-    Checker.option(body, 'status', Number, Files.Status.TEMP)
     body.updated_at = new Date()
   })
   static async store(body: Files) {
