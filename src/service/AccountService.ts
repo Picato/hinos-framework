@@ -25,6 +25,7 @@ export class Account {
   recover_by?: string
   role_ids?: Uuid[]
   more?: object
+  trying?: number
   secret_key?: string
   created_at?: Date
   updated_at?: Date
@@ -52,7 +53,8 @@ export class AccountCached {
 export namespace Account {
   export const Status = {
     ACTIVED: 1,
-    INACTIVED: 0
+    INACTIVED: 0,
+    LOCKED: -1
   }
 }
 
@@ -200,17 +202,41 @@ export class AccountService {
     const acc = await AccountService.mongo.get<Account>(Account, {
       username: new RegExp(`^${user.username}$`, 'i'),
       project_id: user.projectId
-    }, { password: 1, app: 1, token: 1, status: 1, _id: 1, project_id: 1, role_ids: 1 })
+    }, { password: 1, app: 1, token: 1, status: 1, _id: 1, project_id: 1, role_ids: 1, trying: 1 })
     if (!acc) throw HttpError.NOT_FOUND(`Could not found username ${user.username}`)
-    await Checker.option(user, 'password', String, () => {
-      if (acc.password !== user.password) throw HttpError.BAD_REQUEST('Password is not matched')
-    }, () => {
-      if (!acc.app.includes(user.app)) throw HttpError.AUTHEN('Login via social error')
-    })
+    if (acc.status === Account.Status.LOCKED) throw HttpError.BAD_REQUEST('Account was locked')
     if (acc.status !== Account.Status.ACTIVED) throw HttpError.BAD_REQUEST('Account not actived')
     const plugins = await ProjectService.getCachedPlugins(acc.project_id)
-    if (!plugins || !plugins.oauth) throw HttpError.INTERNAL('project is not actived')
+    if (!plugins || !plugins.oauth) throw HttpError.INTERNAL('Project config got problem')
     const oauth = plugins.oauth
+    const wrongPass = async (...msgs) => {
+      if (oauth.trying) {
+        if (acc.trying === undefined) acc.trying = 0
+        if (acc.trying < oauth.trying - 1) {
+          acc.trying++
+          msgs.push(`You remain ${oauth.trying - acc.trying} times to retry`)
+        } else {
+          acc.trying = 0
+          acc.status = Account.Status.LOCKED
+          msgs.push(`Your account was locked`)
+        }
+        await AccountService.mongo.update(Account, acc)
+      }
+      throw HttpError.BAD_REQUEST(msgs.join('\n'))
+    }
+    await Checker.option(user, 'password', String, async () => {
+      if (acc.password !== user.password) {
+        await wrongPass('Password not match')
+      }
+    }, async () => {
+      await Checker.option(user, 'app', String, async () => {
+        if (!acc.app || !acc.app.includes(user.app)) {
+          await wrongPass('Login via social error')
+        }
+      }, async () => {
+        await wrongPass('Password not match')
+      })
+    })
     if (oauth.single_mode === true) {
       for (const tk of acc.token) {
         await AccountService.setCachedToken(tk)
@@ -221,7 +247,8 @@ export class AccountService {
     acc.token.push(token)
     await AccountService.mongo.update(Account, {
       _id: acc._id,
-      token: acc.token
+      token: acc.token,
+      trying: 0
     })
     await AccountService.setCachedToken(token, {
       account_id: acc._id,
@@ -274,6 +301,7 @@ export class AccountService {
       body.role_ids = []
     })
     Checker.option(body, 'more', Object, {})
+    body.trying = 0
     body.token = []
     body.created_at = new Date()
     body.updated_at = new Date()

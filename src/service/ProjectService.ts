@@ -9,6 +9,16 @@ import { AccountService } from './AccountService'
  ** ProjectService || 4/10/2017, 10:19:24 AM **
  ************************************************/
 
+export type Plugin = {
+  oauth?: {
+    app?: string
+    is_verify?: boolean
+    session_expired?: number
+    single_mode?: boolean
+    trying?: number
+  }
+}
+
 @Collection('Project')
 /* tslint:disable */
 export class Project {
@@ -16,7 +26,7 @@ export class Project {
   name?: string
   des?: string
   status?: number
-  plugins?: object
+  plugins?: Plugin
   owner?: string
   created_at?: Date
   updated_at?: Date
@@ -79,7 +89,8 @@ export class ProjectService {
       oauth: {
         single_mode: true,
         session_expired: 2700,
-        is_verify: true
+        is_verify: true,
+        trying: 3
       }
     })
     body.created_at = new Date()
@@ -118,15 +129,15 @@ export class ProjectService {
     if (body.status !== undefined) {
       if (old.status !== body.status && body.status === Project.Status.INACTIVED) {
         // Remove cached
-        await ProjectService.reloadCachedPlugins(body._id)
+        await ProjectService.reloadCachedPlugins(body._id._id)
         return
       } else if (old.status !== body.status && body.status === Project.Status.ACTIVED) {
         // Reload cached
-        await ProjectService.reloadCachedPlugins(body._id, body.plugins)
+        await ProjectService.reloadCachedPlugins(body._id._id, body.plugins)
         return
       }
     }
-    if (body.plugins) await ProjectService.reloadCachedPlugins(body._id, body.plugins)
+    if (body.plugins) await ProjectService.reloadCachedPlugins(body._id._id, body.plugins)
   }
 
   @VALIDATE((_id: Uuid) => {
@@ -156,7 +167,7 @@ export class ProjectService {
   }
 
   static async getCachedPlugins(projectId: Uuid) {
-    return await ProjectService.redis.get(`$plugins:${projectId}`)
+    return await ProjectService.redis.get(`$plugins:${projectId}`) as Plugin
   }
 
 }

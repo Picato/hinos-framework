@@ -30,7 +30,6 @@ export class AccountController {
     let fields: any = query.fields || {}
 
     _.merge(where, { project_id: state.auth.projectId })
-    _.merge(fields, { token: 0, password: 0, project_id: 0 })
 
     const rs = await AccountService.find({
       $where: where,
@@ -43,6 +42,7 @@ export class AccountController {
       delete e.token
       delete e.password
       delete e.project_id
+      delete e.trying
       return e
     })
   }
