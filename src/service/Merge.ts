@@ -40,20 +40,22 @@ export async function changeToNewServer() {
       oldAccs[i].role_ids = [newRoleId]
       newAcc = await Mongo.pool('oauthNew').insert<any>('Account', oldAccs[i])
     }
-    const oldItems = await Mongo.pool('sctOld').find<ExpensiveNote>('ExpensiveNote', {
+    const oldItem = await Mongo.pool('sctOld').get<ExpensiveNote>('ExpensiveNote', {
       $where: {
         user_id: newAcc.old_id
       }
     })
-    if (oldItems && oldItems.length > 0) {
-      const newItems = oldItems.map(e => {
-        e.user_id = newAcc._id
-        return e
-      })
+    const newItem = await Mongo.pool('sctNew').get<ExpensiveNote>('ExpensiveNote', {
+      $where: {
+        user_id: newAcc._id
+      }
+    })
+    if (oldItem && (!newItem || newItem.spendings.length < oldItem.spendings.length)) {
+      oldItem.user_id = newAcc._id
       await Mongo.pool('sctNew').delete('ExpensiveNote', {
         user_id: newAcc._id
-      }, { multiple: true })
-      await Mongo.pool('sctNew').insert('ExpensiveNote', newItems)
+      })
+      await Mongo.pool('sctNew').insert('ExpensiveNote', oldItem)
     }
   }
   return 'Done'
