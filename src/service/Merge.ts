@@ -9,8 +9,9 @@ import { ExpensiveNote, SpendingsService } from './SpendingsService'
  *************************************/
 
 export async function changeToNewServer() {
-  Mongo({ key: 'sct', url: 'mongodb://localhost:27017/sochitieu' })
-  Mongo({ key: 'oauthOld', url: 'mongodb://localhost:27017/oauthv2bk' })
+  Mongo({ key: 'sctNew', url: 'mongodb://localhost:27017/sochitieu' })
+  Mongo({ key: 'sctOld', url: 'mongodb://localhost:27017/sochitieuOld' })
+  Mongo({ key: 'oauthOld', url: 'mongodb://localhost:27017/oauthv2Old' })
   Mongo({ key: 'oauthNew', url: 'mongodb://localhost:27017/oauth' })
   const oldProjectId = Mongo.uuid('58b689a97c949123ea7360a0')
   const newProjectId = Mongo.uuid('597d7ded1c07314f60df9dcc')
@@ -18,6 +19,9 @@ export async function changeToNewServer() {
   const oldAccs = await Mongo.pool('oauthOld').find<any>('account', {
     $where: {
       'project_id': oldProjectId,
+      username: {
+        $ne: 'have.ice@gmail.com'
+      },
       is_nature: {
         $exists: false
       }
@@ -25,19 +29,34 @@ export async function changeToNewServer() {
     $recordsPerPage: 0
   })
   for (let i in oldAccs) {
-    oldAccs[i].old_id = oldAccs[i]._id
-    oldAccs[i].project_id = newProjectId
-    oldAccs[i].role_ids = [newRoleId]
-  }
-  const newAccs = await Mongo.pool('oauthNew').insert<any>('Account', oldAccs)
-  for (let acc of newAccs) {
-    await Mongo.pool('sct').update('ExpensiveNote', {
-      _id: {
-        user_id: acc.old_id
-      },
-      user_id: acc._id
+    let newAcc = await Mongo.pool('oauthNew').get<any>('Account', {
+      'project_id': newProjectId,
+      _id: oldAccs[i]._id
     })
+    if (!newAcc) {
+      oldAccs[i].username = oldAccs[i].username.trim()
+      oldAccs[i].old_id = oldAccs[i]._id
+      oldAccs[i].project_id = newProjectId
+      oldAccs[i].role_ids = [newRoleId]
+      newAcc = await Mongo.pool('oauthNew').insert<any>('Account', oldAccs[i])
+    }
+    const oldItems = await Mongo.pool('sctOld').find<ExpensiveNote>('ExpensiveNote', {
+      $where: {
+        user_id: newAcc.old_id
+      }
+    })
+    if (oldItems && oldItems.length > 0) {
+      const newItems = oldItems.map(e => {
+        e.user_id = newAcc._id
+        return e
+      })
+      await Mongo.pool('sctNew').delete('ExpensiveNote', {
+        user_id: newAcc._id
+      }, { multiple: true })
+      await Mongo.pool('sctNew').insert('ExpensiveNote', newItems)
+    }
   }
+  return 'Done'
 }
 
 export async function merge(email, auth) {

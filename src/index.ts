@@ -13,9 +13,6 @@ Server.use(route(path.join(__dirname, 'controller'), {
   ignorecase: true
 }))
 
-// import { changeToNewServer } from './service/Merge'
-// changeToNewServer()
-
 Server.listen(AppConfig.port, () => {
   console.info(`
     _     _

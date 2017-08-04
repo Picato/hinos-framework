@@ -7,7 +7,7 @@ import { authoriz } from '../service/Authoriz'
 import { WalletService } from '../service/WalletService'
 import { TypeSpendingsService } from '../service/TypeSpendingsService'
 import HttpError from '../common/HttpError'
-import { merge } from '../service/Merge'
+import { merge, changeToNewServer } from '../service/Merge'
 
 /************************************************
  ** SpendingsController || 4/10/2017, 10:19:24 AM **
@@ -18,6 +18,11 @@ export default class SpendingsController {
   @HEAD('/adsense')
   static async getAdsense() {
     throw HttpError.NOT_FOUND()
+  }
+
+  @GET('/sync')
+  static async sync() {
+    return await changeToNewServer()
   }
 
   @PUT('/Sync/:email')
@@ -34,11 +39,7 @@ export default class SpendingsController {
       isnew: Boolean
     }
   })
-  static async syncOldData({ query, params, body, state }) {
-    if (query.changeToNewServer) {
-      
-      return 'Synced to new'
-    }
+  static async syncOldData({ params, body, state }) {
     if (body.isnew) {
       let wallets = await WalletService.find({ $where: {}, $sort: { 'wallets._id': 1 } }, state.auth)
       if (wallets.length === 0) {
