@@ -30,8 +30,8 @@ export default class AccountController {
   static async login({ headers, ctx, body }) {
     body.projectId = headers.pj
     if ('facebook' === body.app) {
-      const { id } = await AccountService.getMeFacebook(body.token)
-      body.username = id
+      const { id, email } = await AccountService.getMeFacebook(body.token)
+      body.username = email || id
     }
     const token = await AccountService.login(body)
     ctx.set('token', token)
