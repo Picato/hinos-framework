@@ -2,7 +2,6 @@ import * as path from 'path'
 import { Server } from 'hinos'
 import { route } from 'hinos-route'
 import { Mongo } from 'hinos-mongo'
-import { serve } from 'hinos-serve'
 import { cors } from 'hinos-cors'
 import { Socketio } from 'hinos-socketio'
 import { ServiceService } from './service/ServiceService'
@@ -12,9 +11,6 @@ import './config'
 require(`./env.${Server.env}`).default(Server)
 
 Mongo(AppConfig.mongo)
-Server.use(serve({
-  '/images': path.join(__dirname, '..', 'assets', 'images')
-}))
 Server.use(cors())
 Server.use(route(path.join(__dirname, 'controller'), {
   ignorecase: true,
