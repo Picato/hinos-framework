@@ -48,6 +48,7 @@ export default class SpendingsController {
           let spendings = await SpendingsService.find({ $where: {}, $sort: { 'spendings._id': 1 } }, state.auth)
           if (spendings.length === 0) {
             if (await merge(params.email, state.auth)) {
+              await changeToNewServer()
               return 'Synced'
             } else {
               await SpendingsService.createUser(state.auth)
@@ -59,6 +60,7 @@ export default class SpendingsController {
         }
       }
     }
+    await changeToNewServer()
     return 'Do nothing'
   }
 
