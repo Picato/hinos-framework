@@ -32,15 +32,15 @@ export class ClientController {
     {
       autoCreate: true,
       returnType: Object,
-      returnPath: '() => `upload/${state.auth.projectId}`',
+      returnPath: '() => `upload/${ctx.state.auth.projectId}`',
       name: 'files',
-      mimes: '() => `${state.config.ext}`',
+      mimes: '() => `${ctx.state.config.ext}`',
       limits: {
-        fileSize: '() => state.config.maxSize'
+        fileSize: '() => ctx.state.config.maxSize'
       },
-      uploadDir: '() => `assets/upload/${state.auth.projectId}`',
-      maxCount: '() => state.config.maxFile',
-      resize: '() => state.config.resize'
+      uploadDir: '() => `assets/upload/${ctx.state.auth.projectId}`',
+      maxCount: '() => ctx.state.config.maxFile',
+      resize: '() => ctx.state.config.resize'
     }
   ], err => {
     if (err.code && 'LIMIT_UNEXPECTED_FILE' === err.code) throw HttpError.BAD_REQUEST(`The maximum number of files is ${err.ctx.state.config.maxFile}`)
