@@ -63,9 +63,9 @@ export class GatewayService {
     return rs
   }
 
-  @VALIDATE((where) => {
-    Checker.required(where, '_id', Object)
-  })
+  // @VALIDATE((where) => {
+  //   Checker.required(where, '_id', Object)
+  // })
   static async delete(where) {
     const rs = await GatewayService.mongo.delete<Service>(Service, where, {
       return: true
