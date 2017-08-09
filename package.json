@@ -19,7 +19,6 @@
     "services": {
       "oauth": "http://localhost:6111"
     },
-    "routes": {},
     "encryptKey": ")^!!!(**",
     "mongo": {
       "url": "mongodb://localhost:27017/script",
@@ -43,7 +42,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/chai": "^3.5.2",
-    "@types/lodash": "^4.14.71",
+    "@types/lodash": "^4.14.72",
     "@types/mocha": "^2.2.41",
     "@types/node": "^7.0.39",
     "chai": "^3.5.0",

@@ -11,12 +11,7 @@ Mongo(AppConfig.mongo)
 Server.use(cors())
 Server.use(route(path.join(__dirname, 'controller'), {
   ignorecase: true,
-  root: '/Script',
-  onInit(method, path) {
-    console.log(`${method.toUpperCase()}\t${path}`)
-    if (!AppConfig.routes[method.toUpperCase()]) AppConfig.routes[method.toUpperCase()] = []
-    AppConfig.routes[method.toUpperCase()].push(path)
-  }
+  root: '/script'
 }))
 
 Server.listen(AppConfig.port, () => {
