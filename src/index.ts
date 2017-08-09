@@ -15,12 +15,8 @@ Server.use(cors({
   exposeHeaders: ['token', 'project_id', 'account_id']
 }))
 Server.use(route(path.join(__dirname, 'controller'), {
-  root: '/Oauth',
-  ignorecase: true,
-  onInit(method, path) {
-    console.log(`${method.toUpperCase()}\t${path}`)
-    AppConfig.routes.push({ method: method.toUpperCase(), path })
-  }
+  root: '/oauth',
+  ignorecase: true
 }))
 
 Server.listen(AppConfig.port, async () => {
