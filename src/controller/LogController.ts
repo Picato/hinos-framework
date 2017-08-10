@@ -1,5 +1,5 @@
 import { GET, INJECT } from 'hinos-route'
-import { MATCHER } from 'hinos-requestmatcher'
+import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { LogService } from '../service/LogService'
 import { authoriz } from '../service/Authoriz'
 
@@ -11,7 +11,7 @@ export class LogController {
 
   @GET('/Log')
   @INJECT(authoriz(`${AppConfig.name}>Log`, ['FIND']))
-  @MATCHER({
+  @RESTRICT({
     query: {
       page: Number,
       recordsPerPage: Number

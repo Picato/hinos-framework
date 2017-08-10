@@ -1,6 +1,6 @@
 import { GET, POST, DELETE, INJECT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
-import { MATCHER } from 'hinos-requestmatcher'
+import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { Mongo } from 'hinos-mongo'
 import { ServiceService } from '../service/ServiceService'
 import { authoriz } from '../service/Authoriz'
@@ -19,7 +19,7 @@ export class ServiceController {
 
   @GET('/Service')
   @INJECT(authoriz(`${AppConfig.name}>Service`, ['FIND']))
-  @MATCHER({
+  @RESTRICT({
     query: {
       page: Number,
       recordsPerPage: Number
@@ -39,7 +39,7 @@ export class ServiceController {
   @POST('/Service')
   @INJECT(authoriz(`${AppConfig.name}>Service`, ['INSERT']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     body: {
       name: String,
       link: String,
@@ -54,7 +54,7 @@ export class ServiceController {
 
   @DELETE('/Service/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Service`, ['DELETE']))
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     }

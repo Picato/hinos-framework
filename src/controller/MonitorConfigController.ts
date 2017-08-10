@@ -1,6 +1,6 @@
 import { GET, POST, INJECT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
-import { MATCHER } from 'hinos-requestmatcher'
+import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { Mongo } from 'hinos-mongo'
 import { MonitorConfigService } from '../service/MonitorConfigService'
 import { authoriz } from '../service/Authoriz'
@@ -20,7 +20,7 @@ export class MonitorConfigController {
   @POST('/MonitorConfig')
   @INJECT(authoriz(`${AppConfig.name}>Service`, ['CONFIG']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     body: {
       mail_to: Array,
       mail_config_id: Mongo.uuid
