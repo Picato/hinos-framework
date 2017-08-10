@@ -1,6 +1,6 @@
 import { GET, POST, PUT, DELETE, INJECT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
-import { MATCHER } from 'hinos-requestmatcher'
+import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { Mongo } from 'hinos-mongo'
 import { ScriptService } from '../service/ScriptService'
 import { authoriz } from '../service/Authoriz'
@@ -13,7 +13,7 @@ import HttpError from '../common/HttpError'
 export class ScriptController {
 
   @GET('/Download')
-  @MATCHER({
+  @RESTRICT({
     query: {
       name: e => e.split(',').map(e => e.trim().toLowerCase()),
       id: e => e.split(',').map(e => Mongo.uuid(e.trim()))
@@ -31,7 +31,7 @@ export class ScriptController {
 
   @GET('/')
   @INJECT(authoriz(`${AppConfig.name}>Script`, ['FIND']))
-  @MATCHER({
+  @RESTRICT({
     query: {
       page: Number,
       recordsPerPage: Number,
@@ -70,7 +70,7 @@ export class ScriptController {
 
   @GET('/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Script`, ['GET']))
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     }
@@ -83,7 +83,7 @@ export class ScriptController {
   @POST('/')
   @INJECT(authoriz(`${AppConfig.name}>Script`, ['INSERT']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     body: {
       name: String,
       ext: String,
@@ -102,7 +102,7 @@ export class ScriptController {
   @PUT('/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Script`, ['UPDATE']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     },
@@ -122,7 +122,7 @@ export class ScriptController {
 
   @DELETE('/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Script`, ['DELETE']))
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     }

@@ -27,13 +27,12 @@
   },
   "dependencies": {
     "archiver": "^2.0.0",
+    "axios": "^0.16.2",
     "hinos": "^1.1.1",
-    "hinos-bodyparser": "^1.1.2",
-    "hinos-common": "^1.0.7",
+    "hinos-bodyparser": "^2.0.9",
     "hinos-cors": "^1.0.1",
     "hinos-helmet": "^1.0.0",
-    "hinos-mongo": "^1.1.1",
-    "hinos-requestmatcher": "^1.0.7",
+    "hinos-mongo": "^1.1.2",
     "hinos-route": "^1.1.4",
     "hinos-validation": "^1.1.2",
     "lodash": "^4.17.4"
@@ -41,6 +40,7 @@
   "author": "doanthuanthanh88@gmail.com",
   "license": "ISC",
   "devDependencies": {
+    "@types/axios": "^0.14.0",
     "@types/chai": "^3.5.2",
     "@types/lodash": "^4.14.72",
     "@types/mocha": "^2.2.41",
