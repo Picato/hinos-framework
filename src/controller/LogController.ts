@@ -1,5 +1,5 @@
 import { DELETE, INJECT } from 'hinos-route'
-import { MATCHER } from 'hinos-requestmatcher'
+import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { Mongo } from 'hinos-mongo'
 import { LogService } from '../service/LogService'
 import { authoriz } from '../service/Authoriz'
@@ -12,7 +12,7 @@ export class LogController {
 
   @DELETE('/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Log`, ['DELETE']))
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     }

@@ -1,7 +1,7 @@
 import * as _ from 'lodash'
 import { GET, POST, PUT, INJECT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
-import { MATCHER } from 'hinos-requestmatcher'
+import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { Mongo } from 'hinos-mongo'
 import { Log, LogService } from '../service/LogService'
 import { authoriz } from '../service/Authoriz'
@@ -14,7 +14,7 @@ export class ClientController {
 
   @GET('/')
   @INJECT(authoriz(`${AppConfig.name}>Log`, ['FIND']))
-  @MATCHER({
+  @RESTRICT({
     query: {
       page: Number,
       recordsPerPage: Number,
@@ -45,7 +45,7 @@ export class ClientController {
 
   @GET('/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Log`, ['GET']))
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     }
@@ -72,7 +72,7 @@ export class ClientController {
   @PUT('/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Log`, ['UPDATE']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     }
