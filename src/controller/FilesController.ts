@@ -1,5 +1,5 @@
 import { GET, INJECT } from 'hinos-route'
-import { MATCHER } from 'hinos-requestmatcher'
+import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { Mongo } from 'hinos-mongo'
 import { FilesService } from '../service/FilesService'
 import { authoriz } from '../service/Authoriz'
@@ -12,7 +12,7 @@ export class FilesController {
 
   @GET('/')
   @INJECT(authoriz(`${AppConfig.name}>Files`, ['FIND']))
-  @MATCHER({
+  @RESTRICT({
     query: {
       page: Number,
       recordsPerPage: Number,

@@ -1,5 +1,5 @@
 import { VALIDATE, Checker } from 'hinos-validation'
-import { ImageResize } from 'hinos-bodyparser'
+import { ImageResize } from 'hinos-bodyparser/file'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
 import Utils from '../common/Utils'

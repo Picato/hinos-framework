@@ -1,8 +1,9 @@
 import * as _ from 'lodash'
 import * as path from 'path'
 import { POST, PUT, INJECT } from 'hinos-route'
+import { FILEPARSER } from 'hinos-bodyparser/file'
 import { BODYPARSER } from 'hinos-bodyparser'
-import { MATCHER } from 'hinos-requestmatcher'
+import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { Mongo } from 'hinos-mongo'
 import { Files, FilesService } from '../service/FilesService'
 import { FileConfigService } from '../service/FileConfigService'
@@ -18,7 +19,7 @@ export class ClientController {
 
   @POST('/Upload/:configId')
   @INJECT(authoriz(`${AppConfig.name}>Files`, ['UPLOAD']))
-  @MATCHER({
+  @RESTRICT({
     params: {
       configId: Mongo.uuid
     }
@@ -28,10 +29,11 @@ export class ClientController {
     ctx.state.config = config.config
     await next()
   })
-  @BODYPARSER([
+  @FILEPARSER([
     {
       autoCreate: true,
       returnType: Object,
+      eval: true,
       returnPath: '() => `upload/${ctx.state.auth.projectId}`',
       name: 'files',
       mimes: '() => `${ctx.state.config.ext}`',
@@ -46,7 +48,7 @@ export class ClientController {
     if (err.code && 'LIMIT_UNEXPECTED_FILE' === err.code) throw HttpError.BAD_REQUEST(`The maximum number of files is ${err.ctx.state.config.maxFile}`)
     throw err
   })
-  @MATCHER({
+  @RESTRICT({
     query: {
       store: Boolean,
       name: String
@@ -108,7 +110,7 @@ export class ClientController {
   @PUT('/Store')
   @INJECT(authoriz(`${AppConfig.name}>Files`, ['STORE']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     body: {
       files: vl => vl instanceof Array ? vl : [vl]
     }
@@ -129,7 +131,7 @@ export class ClientController {
   @PUT('/Remove')
   @INJECT(authoriz(`${AppConfig.name}>Files`, ['DELETE']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     body: {
       files: vl => vl instanceof Array ? vl : [vl]
     }

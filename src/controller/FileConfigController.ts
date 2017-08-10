@@ -1,6 +1,6 @@
 import { GET, POST, PUT, DELETE, INJECT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
-import { MATCHER } from 'hinos-requestmatcher'
+import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { Mongo } from 'hinos-mongo'
 import { FileConfig, FileConfigService } from '../service/FileConfigService'
 import { authoriz } from '../service/Authoriz'
@@ -13,7 +13,7 @@ export class FileConfigController {
 
   @GET('/Config')
   @INJECT(authoriz(`${AppConfig.name}>Config`, ['FIND']))
-  @MATCHER({
+  @RESTRICT({
     query: {
       page: Number,
       recordsPerPage: Number
@@ -34,7 +34,7 @@ export class FileConfigController {
   @POST('/Config')
   @INJECT(authoriz(`${AppConfig.name}>Config`, ['INSERT']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     body: {
       name: String,
       config: Object
@@ -50,7 +50,7 @@ export class FileConfigController {
   @PUT('/Config/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Config`, ['UPDATE']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     },
@@ -69,7 +69,7 @@ export class FileConfigController {
 
   @DELETE('/Config/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Config`, ['DELETE']))
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     }
