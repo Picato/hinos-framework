@@ -10,7 +10,7 @@ export default class Type<T> {
 
   public static ostringify = (a, b?, c?) => {
     if (_.isNil(a)) return a
-    return JSON.stringify(a, b, c).replace(/\"([^(\")"]+)\":/g, '$1:').replace(/"?\$Native\(([^\)]+)\)"?/g, '$1')
+    return JSON.stringify(a, b, c).replace(/\"([^(\")"]+)\":/g, '$1:').replace(/"?\$Native\(([^\)]+)\)"?/g, '$1').replace(/"/g, "'")
   }
 
   public static required(required: boolean = true) {
@@ -67,5 +67,5 @@ export default class Type<T> {
   public genHttpField() {
     return `${this.fieldName}${this._required ? '' : '?'}: ${this.beanType}`
   }
-  
+
 }
