@@ -1,6 +1,6 @@
 import { POST, INJECT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
-import { MATCHER } from 'hinos-requestmatcher'
+import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { Mongo } from 'hinos-mongo'
 import { Mail, MailService } from '../service/MailService'
 import { authoriz } from '../service/Authoriz'
@@ -14,7 +14,7 @@ export class ClientController {
   @POST('/Send/:configId')
   @INJECT(authoriz(`${AppConfig.name}>Mail`, ['SEND']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     params: {
       configId: Mongo.uuid
     },

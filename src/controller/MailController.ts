@@ -1,6 +1,6 @@
 import { GET, POST, PUT, DELETE, INJECT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
-import { MATCHER } from 'hinos-requestmatcher'
+import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { Mongo } from 'hinos-mongo'
 import { MailService } from '../service/MailService'
 import { authoriz } from '../service/Authoriz'
@@ -14,7 +14,7 @@ export class MailController {
   @POST('/Test')
   @INJECT(authoriz(`${AppConfig.name}>Config`, ['Test']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     body: {
       name: String,
       to: String,
@@ -32,7 +32,7 @@ export class MailController {
 
   @PUT('/Resend/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Mail`, ['RESEND']))
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     }
@@ -49,7 +49,7 @@ export class MailController {
 
   @GET('/')
   @INJECT(authoriz(`${AppConfig.name}>Mail`, ['FIND']))
-  @MATCHER({
+  @RESTRICT({
     query: {
       page: Number,
       recordsPerPage: Number
@@ -73,7 +73,7 @@ export class MailController {
 
   @GET('/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Mail`, ['GET']))
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     }
@@ -88,7 +88,7 @@ export class MailController {
 
   @DELETE('/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Mail`, ['DELETE']))
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     }

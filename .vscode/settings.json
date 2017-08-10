@@ -1,9 +1,0 @@
-{
-    "editor.fontSize": 13,
-    "workbench.iconTheme": "vscode-icons",
-    "vsicons.projectDetection.disableDetect": true,
-    "typescript.check.tscVersion": false,
-    "files.autoSave": "off",
-    "editor.insertSpaces": true,
-    "editor.tabSize": 2
-}
