@@ -1,6 +1,6 @@
 import { GET, PUT, DELETE, INJECT, ALL } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
-import { MATCHER } from 'hinos-requestmatcher'
+import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { Mongo } from 'hinos-mongo'
 import { GatewayService } from '../service/GatewayService'
 import { authoriz } from '../service/Authoriz'
@@ -13,7 +13,7 @@ export class GatewayController {
 
   @GET('/Gateway/Service')
   @INJECT(authoriz(`${AppConfig.name}>Gateway`, ['FIND']))
-  @MATCHER({
+  @RESTRICT({
     query: {
       page: Number,
       recordsPerPage: Number
@@ -34,7 +34,7 @@ export class GatewayController {
   @PUT('/Gateway/Service')
   @INJECT(authoriz(`${AppConfig.name}>Gateway`, ['UPDATE']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     body: {
       name: e => e.toLowerCase(),
       link: e => e.toLowerCase()
@@ -51,7 +51,7 @@ export class GatewayController {
 
   @DELETE('/Gateway/Service/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Gateway`, ['DELETE']))
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     }
