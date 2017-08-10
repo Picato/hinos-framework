@@ -1,7 +1,7 @@
 import { GET, POST, PUT, DELETE, HEAD, INJECT } from 'hinos-route'
 import { md5 } from 'hinos-common/Encrypt'
 import { BODYPARSER } from 'hinos-bodyparser'
-import { MATCHER } from 'hinos-requestmatcher'
+import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { Mongo } from 'hinos-mongo'
 import { AccountService } from '../service/AccountService'
 import { RoleService } from '../service/RoleService'
@@ -16,7 +16,7 @@ export default class AccountController {
 
   @POST('/Login')
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     headers: {
       pj: Mongo.uuid
     },
@@ -39,7 +39,7 @@ export default class AccountController {
 
   @POST('/Register')
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     headers: {
       pj: Mongo.uuid,
       role: Mongo.uuid
@@ -67,7 +67,7 @@ export default class AccountController {
   }
 
   @GET('/Logout')
-  @MATCHER({
+  @RESTRICT({
     headers: {
       token: vl => vl.split('?')[0]
     }
@@ -78,7 +78,7 @@ export default class AccountController {
   }
 
   @HEAD('/Ping')
-  @MATCHER({
+  @RESTRICT({
     headers: {
       token: vl => vl.split('?')[0]
     }
@@ -89,7 +89,7 @@ export default class AccountController {
   }
 
   @HEAD('/Authoriz')
-  @MATCHER({
+  @RESTRICT({
     headers: {
       token: vl => vl.split('?')[0]
     },
@@ -139,7 +139,7 @@ export default class AccountController {
   @PUT('/Me')
   @INJECT(authoriz(`${AppConfig.name}>Me`, ['UPDATE']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     body: {
       password: md5,
       recover_by: String,
@@ -156,7 +156,7 @@ export default class AccountController {
 
   @GET('/MyRoles')
   @INJECT(authoriz(`${AppConfig.name}>MyRole`, ['GET_ROLES']))
-  @MATCHER({
+  @RESTRICT({
     query: {
       type: String
     }

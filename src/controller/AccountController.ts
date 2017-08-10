@@ -1,7 +1,7 @@
 import * as _ from 'lodash'
 import { GET, POST, PUT, DELETE, INJECT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
-import { MATCHER } from 'hinos-requestmatcher'
+import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { md5 } from 'hinos-common/Encrypt'
 import { Mongo } from 'hinos-mongo'
 import { Account, AccountService } from '../service/AccountService'
@@ -14,7 +14,7 @@ import { authoriz } from '../service/Authoriz'
 export class AccountController {
 
   @GET('/Account')
-  @MATCHER({
+  @RESTRICT({
     query: {
       page: Number,
       recordsPerPage: Number,
@@ -49,7 +49,7 @@ export class AccountController {
 
   @GET('/Account/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Account`, ['GET']))
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     }
@@ -65,7 +65,7 @@ export class AccountController {
   @POST('/Account')
   @INJECT(authoriz(`${AppConfig.name}>Account`, ['INSERT']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     body: {
       username: String,
       password: md5,
@@ -86,7 +86,7 @@ export class AccountController {
   @PUT('/Account/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Account`, ['UPDATE']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     },
@@ -110,7 +110,7 @@ export class AccountController {
 
   @DELETE('/Account/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Account`, ['DELETE']))
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     }

@@ -1,6 +1,6 @@
 import { GET, POST, PUT, DELETE, INJECT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
-import { MATCHER } from 'hinos-requestmatcher'
+import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { Mongo } from 'hinos-mongo'
 import { ProjectService } from '../service/ProjectService'
 import { authoriz, suAuthoriz } from '../service/Authoriz'
@@ -27,7 +27,7 @@ export class ProjectController {
 
   @GET('/Project/:_id')
   @INJECT(suAuthoriz())
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     }
@@ -40,7 +40,7 @@ export class ProjectController {
   @POST('/Project')
   @INJECT(suAuthoriz())
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     body: {
       name: String,
       des: String,
@@ -56,7 +56,7 @@ export class ProjectController {
   @PUT('/Project/:_id')
   @INJECT(suAuthoriz())
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     },
@@ -74,7 +74,7 @@ export class ProjectController {
 
   @DELETE('/Project/:_id')
   @INJECT(suAuthoriz())
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     }
@@ -97,7 +97,7 @@ export class ProjectController {
   @PUT('/Project')
   @INJECT(authoriz(`${AppConfig.name}>Project`, ['UPDATE_MINE']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     body: {
       name: String,
       des: String,

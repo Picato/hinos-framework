@@ -1,7 +1,7 @@
 import * as _ from 'lodash'
 import { GET, POST, PUT, DELETE, INJECT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
-import { MATCHER } from 'hinos-requestmatcher'
+import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { Mongo } from 'hinos-mongo'
 import { Role, RoleService } from '../service/RoleService'
 import { authoriz } from '../service/Authoriz'
@@ -14,7 +14,7 @@ export class RoleController {
 
   @GET('/Role')
   @INJECT(authoriz(`${AppConfig.name}>Role`, ['FIND']))
-  @MATCHER({
+  @RESTRICT({
     query: {
       page: Number,
       recordsPerPage: Number,
@@ -42,7 +42,7 @@ export class RoleController {
 
   @GET('/Role/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Role`, ['GET']))
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     }
@@ -58,7 +58,7 @@ export class RoleController {
   @POST('/Role')
   @INJECT(authoriz(`${AppConfig.name}>Role`, ['INSERT']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     body: {
       name: String,
       api: Array,
@@ -76,7 +76,7 @@ export class RoleController {
   @PUT('/Role/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Role`, ['UPDATE']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     },
@@ -99,7 +99,7 @@ export class RoleController {
 
   @DELETE('/Role/:_id')
   @INJECT(authoriz(`${AppConfig.name}>Role`, ['DELETE']))
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     }
