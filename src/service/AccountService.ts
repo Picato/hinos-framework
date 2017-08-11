@@ -5,9 +5,10 @@ import { Redis, REDIS } from 'hinos-redis'
 import { md5 } from 'hinos-common/Encrypt'
 import HttpError from '../common/HttpError'
 import { Role } from './RoleService'
-import { ProjectService } from './ProjectService'
+import { ProjectService, Plugin } from './ProjectService'
 import { RoleService } from './RoleService'
-import * as fbgraph from 'fbgraph'
+// import * as fbgraph from 'fbgraph'
+import axios from 'axios'
 
 /************************************************
  ** AccountService || 4/10/2017, 10:19:24 AM **
@@ -82,14 +83,29 @@ export class AccountService {
     console.log(`Loaded ${caches.length} accounts into cached`)
   }
 
-  static getMeFacebook(token: string): Promise<{ id: string, email: string }> {
-    return new Promise((resolve, reject) => {
-      fbgraph.setAccessToken(token)
-      fbgraph.get('/me?fields=email', (err, res) => {
-        if (err) return reject(err)
-        resolve(res)
-      })
-    })
+  static async getMeFacebook(token: string): Promise<{ id: string, email: string, more: any }> {
+    const { data } = await axios.get(`https://graph.facebook.com/v2.10/me?access_token=${token}&fields=email%2Cname&format=json&method=get&pretty=0&suppress_http_code=1`)
+    return {
+      id: data.id,
+      email: data.email,
+      more: {
+        fullname: data.name,
+        avatar: `http//graph.facebook.com/${data.id}/picture`
+      }
+    }
+  }
+
+  static async getMeGoogle(token: string): Promise<{ id: string, email: string, more: any }> {
+    const { data } = await axios.get(`https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${token}`)
+    return {
+      id: data.id,
+      email: data.email,
+      more: {
+        fullname: data.name,
+        locale: data.locale,
+        avatar: data.picture
+      }
+    }
   }
 
   static async getSecretKey({ accountId = undefined as Uuid }) {
@@ -198,7 +214,7 @@ export class AccountService {
     await AccountService.setCachedToken(token)
   }
 
-  static async login(user: { username: string, password: string, projectId: Uuid, app?: string }) {
+  static async login(user: { username: string, password: string, projectId: Uuid, app?: string }, { oauth }: Plugin) {
     const acc = await AccountService.mongo.get<Account>(Account, {
       username: new RegExp(`^${user.username}$`, 'i'),
       project_id: user.projectId
@@ -206,9 +222,6 @@ export class AccountService {
     if (!acc) throw HttpError.NOT_FOUND(`Could not found username ${user.username}`)
     if (acc.status === Account.Status.LOCKED) throw HttpError.BAD_REQUEST('Account was locked')
     if (acc.status !== Account.Status.ACTIVED) throw HttpError.BAD_REQUEST('Account not actived')
-    const plugins = await ProjectService.getCachedPlugins(acc.project_id)
-    if (!plugins || !plugins.oauth) throw HttpError.INTERNAL('Project config got problem')
-    const oauth = plugins.oauth
     const wrongPass = async (...msgs) => {
       if (oauth.trying) {
         if (acc.trying === undefined) acc.trying = 0
@@ -220,6 +233,7 @@ export class AccountService {
           acc.status = Account.Status.LOCKED
           msgs.push(`Your account was locked`)
         }
+        acc.updated_at = new Date()
         await AccountService.mongo.update(Account, acc)
       }
       throw HttpError.BAD_REQUEST(msgs.join('\n'))
@@ -248,7 +262,8 @@ export class AccountService {
     await AccountService.mongo.update(Account, {
       _id: acc._id,
       token: acc.token,
-      trying: 0
+      trying: 0,
+      updated_at: new Date()
     })
     await AccountService.setCachedToken(token, {
       account_id: acc._id,

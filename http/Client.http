@@ -59,6 +59,21 @@
   url: 'http://localhost:6111/Oauth/login',
   requestHeader: {
     'content-type': 'application/json',
+    pj: '59798ffe679eb20668c6b05a',
+  },
+  requestBody: {      
+      app: 'google',
+      token: 'ya29.GlukBHU7s5k3uPRtkCWMid-Vs3WAn39jHjYvdZQuSkPT8EeW3kmJGsrVm_pPR5bMYvgYps_knrVuHHAxti-eLeDAHNyx8J5lRdPSuf2tgqgzwYxEzovRZbp38RDY'
+  }
+}
+
+
+{
+  des: 'Login',
+  method: 'POST',
+  url: 'http://localhost:6111/Oauth/login',
+  requestHeader: {
+    'content-type': 'application/json',
     pj: '5954da82554ba717fcbbf59e',
   },
   requestBody: {

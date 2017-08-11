@@ -1,3 +1,4 @@
+import * as _ from 'lodash'
 import { GET, POST, PUT, DELETE, HEAD, INJECT } from 'hinos-route'
 import { md5 } from 'hinos-common/Encrypt'
 import { BODYPARSER } from 'hinos-bodyparser'
@@ -5,6 +6,7 @@ import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { Mongo } from 'hinos-mongo'
 import { AccountService } from '../service/AccountService'
 import { RoleService } from '../service/RoleService'
+import { ProjectService } from '../service/ProjectService'
 import { authoriz } from '../service/Authoriz'
 import HttpError from '../common/HttpError'
 
@@ -29,11 +31,28 @@ export default class AccountController {
   })
   static async login({ headers, ctx, body }) {
     body.projectId = headers.pj
-    if ('facebook' === body.app) {
-      const { id, email } = await AccountService.getMeFacebook(body.token)
-      body.username = email || id
+    const plugins = await ProjectService.getCachedPlugins(body.projectId)
+    if (!plugins || !plugins.oauth) throw HttpError.INTERNAL('Project config got problem')
+    const oauth = plugins.oauth
+    if (body.app) {
+      // Login via social network
+      if (oauth.app && oauth.app.includes(body.app)) {
+        if ('facebook' === body.app) {
+          const { id, email, more } = await AccountService.getMeFacebook(body.token)
+          body.username = email || id
+          body.more = _.merge({ more }, body)
+        } else if ('google' === body.app) {
+          const { id, email, more } = await AccountService.getMeGoogle(body.token)
+          body.username = email || id
+          body.more = _.merge({ more }, body)
+        } else {
+          throw HttpError.BAD_REQUEST(`This app not support login via social network ${body.app}`)
+        }
+      } else {
+        throw HttpError.BAD_REQUEST(`This app not support login via social network ${body.app}`)
+      }
     }
-    const token = await AccountService.login(body)
+    const token = await AccountService.login(body, plugins)
     ctx.set('token', token)
   }
 
