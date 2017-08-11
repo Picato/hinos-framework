@@ -7,7 +7,6 @@ import HttpError from '../common/HttpError'
 import { Role } from './RoleService'
 import { ProjectService, Plugin } from './ProjectService'
 import { RoleService } from './RoleService'
-// import * as fbgraph from 'fbgraph'
 import axios from 'axios'
 
 /************************************************

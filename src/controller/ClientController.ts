@@ -38,18 +38,16 @@ export default class AccountController {
       // Login via social network
       if (oauth.app && oauth.app.includes(body.app)) {
         if ('facebook' === body.app) {
-          const { id, email, more } = await AccountService.getMeFacebook(body.token)
+          const { id, email } = await AccountService.getMeFacebook(body.token)
           body.username = email || id
-          body.more = _.merge({ more }, body)
         } else if ('google' === body.app) {
-          const { id, email, more } = await AccountService.getMeGoogle(body.token)
+          const { id, email } = await AccountService.getMeGoogle(body.token)
           body.username = email || id
-          body.more = _.merge({ more }, body)
         } else {
-          throw HttpError.BAD_REQUEST(`This app not support login via social network ${body.app}`)
+          throw HttpError.BAD_REQUEST(`This app not supported to login via social network ${body.app}`)
         }
       } else {
-        throw HttpError.BAD_REQUEST(`This app not support login via social network ${body.app}`)
+        throw HttpError.BAD_REQUEST(`This app not supported to login via social network ${body.app}`)
       }
     }
     const token = await AccountService.login(body, plugins)
@@ -75,12 +73,30 @@ export default class AccountController {
   static async register({ body, headers }) {
     body.project_id = headers.pj
     body.role_ids = headers.role ? [headers.role] : undefined
-    if ('facebook' === body.app) {
-      const { id, email } = await AccountService.getMeFacebook(body.token)
-      body.username = id
-      body.recover_by = email
-    }
     if (body.more) body.more = Mongo.autocast(body.more)
+    const plugins = await ProjectService.getCachedPlugins(body.projectId)
+    if (!plugins || !plugins.oauth) throw HttpError.INTERNAL('Project config got problem')
+    const oauth = plugins.oauth
+    // Register via social network
+    if (body.app) {
+      if (oauth.app && oauth.app.includes(body.app)) {
+        if ('facebook' === body.app) {
+          const { id, email, more } = await AccountService.getMeFacebook(body.token)
+          body.username = email || id
+          body.recover_by = email
+          body.more = _.merge(more, body.more)
+        } else if ('google' === body.app) {
+          const { id, email, more } = await AccountService.getMeGoogle(body.token)
+          body.username = email || id
+          body.recover_by = email
+          body.more = _.merge(more, body.more)
+        } else {
+          throw HttpError.BAD_REQUEST(`This app not supported to register via social network ${body.app}`)
+        }
+      } else {
+        throw HttpError.BAD_REQUEST(`This app not supported to register via social network ${body.app}`)
+      }
+    }
     const acc = await AccountService.register(body)
     return acc
   }
