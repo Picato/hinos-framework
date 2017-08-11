@@ -20,8 +20,8 @@ interface IAppConfig {
         oauth: string
     },
     app: {
-        
+
     }
 }
 
-declare const AppConfig: IAppConfig;
+declare const AppConfig: IAppConfig

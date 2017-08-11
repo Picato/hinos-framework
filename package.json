@@ -1,7 +1,7 @@
 {
   "name": "hinos-service",
   "version": "1.0.0",
-  "description": "hinos project which is built for APIs",
+  "description": "hinos service project which is built for micro service APIs",
   "main": ".build/index.js",
   "scripts": {
     "once": "npm install -g typescript && npm install -g cross-var && npm install -g tslint-config-standard",
@@ -15,7 +15,6 @@
   },
   "config": {
     "externalConfig": "./appconfig.cfg#api",
-    "routes": {},
     "url": "http://localhost:1007",
     "services": {
       "oauth": "http://localhost:1001"
@@ -34,7 +33,6 @@
   "dependencies": {
     "hinos": "^1.1.1",
     "hinos-bodyparser": "^2.0.9",
-    "hinos-common": "^1.0.7",
     "hinos-cors": "^1.0.1",
     "hinos-helmet": "^1.0.0",
     "hinos-mongo": "^1.1.2",
