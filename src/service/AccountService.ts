@@ -162,7 +162,7 @@ export class AccountService {
     await AccountService.touchCachedToken(token, plugins.oauth.session_expired)
   }
 
-  @VALIDATE(async (body: Account) => {
+  @VALIDATE(async (body: Account, { oauth }) => {
     body._id = Mongo.uuid() as Uuid
     Checker.required(body, 'username', String)
     Checker.option(body, 'app', String, () => Checker.required(body, 'token', String), () => Checker.required(body, 'password', String))
@@ -173,14 +173,10 @@ export class AccountService {
     body.created_at = new Date()
     body.updated_at = new Date()
 
-    const plugins = await ProjectService.getCachedPlugins(body.project_id)
-    if (!plugins || !plugins.oauth) throw HttpError.INTERNAL('oauth plugin not config yet')
-    const oauth = plugins.oauth
-
     body.status = !oauth.is_verify ? Account.Status.ACTIVED : Account.Status.INACTIVED
 
   })
-  static async register(body) {
+  static async register(body, _plugins) {
     const acc = await AccountService.insert(body)
     return acc
   }

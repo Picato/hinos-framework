@@ -74,7 +74,7 @@ export default class AccountController {
     body.project_id = headers.pj
     body.role_ids = headers.role ? [headers.role] : undefined
     if (body.more) body.more = Mongo.autocast(body.more)
-    const plugins = await ProjectService.getCachedPlugins(body.projectId)
+    const plugins = await ProjectService.getCachedPlugins(body.project_id)
     if (!plugins || !plugins.oauth) throw HttpError.INTERNAL('Project config got problem')
     const oauth = plugins.oauth
     // Register via social network
@@ -97,7 +97,7 @@ export default class AccountController {
         throw HttpError.BAD_REQUEST(`This app not supported to register via social network ${body.app}`)
       }
     }
-    const acc = await AccountService.register(body)
+    const acc = await AccountService.register(body, plugins)
     return acc
   }
 
