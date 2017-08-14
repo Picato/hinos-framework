@@ -211,6 +211,7 @@ export default class SpendingsController {
       input_date: Date,
       des: String,
       wallet_id: Mongo.uuid,
+      walletGS_id: Mongo.uuid,
       type_spending_id: Mongo.uuid,
       is_bookmark: Boolean,
       type: Number
