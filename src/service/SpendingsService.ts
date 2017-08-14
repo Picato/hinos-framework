@@ -19,6 +19,7 @@ export class Spendings {
   udes?: string
   type_spending_id?: Uuid
   wallet_id?: Uuid
+  walletGS_id?: Uuid // Goal save
   is_bookmark?: boolean
   type?: number
   sign_money?: number
@@ -247,6 +248,12 @@ export class SpendingsService {
         const wallet = await WalletService.get(body.wallet_id, auth)
         wallet.money += body.sign_money
         await WalletService.update(wallet, auth)
+
+        if (body.walletGS_id) {
+          const wallet = await WalletService.get(body.walletGS_id, auth)
+          wallet.money += body.sign_money
+          await WalletService.update(wallet, auth)
+        }
       }
       return body
     })
@@ -295,6 +302,19 @@ export class SpendingsService {
         wallet.money += body.sign_money - oldItem.sign_money
         await WalletService.update(wallet, auth)
       }
+      if (oldItem.walletGS_id !== body.walletGS_id) {
+        const oldWallet = await WalletService.get(oldItem.walletGS_id, auth)
+        oldWallet.money += oldItem.sign_money * -1
+        await WalletService.update(oldWallet, auth)
+
+        const newWallet = await WalletService.get(body.walletGS_id, auth)
+        newWallet.money += body.sign_money
+        await WalletService.update(newWallet, auth)
+      } else if (oldItem.money !== body.money) {
+        const wallet = await WalletService.get(body.walletGS_id, auth)
+        wallet.money += body.sign_money - oldItem.sign_money
+        await WalletService.update(wallet, auth)
+      }
       return body
     })
   }
@@ -320,6 +340,10 @@ export class SpendingsService {
         const wallet = await WalletService.get(oldItem.wallet_id, auth)
         wallet.money += oldItem.money * oldItem.type * -1
         await WalletService.update(wallet, auth)
+
+        const walletGs = await WalletService.get(oldItem.walletGS_id, auth)
+        walletGs.money += oldItem.money * oldItem.type * -1
+        await WalletService.update(walletGs, auth)
       }
       return _id
     })
