@@ -78,7 +78,7 @@ export default class SpendingsController {
         $ne: 0
       }
     }
-    where['spendings.type'] = { $ne: 0 }
+    where['spendings.type'] = 1
     if (query.startDate || query.endDate) {
       where['spendings.input_date'] = {}
       if (query.startDate) where['spendings.input_date']['$gte'] = query.startDate
@@ -104,7 +104,7 @@ export default class SpendingsController {
       }
     }
     if (query.type !== undefined) where['spendings.type'] = query.type
-    else where['spendings.type'] = { $ne: 0 }
+    else where['spendings.type'] = 1
     if (query.startDate || query.endDate) {
       where['spendings.input_date'] = {}
       if (query.startDate) where['spendings.input_date']['$gte'] = query.startDate
