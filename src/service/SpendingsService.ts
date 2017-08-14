@@ -224,6 +224,7 @@ export class SpendingsService {
       body.udes = SpendingsService.toUnsign(des)
     })
     Checker.required(body, 'wallet_id', Uuid)
+    Checker.option(body, 'walletGS_id', Uuid)
     Checker.required(body, 'type_spending_id', Uuid)
     Checker.option(body, 'is_bookmark', Boolean, false)
     Checker.required(body, 'type', Number)
@@ -267,6 +268,7 @@ export class SpendingsService {
       body.udes = SpendingsService.toUnsign(des)
     })
     Checker.required(body, 'wallet_id', Uuid)
+    Checker.option(body, 'walletGS_id', Uuid)
     Checker.required(body, 'type_spending_id', Uuid)
     Checker.option(body, 'is_bookmark', Boolean, false)
     Checker.required(body, 'type', Number)
@@ -302,7 +304,7 @@ export class SpendingsService {
         wallet.money += body.sign_money - oldItem.sign_money
         await WalletService.update(wallet, auth)
       }
-      if (oldItem.walletGS_id !== body.walletGS_id) {
+      if (oldItem.walletGS_id && oldItem.walletGS_id !== body.walletGS_id) {
         const oldWallet = await WalletService.get(oldItem.walletGS_id, auth)
         oldWallet.money += oldItem.sign_money * -1
         await WalletService.update(oldWallet, auth)
@@ -341,9 +343,11 @@ export class SpendingsService {
         wallet.money += oldItem.money * oldItem.type * -1
         await WalletService.update(wallet, auth)
 
-        const walletGs = await WalletService.get(oldItem.walletGS_id, auth)
-        walletGs.money += oldItem.money * oldItem.type * -1
-        await WalletService.update(walletGs, auth)
+        if (oldItem.walletGS_id) {
+          const walletGs = await WalletService.get(oldItem.walletGS_id, auth)
+          walletGs.money += oldItem.money * oldItem.type * -1
+          await WalletService.update(walletGs, auth)
+        }
       }
       return _id
     })
