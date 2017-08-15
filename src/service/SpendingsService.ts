@@ -92,6 +92,7 @@ export class SpendingsService {
             spendings: {
               type_spending_id: 1,
               wallet_id: 1,
+              walletGS_id: 1,
               type: 1
             }
           }
