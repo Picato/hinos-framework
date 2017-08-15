@@ -53,7 +53,7 @@ export class SpendingsService {
         { $unwind: '$spendings' },
         { $match: fil.$where },
         { $sort: { 'spendings.input_date': -1 } },
-        { $project: { _id: 0, 'spendings': { money: 1, input_date: 1, des: 1, wallet_id: 1, type_spending_id: 1, type: 1, _id: 1, is_bookmark: 1, sign_money: 1 } } }
+        { $project: { _id: 0, 'spendings': { money: 1, input_date: 1, des: 1, wallet_id: 1, type_spending_id: 1, type: 1, _id: 1, is_bookmark: 1, sign_money: 1, walletGS_id: 1, wallet_money0: 1, wallet_money1: 1 } } }
       ], { allowDiskUse: true })
       const rs = await rs0.toArray()
       return rs.map((e) => {
