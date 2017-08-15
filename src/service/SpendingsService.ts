@@ -84,10 +84,11 @@ export class SpendingsService {
         {
           $group: {
             _id: '$spendings.udes',
+            count: { $sum: 1 },
             spendings: { $last: '$spendings' }
           }
         },
-        { $sort: { 'spendings.updated_at': -1 } },
+        { $sort: { count: -1, 'spendings.updated_at': -1 } },
         {
           $project: {
             _id: 1,
