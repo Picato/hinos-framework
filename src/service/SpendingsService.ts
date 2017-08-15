@@ -79,13 +79,13 @@ export class SpendingsService {
             'spendings.udes': { $exists: true, $not: { $size: 0 } }
           }
         },
-        { $sort: { 'spendings.updated_date': 1 } },
         {
           $group: {
             _id: '$spendings.udes',
-            spendings: { $last: '$spendings' }
+            spendings: { $first: '$spendings' }
           }
         },
+        { $sort: { 'spendings.updated_at': -1 } },
         {
           $project: {
             _id: 1,
