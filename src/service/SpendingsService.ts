@@ -75,7 +75,7 @@ export class SpendingsService {
               $ne: 0
             },
             'spendings.input_date': {
-              $lte: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 0, 0, 0, 0),
+              $lte: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 23, 59, 59, 999),
               $gte: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 14, 23, 59, 59, 999)
             },
             'spendings.udes': { $exists: true, $not: { $size: 0 } }
