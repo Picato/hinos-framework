@@ -65,6 +65,7 @@ export class SpendingsService {
 
   static async getSuggestion(auth) {
     const rs = await SpendingsService.mongo.manual(ExpensiveNote, async (collection) => {
+      const now = new Date()
       const rs = await collection.aggregate([
         { $match: { 'user_id': auth.accountId } },
         { $unwind: '$spendings' },
@@ -74,7 +75,8 @@ export class SpendingsService {
               $ne: 0
             },
             'spendings.input_date': {
-              $gte: new Date(new Date().getTime() - (1000 * 60 * 60 * 24 * 14))
+              $lte: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 0, 0, 0, 0),
+              $gte: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 14, 23, 59, 59, 999)
             },
             'spendings.udes': { $exists: true, $not: { $size: 0 } }
           }
