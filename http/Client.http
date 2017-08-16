@@ -31,7 +31,7 @@
   method: 'GET',
   url: 'http://localhost:6111/Oauth/me',
   requestHeader: {
-    token: '5954a67b396f111aa86d0da45954a6b0396f111aa86d0da65954ad1054320a291040f6c9'
+    token: 'c2a821965ddbaeefb8678a551b2bd433?2700'
   }
 }
 
@@ -74,11 +74,11 @@
   url: 'http://localhost:6111/Oauth/login',
   requestHeader: {
     'content-type': 'application/json',
-    pj: '5954da82554ba717fcbbf59e',
+    pj: '59659f4657a4ba2a80f79985',
   },
   requestBody: {
       username: 'admin',
-      password: '5954da'
+      password: '123'
   }
 }
 
@@ -122,7 +122,7 @@
   url: 'http://localhost:6111/Oauth/Register',
   requestHeader: {
     'content-type': 'application/json', 
-    pj: '595e63adb088320f382d243e',
+    pj: '59798ffe679eb20668c6b05a',
     role_id: '595e63adb088320f382d243f'
   },
   requestBody: {
@@ -139,7 +139,7 @@
   url: 'http://localhost:6111/Oauth/register',
   requestHeader: {
     'content-type': 'application/json', 
-    pj: '59537948fe62661758907241',
+    pj: '59798ffe679eb20668c6b05a',
     role_id: '5953870037976522480c5c56'
   },
   requestBody: {

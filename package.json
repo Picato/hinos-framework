@@ -18,7 +18,15 @@
     "services": {
       "oauth": "http://localhost:6111"
     },
-    "encryptKey": ")^!!!(**",
+    "encrypt": {
+      "pwd": ")^!!!(**",
+      "mode": [
+        "query",
+        "body",
+        "response"
+      ],
+      "baseOnRequest": true
+    },
     "mongo": {
       "url": "mongodb://localhost:27017/oauthv3",
       "releaseTimeout": 50000
@@ -41,6 +49,7 @@
     "hinos-helmet": "^1.0.0",
     "hinos-mongo": "^1.1.2",
     "hinos-redis": "^1.0.5",
+    "hinos-requesthasher": "^1.0.5",
     "hinos-route": "^1.1.4",
     "hinos-validation": "^1.1.2",
     "lodash": "^4.17.4"
@@ -50,9 +59,9 @@
   "devDependencies": {
     "@types/axios": "^0.14.0",
     "@types/chai": "^3.5.2",
-    "@types/lodash": "^4.14.72",
+    "@types/lodash": "^4.14.73",
     "@types/mocha": "^2.2.41",
-    "@types/node": "^7.0.39",
+    "@types/node": "^7.0.41",
     "chai": "^3.5.0",
     "mocha": "^3.5.0",
     "rimraf": "^2.6.1"
