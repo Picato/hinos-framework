@@ -1,6 +1,5 @@
-import * as _ from 'lodash'
 import { VALIDATE, Checker } from 'hinos-validation'>>>file
-import { ImageResize } from 'hinos-bodyparser'<<<file
+import { ImageResize } from 'hinos-bodyparser/file'<<<file
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import HttpError from '../common/HttpError'>>>file
 import Utils from '../common/Utils'<<<file
@@ -16,11 +15,11 @@ export class ${Tbl} {
 }
 /* tslint:enable */
 
-export class ${Tbl}Service {
+export class ${Tbl}Service {>>>file
+	static readonly IMAGE_SIZES: ImageResize[] = ${file-resize} 
+	<<<file
 	@MONGO()
-	private static mongo: Mongo>>>file
-  
-	static readonly IMAGE_SIZES: ImageResize[] = ${file-resize} <<<file
+	private static mongo: Mongo
 
 	static async find(fil = {}) {
 		const rs = await ${Tbl}Service.mongo.find<${Tbl}> (${Tbl}, fil)
@@ -35,7 +34,7 @@ export class ${Tbl}Service {
 	@VALIDATE((body: ${Tbl}) => {
 		${$validateIn}
 	})
-	static async insert(body: ${Tbl}, validate ? : Function) { >>>file
+	static async insert(body: ${Tbl}) { >>>file
 		try {
 			const rs = await ${Tbl}Service.mongo.insert<${Tbl}> (${Tbl}, body)
 			// Move file to prod folder
@@ -51,11 +50,11 @@ export class ${Tbl}Service {
 	@VALIDATE((body: ${Tbl}) => {
 		${$validateUp}
 	})
-	static async update(body: ${Tbl}, validate ? : Function) { >>>file        
+	static async update(body: ${Tbl}) { >>>file        
 		const oldItem = await ${Tbl}Service.mongo.update<${Tbl}> (${Tbl}, body, { return: true })
 		if (!oldItem) throw HttpError.NOT_FOUND('Could not found item to update')
 		Utils.deleteUploadFiles(oldItem.${file-field}, ${Tbl}Service.IMAGE_SIZES) 
-		// Move file to prod folder <<<file >>>normal
+		// Move file to prod folder<<<file>>>normal
 		const rs = await ${Tbl}Service.mongo.update(${Tbl}, body)
 		if(rs === 0) throw HttpError.NOT_FOUND('Could not found item to update') <<<normal
 	}
