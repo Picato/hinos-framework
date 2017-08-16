@@ -18,15 +18,6 @@
     "services": {
       "oauth": "http://localhost:6111"
     },
-    "encrypt": {
-      "pwd": ")^!!!(**",
-      "mode": [
-        "query",
-        "body",
-        "response"
-      ],
-      "baseOnRequest": true
-    },
     "mongo": {
       "url": "mongodb://localhost:27017/oauthv3",
       "releaseTimeout": 50000
@@ -39,6 +30,15 @@
     },
     "app": {
       "suid": "123456789"
+    },
+    "encrypt": {
+      "pwd": ")^!!!(**",
+      "mode": [
+        "query",
+        "body",
+        "response"
+      ],
+      "baseOnRequest": true
     }
   },
   "dependencies": {
@@ -48,7 +48,6 @@
     "hinos-cors": "^1.0.1",
     "hinos-helmet": "^1.0.0",
     "hinos-mongo": "^1.1.2",
-    "hinos-redis": "^1.0.5",
     "hinos-requesthasher": "^1.0.5",
     "hinos-route": "^1.1.4",
     "hinos-validation": "^1.1.2",
@@ -62,7 +61,6 @@
     "@types/lodash": "^4.14.73",
     "@types/mocha": "^2.2.41",
     "@types/node": "^7.0.41",
-    "chai": "^3.5.0",
     "mocha": "^3.5.0",
     "rimraf": "^2.6.1"
   }
