@@ -16,7 +16,6 @@
   "config": {
     "externalConfig": "./appconfig.cfg#api",
     "url": "http://localhost:1001",
-    "encryptKey": ")^!!!(**",
     "mongo": {
       "url": "mongodb://localhost:27017/test",
       "releaseTimeout": 50000
@@ -34,6 +33,15 @@
         "API_RECEIVER": "api",
         "LOG_RECEIVER": "log"
       }
+    },
+    "encrypt": {
+      "pwd": ")^!!!(**",
+      "mode": [
+        "query",
+        "body",
+        "response"
+      ],
+      "baseOnRequest": true
     }
   },
   "dependencies": {
@@ -45,6 +53,7 @@
     "hinos-mongo": "^1.1.2",
     "hinos-rabbitmq": "^1.0.5",
     "hinos-redis": "^1.0.5",
+    "hinos-requesthasher": "^1.0.4",
     "hinos-requestmatcher": "^1.0.7",
     "hinos-route": "^1.1.4",
     "hinos-serve": "^1.1.1",
@@ -58,9 +67,9 @@
   "devDependencies": {
     "@types/axios": "^0.14.0",
     "@types/chai": "^3.5.2",
-    "@types/lodash": "^4.14.72",
+    "@types/lodash": "^4.14.73",
     "@types/mocha": "^2.2.41",
-    "@types/node": "^7.0.39",
+    "@types/node": "^7.0.41",
     "axios": "^0.16.2",
     "chai": "^3.5.0",
     "mocha": "^3.5.0",
