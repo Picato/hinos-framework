@@ -1,7 +1,11 @@
 {
   "name": "hinos-log-service",
   "version": "1.0.0",
+<<<<<<< HEAD
   "description": "Manage logs via APIs",
+=======
+  "description": "hinos service project which is built for micro service APIs",
+>>>>>>> 66a43660f22a8ca1e2a7468f57cdc7e86d1f5bf7
   "main": ".build/index.js",
   "scripts": {
     "once": "npm install -g typescript && npm install -g cross-var && npm install -g tslint-config-standard",
@@ -18,15 +22,24 @@
     "services": {
       "oauth": "http://localhost:6111"
     },
-    "encryptKey": ")^!!!(**",
     "mongo": {
       "url": "mongodb://localhost:27017/log",
       "releaseTimeout": 50000
+    },
+    "encrypt": {
+      "pwd": ")^!!!(**",
+      "mode": [
+        "query",
+        "body",
+        "response"
+      ],
+      "baseOnRequest": true
     }
   },
   "dependencies": {
     "axios": "^0.16.2",
     "hinos": "^1.1.1",
+    "hinos-requesthasher": "^1.0.4",
     "hinos-bodyparser": "^2.0.9",
     "hinos-cors": "^1.0.1",
     "hinos-helmet": "^1.0.0",
@@ -42,7 +55,8 @@
     "@types/chai": "^3.5.2",
     "@types/lodash": "^4.14.72",
     "@types/mocha": "^2.2.41",
-    "@types/node": "^7.0.39",
+    "@types/node": "^7.0.41",
+    "axios": "^0.16.2",
     "chai": "^3.5.0",
     "mocha": "^3.5.0",
     "rimraf": "^2.6.1"
