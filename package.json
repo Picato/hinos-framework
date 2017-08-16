@@ -24,10 +24,14 @@
       "url": "mongodb://localhost:27017/test",
       "releaseTimeout": 50000
     },
-    "redis": {
-      "host": "localhost",
-      "port": 6379,
-      "releaseTimeout": 50000
+    "encrypt": {
+      "pwd": ")^!!!(**",
+      "mode": [
+        "query",
+        "body",
+        "response"
+      ],
+      "baseOnRequest": true
     }
   },
   "dependencies": {
@@ -36,12 +40,10 @@
     "hinos-cors": "^1.0.1",
     "hinos-helmet": "^1.0.0",
     "hinos-mongo": "^1.1.2",
-    "hinos-rabbitmq": "^1.0.5",
-    "hinos-redis": "^1.0.5",
+    "hinos-requesthasher": "^1.0.4",
     "hinos-requestmatcher": "^1.0.7",
     "hinos-route": "^1.1.4",
     "hinos-serve": "^1.1.1",
-    "hinos-socketio": "^1.0.8",
     "hinos-validation": "^1.1.2",
     "lodash": "^4.17.4",
     "typescript": "^2.4.2"
@@ -51,9 +53,9 @@
   "devDependencies": {
     "@types/axios": "^0.14.0",
     "@types/chai": "^3.5.2",
-    "@types/lodash": "^4.14.72",
+    "@types/lodash": "^4.14.73",
     "@types/mocha": "^2.2.41",
-    "@types/node": "^7.0.39",
+    "@types/node": "^7.0.41",
     "axios": "^0.16.2",
     "chai": "^3.5.0",
     "mocha": "^3.5.0",
