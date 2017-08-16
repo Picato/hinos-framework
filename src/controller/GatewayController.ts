@@ -4,7 +4,7 @@ import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { Mongo } from 'hinos-mongo'
 import { GatewayService } from '../service/GatewayService'
 import { authoriz } from '../service/Authoriz'
-
+import { HASHER } from 'hinos-requesthasher'
 /************************************************
  ** GatewayController || 4/10/2017, 10:19:24 AM **
  ************************************************/
@@ -12,6 +12,7 @@ import { authoriz } from '../service/Authoriz'
 export class GatewayController {
 
   @GET('/Gateway/Service')
+  @HASHER(AppConfig.encrypt.pwd, AppConfig.encrypt)
   @INJECT(authoriz(`${AppConfig.name}>Gateway`, ['FIND']))
   @RESTRICT({
     query: {
@@ -32,6 +33,7 @@ export class GatewayController {
   }
 
   @PUT('/Gateway/Service')
+  @HASHER(AppConfig.encrypt.pwd, AppConfig.encrypt)
   @INJECT(authoriz(`${AppConfig.name}>Gateway`, ['UPDATE']))
   @BODYPARSER()
   @RESTRICT({
@@ -50,6 +52,7 @@ export class GatewayController {
   }
 
   @DELETE('/Gateway/Service/:_id')
+  @HASHER(AppConfig.encrypt.pwd, AppConfig.encrypt)
   @INJECT(authoriz(`${AppConfig.name}>Gateway`, ['DELETE']))
   @RESTRICT({
     params: {
