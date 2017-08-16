@@ -164,7 +164,9 @@ function genController(tblName: string, TblName: string, meta: {
   }
   if (!meta.isGotFile) {
     content = content.replace(/>>>file[^]*?<<<file/g, '')
+    content = content.replace(/[>,<]{3}normal/g, '')
   } else {
+    content = content.replace(/>>>normal[^]*?<<<normal/g, '')
     if (meta.isGotFile._config.resize) meta.isGotFile._config.resize = `$Native(${TblName}Service.IMAGE_SIZES)`
     content = content.replace(/[>,<]{3}file/g, '')
     content = content.replace(/\$\{file-opts\}/g, meta.isGotFile ? Type.ostringify(meta.isGotFile._config) : '')

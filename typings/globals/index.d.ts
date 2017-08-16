@@ -1,22 +1,27 @@
 interface IAppConfig {
-    externalConfig?: string
+  externalConfig?: string
+  url: string
+  name: string
+  port?: number
+  host?: string
+  routes?: Array<any>
+  mongo?: {
     url: string
-    name: string
-    port?: number
-    host?: string
-    routes?: Array<any>
-    mongo?: {
-        url: string
-        releaseTimeout?: number
-    }
-    encryptKey?: string
-    services: {
-        oauth: string
-    },
-    app: {
-        periodToDelete: number
-        scanTimeout: number
-    }
+    releaseTimeout?: number
+  }
+  encrypt?: {
+    pwd?: string
+    mode?: Array<'query' | 'body' | 'response'>
+    type?: 'rsa' | 'blowfish'
+    baseOnRequest?: boolean
+  }
+  services: {
+    oauth: string
+  },
+  app: {
+    periodToDelete: number
+    scanTimeout: number
+  }
 }
 
 declare const AppConfig: IAppConfig
