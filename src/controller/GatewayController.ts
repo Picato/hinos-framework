@@ -12,7 +12,7 @@ import { HASHER } from 'hinos-requesthasher'
 export class GatewayController {
 
   @GET('/Gateway/Service')
-  @HASHER(AppConfig.encrypt.pwd, AppConfig.encrypt)
+  @HASHER()
   @INJECT(authoriz(`${AppConfig.name}>Gateway`, ['FIND']))
   @RESTRICT({
     query: {
@@ -33,7 +33,7 @@ export class GatewayController {
   }
 
   @PUT('/Gateway/Service')
-  @HASHER(AppConfig.encrypt.pwd, AppConfig.encrypt)
+  @HASHER()
   @INJECT(authoriz(`${AppConfig.name}>Gateway`, ['UPDATE']))
   @BODYPARSER()
   @RESTRICT({
@@ -52,7 +52,7 @@ export class GatewayController {
   }
 
   @DELETE('/Gateway/Service/:_id')
-  @HASHER(AppConfig.encrypt.pwd, AppConfig.encrypt)
+  @HASHER()
   @INJECT(authoriz(`${AppConfig.name}>Gateway`, ['DELETE']))
   @RESTRICT({
     params: {
