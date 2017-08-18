@@ -10,8 +10,7 @@ interface IAppConfig {
   encrypt?: {
     pwd?: string
     mode?: Array<'query' | 'body' | 'response'>
-    type?: 'rsa' | 'blowfish'
-    baseOnRequest?: boolean
+    baseOnRequest?: boolean,
   }
   mongo?: any
   proxy?: any
