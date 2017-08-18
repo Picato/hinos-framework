@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "module": "commonjs",
-        "target": "ESNext",
+        "target": "esnext",
         "declaration": false,
         "sourceMap": false,
         "preserveConstEnums": true,
@@ -10,7 +10,7 @@
         "experimentalDecorators": true,
         "noUnusedLocals": true,
         "noUnusedParameters": true,
-        "newLine": "LF",
+        "newLine": "lf",
         "typeRoots": [
             "node_modules/@types",
             "typings"
