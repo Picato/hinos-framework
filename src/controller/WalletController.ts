@@ -16,6 +16,7 @@ export default class WalletController {
   @BODYPARSER()
   @MATCHER({
     body: {
+      des: String,
       from: Mongo.uuid,
       to: Mongo.uuid,
       money: Number,
