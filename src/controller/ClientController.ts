@@ -129,10 +129,13 @@ export class ClientController {
     })
     if (body.oldFiles) {
       for (const file of body.oldFiles) {
-        await FilesService.delete({
-          files: file,
-          project_id: state.auth.projectId
-        })
+        try {
+          await FilesService.delete({
+            files: file,
+            project_id: state.auth.projectId
+          })
+        // tslint:disable-next-line:no-empty
+        } catch (e) { }
       }
     }
   }
