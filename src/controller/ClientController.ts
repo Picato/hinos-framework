@@ -112,6 +112,7 @@ export class ClientController {
   @BODYPARSER()
   @RESTRICT({
     body: {
+      oldFiles: vl => vl instanceof Array ? vl : [vl],
       files: vl => vl instanceof Array ? vl : [vl]
     }
   })
@@ -126,6 +127,14 @@ export class ClientController {
       },
       status: Files.Status.SAVED
     })
+    if (body.oldFiles) {
+      for (const file of body.oldFiles) {
+        await FilesService.delete({
+          files: file,
+          project_id: state.auth.projectId
+        })
+      }
+    }
   }
 
   @PUT('/Remove')
