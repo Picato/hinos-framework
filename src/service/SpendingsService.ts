@@ -89,6 +89,7 @@ export class SpendingsService {
           }
         },
         { $sort: { count: -1, 'spendings.updated_at': -1 } },
+        { $limit: 10 },
         {
           $project: {
             _id: 1,
