@@ -13,7 +13,7 @@ require(`./env.${Server.env}`).default(Server)
 AppConfig.proxy = new httpProxy.createProxyServer({
   ws: true
 })
-Mongo(AppConfig.mongo)
+Mongo(AppConfig.mongo).debug(!Server.isProduction)
 
 Server.use(cors())
 Server.use(route(path.join(__dirname, 'controller'), {
