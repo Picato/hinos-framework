@@ -10,15 +10,19 @@ import './config'
 
 require(`./env.${Server.env}`).default(Server)
 
-Mongo(AppConfig.mongo)
+Mongo(AppConfig.mongo).debug(!Server.isProduction)
 Server.use(cors())
 Server.use(route(path.join(__dirname, 'controller'), {
   ignorecase: true,
   root: '/monitor'
 }))
 
-Socketio({ server: Server.server })
-Socketio.pool().bind('/msg')
+Socketio({
+  server: Server.server,
+  binders: [
+    { path: '/msg' }
+  ]
+}).debug(!Server.isProduction)
 
 Server.listen(AppConfig.port, () => {
   MonitorConfigService.loadConfig().then(() => {
