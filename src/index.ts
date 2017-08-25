@@ -9,8 +9,9 @@ import './config'
 
 require(`./env.${Server.env}`).default(Server)
 
-Mongo(AppConfig.mongo)
-Redis(AppConfig.redis)
+Mongo(AppConfig.mongo).debug(!Server.isProduction)
+Redis(AppConfig.redis).debug(!Server.isProduction)
+
 Server.use(cors({
   exposeHeaders: ['token', 'project_id', 'account_id']
 }))
