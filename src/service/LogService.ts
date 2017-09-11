@@ -12,9 +12,9 @@ export class Log {
   _id?: Uuid
   project_id?: Uuid
   account_id?: Uuid
-  type?: number
-  title?: string
-  status?: number
+  // type?: number
+  // title?: string
+  // status?: number
   created_at?: Date
   updated_at?: Date
 }
@@ -38,9 +38,9 @@ export class LogService {
     body._id = Mongo.uuid() as Uuid
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
-    Checker.required(body, 'type', Number)
-    Checker.required(body, 'title', String)
-    Checker.required(body, 'status', Number)
+    // Checker.required(body, 'type', Number)
+    // Checker.required(body, 'title', String)
+    // Checker.required(body, 'status', Number)
     body.created_at = new Date()
     body.updated_at = new Date()
   })
@@ -51,7 +51,7 @@ export class LogService {
 
   @VALIDATE((body: Log) => {
     Checker.required(body, '_id', Object)
-    Checker.required(body, 'status', Number)
+    // Checker.required(body, 'status', Number)
     Checker.required(body, 'account_id', Uuid)
     body.updated_at = new Date()
   })
