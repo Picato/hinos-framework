@@ -1,7 +1,9 @@
 import { VALIDATE, Checker } from 'hinos-validation'
 import { Mongo, Uuid, Collection, MONGO } from 'hinos-mongo'
 import { WalletService } from './WalletService'
+import { TypeSpendingsService } from './TypeSpendingsService'
 import HttpError from '../common/HttpError'
+import { LogService } from './LogService'
 
 /************************************************
  ** SpendingsService || 4/10/2017, 10:19:24 AM **
@@ -242,6 +244,7 @@ export class SpendingsService {
   })
   static async insert(body: Spendings, auth: any, isUpdateWallet: boolean) {
     return await SpendingsService.mongo.manual(Spendings, async (collection) => {
+      let msgs = []
       await collection.update(
         {
           user_id: auth.accountId
@@ -250,6 +253,9 @@ export class SpendingsService {
             'spendings': body
           }
         })
+      const typeSpending = await TypeSpendingsService.get(body.type_spending_id, auth)
+      msgs.push(`[ADD ITEM]`)
+      msgs.push(` - "${typeSpending.name}": ${body.type > 0 ? '+' : body.type < 0 ? '-' : ''}${body.money}`)
       if (isUpdateWallet && body.money > 0) { // check them type ko thong ke
         const wallet = await WalletService.get(body.wallet_id, auth)
         wallet.money += body.sign_money
@@ -261,6 +267,11 @@ export class SpendingsService {
           await WalletService.update(wallet, auth)
         }
       }
+      if (body.des && body.des.length > 0) msgs.push(body.des)
+      await LogService.push({
+        type: 'add-spending',
+        data: msgs
+      }, auth)
       return body
     })
   }
@@ -285,6 +296,7 @@ export class SpendingsService {
   })
   static async update(body: Spendings, auth: any) {
     return await SpendingsService.mongo.manual(Spendings, async (collection) => {
+      let msgs = []
       const oldItem = await SpendingsService.get(body._id, auth)
       if (!oldItem) throw HttpError.NOT_FOUND()
       await collection.update(
@@ -325,6 +337,15 @@ export class SpendingsService {
         wallet.money += body.sign_money - oldItem.sign_money
         await WalletService.update(wallet, auth)
       }
+      const oldTypeSpending = await TypeSpendingsService.get(body.type_spending_id, auth)
+      const newTypeSpending = await TypeSpendingsService.get(body.type_spending_id, auth)
+      msgs.push(`[UPDATE ITEM]`)
+      msgs.push(` - $New: "${newTypeSpending.name}": ${body.money}`)
+      msgs.push(` - $Old: "${oldTypeSpending.name}": ${oldItem.money}`)
+      await LogService.push({
+        type: 'update-spending',
+        data: msgs
+      }, auth)
       return body
     })
   }
@@ -357,6 +378,14 @@ export class SpendingsService {
           await WalletService.update(walletGs, auth)
         }
       }
+      let msgs = []
+      const typeSpending = await TypeSpendingsService.get(oldItem.type_spending_id, auth)
+      msgs.push(`[REMOVE ITEM]`)
+      msgs.push(` - "${typeSpending.name}": ${oldItem.type > 0 ? '+' : oldItem.type < 0 ? '-' : ''}${oldItem.money}`)
+      await LogService.push({
+        type: 'delete-spending',
+        data: oldItem
+      }, auth)
       return _id
     })
   }

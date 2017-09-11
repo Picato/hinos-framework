@@ -18,6 +18,7 @@ interface IAppConfig {
     encryptKey?: string;
     services: {
         oauth: string
+        log: string
     },
     app: {
         

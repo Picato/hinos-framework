@@ -43,7 +43,7 @@ export class TypeSpendingsService {
     })
   }
 
-  static async get(_id: any, auth: any) {
+  static async get(_id: any, auth: any): Promise<TypeSpendings> {
     return await TypeSpendingsService.mongo.manual(TypeSpendings, async (collection) => {
       const rs = await collection.findOne({
         user_id: auth.accountId,

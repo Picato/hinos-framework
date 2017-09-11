@@ -17,7 +17,8 @@
     "externalConfig": "./appconfig.cfg#api",
     "url": "http://localhost:8801",
     "services": {
-      "oauth": "http://localhost:6111"
+      "oauth": "http://localhost:6111",
+      "log": "http://localhost:6114"
     },
     "encryptKey": ")^!!!(**",
     "mongo": {
