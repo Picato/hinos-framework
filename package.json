@@ -43,13 +43,13 @@
   },
   "dependencies": {
     "axios": "^0.16.2",
-    "hinos": "^1.1.3",
+    "hinos": "^1.1.5",
     "hinos-bodyparser": "^2.1.0",
     "hinos-cors": "^1.0.1",
     "hinos-helmet": "^1.0.0",
     "hinos-mongo": "^1.1.4",
     "hinos-redis": "^1.0.7",
-    "hinos-requesthasher": "^1.1.5",
+    "hinos-requesthasher": "^1.1.7",
     "hinos-route": "^1.1.7",
     "hinos-validation": "^1.1.2",
     "lodash": "^4.17.4"
@@ -60,9 +60,9 @@
     "@types/axios": "^0.14.0",
     "@types/chai": "^3.5.2",
     "@types/lodash": "^4.14.74",
-    "@types/mocha": "^2.2.42",
-    "@types/node": "^7.0.42",
-    "mocha": "^3.5.0",
+    "@types/mocha": "^2.2.43",
+    "@types/node": "^7.0.43",
+    "mocha": "^3.5.2",
     "rimraf": "^2.6.1"
   }
 }
