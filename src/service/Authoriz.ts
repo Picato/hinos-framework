@@ -10,9 +10,9 @@ export function authoriz(path: string, actions: string[]) {
         token: headers.token
       }
     })
-    if (res.statusCode !== 204) throw HttpError.INTERNAL(res.error)
+    if (res.statusCode !== 204) throw HttpError.INTERNAL(res.error || res.body)
     ctx.state.auth = {
-      token: res.headers.token,
+      token: headers.token,
       projectId: Mongo.uuid(res.headers.project_id),
       accountId: Mongo.uuid(res.headers.account_id)
     }

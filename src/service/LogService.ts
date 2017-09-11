@@ -13,12 +13,10 @@ export class LogService {
         headers: {
           token: auth.token
         },
-        data: {
-          log
-        }
+        data: log
       })
     } catch (e) {
-      throw HttpError.CUSTOMIZE(e.response.status, e.response.data)
+      throw HttpError.CUSTOMIZE(e.status, e.error)
     }
   }
 
