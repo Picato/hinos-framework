@@ -19,9 +19,7 @@ Server.use(route(path.join(__dirname, 'controller'), {
 
 Socketio({
   server: Server.server,
-  binders: [
-    { path: '/msg' }
-  ]
+  path: { '/msg': undefined }
 }).debug(!Server.isProduction)
 
 Server.listen(AppConfig.port, () => {
