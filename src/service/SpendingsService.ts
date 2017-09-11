@@ -253,11 +253,10 @@ export class SpendingsService {
             'spendings': body
           }
         })
+      const wallet = await WalletService.get(body.wallet_id, auth)
       const typeSpending = await TypeSpendingsService.get(body.type_spending_id, auth)
-      msgs.push(`[ADD ITEM]`)
-      msgs.push(` - "${typeSpending.name}": ${body.type > 0 ? '+' : body.type < 0 ? '-' : ''}${body.money}`)
+      msgs.push(`[ADD ITEM] <${wallet.name}> <${typeSpending.name}> = ${body.type > 0 ? '+' : body.type < 0 ? '-' : ''}${body.money}`)
       if (isUpdateWallet && body.money > 0) { // check them type ko thong ke
-        const wallet = await WalletService.get(body.wallet_id, auth)
         wallet.money += body.sign_money
         await WalletService.update(wallet, auth)
 
@@ -269,7 +268,7 @@ export class SpendingsService {
       }
       if (body.des && body.des.length > 0) msgs.push(body.des)
       await LogService.push({
-        type: 'add-spending',
+        type: 1,
         data: msgs
       }, auth)
       return body
@@ -308,18 +307,23 @@ export class SpendingsService {
             'spendings.$': body
           }
         })
+      const newWallet = await WalletService.get(body.wallet_id, auth)
+      const newTypeSpending = await TypeSpendingsService.get(body.type_spending_id, auth)
+      msgs.push(`[UPDATE ITEM] <${newWallet.name}> <${newTypeSpending.name}> = ${body.type > 0 ? '+' : body.type < 0 ? '-' : ''}${body.money}`)
+
       if (oldItem.wallet_id !== body.wallet_id) {
         const oldWallet = await WalletService.get(oldItem.wallet_id, auth)
         oldWallet.money += oldItem.sign_money * -1
         await WalletService.update(oldWallet, auth)
 
-        const newWallet = await WalletService.get(body.wallet_id, auth)
+        const oldTypeSpending = await TypeSpendingsService.get(body.type_spending_id, auth)
+        msgs.push(`        $Old: <${oldWallet.name}> <${oldTypeSpending.name}> = ${oldItem.type > 0 ? '+' : oldItem.type < 0 ? '-' : ''}${oldItem.money}`)
+
         newWallet.money += body.sign_money
         await WalletService.update(newWallet, auth)
       } else if (oldItem.money !== body.money) {
-        const wallet = await WalletService.get(body.wallet_id, auth)
-        wallet.money += body.sign_money - oldItem.sign_money
-        await WalletService.update(wallet, auth)
+        newWallet.money += body.sign_money - oldItem.sign_money
+        await WalletService.update(newWallet, auth)
       }
       if (oldItem.walletGS_id !== body.walletGS_id) {
         if (oldItem.walletGS_id) {
@@ -337,11 +341,6 @@ export class SpendingsService {
         wallet.money += body.sign_money - oldItem.sign_money
         await WalletService.update(wallet, auth)
       }
-      const oldTypeSpending = await TypeSpendingsService.get(body.type_spending_id, auth)
-      const newTypeSpending = await TypeSpendingsService.get(body.type_spending_id, auth)
-      msgs.push(`[UPDATE ITEM]`)
-      msgs.push(` - $New: "${newTypeSpending.name}": ${body.money}`)
-      msgs.push(` - $Old: "${oldTypeSpending.name}": ${oldItem.money}`)
       await LogService.push({
         type: 'update-spending',
         data: msgs
@@ -367,8 +366,8 @@ export class SpendingsService {
             }
           }
         })
+      const wallet = await WalletService.get(oldItem.wallet_id, auth)
       if (oldItem.money > 0) {
-        const wallet = await WalletService.get(oldItem.wallet_id, auth)
         wallet.money += oldItem.money * oldItem.type * -1
         await WalletService.update(wallet, auth)
 
@@ -380,8 +379,7 @@ export class SpendingsService {
       }
       let msgs = []
       const typeSpending = await TypeSpendingsService.get(oldItem.type_spending_id, auth)
-      msgs.push(`[REMOVE ITEM]`)
-      msgs.push(` - "${typeSpending.name}": ${oldItem.type > 0 ? '+' : oldItem.type < 0 ? '-' : ''}${oldItem.money}`)
+      msgs.push(`[REMOVE ITEM] <${wallet.name}> <${typeSpending.name}> = ${oldItem.type > 0 ? '+' : oldItem.type < 0 ? '-' : ''}${oldItem.money}`)
       await LogService.push({
         type: 'delete-spending',
         data: oldItem
