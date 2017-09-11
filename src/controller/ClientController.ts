@@ -16,6 +16,7 @@ export class ClientController {
   @INJECT(authoriz(`${AppConfig.name}>Log`, ['FIND']))
   @RESTRICT({
     query: {
+      mine: Boolean,
       page: Number,
       recordsPerPage: Number,
       where: Object,
@@ -29,6 +30,7 @@ export class ClientController {
     let fields: any = query.fields || {}
 
     _.merge(where, { project_id: state.auth.projectId })
+    if (query.mine) where.account_id = state.auth.accountId
 
     const rs = await LogService.find({
       $where: where,
