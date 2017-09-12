@@ -245,6 +245,7 @@ export class SpendingsService {
   static async insert(body: Spendings, auth: any, isUpdateWallet: boolean) {
     return await SpendingsService.mongo.manual(Spendings, async (collection) => {
       let msgs = []
+      msgs.push(`### ADD ITEM ###`)
       await collection.update(
         {
           user_id: auth.accountId
@@ -255,7 +256,7 @@ export class SpendingsService {
         })
       const wallet = await WalletService.get(body.wallet_id, auth)
       const typeSpending = await TypeSpendingsService.get(body.type_spending_id, auth)
-      msgs.push(`[ADD ITEM] <${wallet.name}> <${typeSpending.name}> = ${body.type > 0 ? '+' : body.type < 0 ? '-' : ''}${body.money}`)
+      msgs.push(`${wallet.name} >>> ${typeSpending.name} = ${body.type > 0 ? '+' : body.type < 0 ? '-' : ''}${SpendingsService.formatNumber(body.money)}`)
       if (isUpdateWallet && body.money > 0) { // check them type ko thong ke
         wallet.money += body.sign_money
         await WalletService.update(wallet, auth)
@@ -266,7 +267,7 @@ export class SpendingsService {
           await WalletService.update(wallet, auth)
         }
       }
-      if (body.des && body.des.length > 0) msgs.push(body.des)
+      if (body.des && body.des.length > 0) msgs.push(`>>> Note: ${body.des}`)
       await LogService.push({
         type: 1,
         data: msgs
@@ -296,6 +297,7 @@ export class SpendingsService {
   static async update(body: Spendings, auth: any) {
     return await SpendingsService.mongo.manual(Spendings, async (collection) => {
       let msgs = []
+      msgs.push(`### UPDATE ITEM ###`)
       const oldItem = await SpendingsService.get(body._id, auth)
       if (!oldItem) throw HttpError.NOT_FOUND()
       await collection.update(
@@ -309,7 +311,7 @@ export class SpendingsService {
         })
       const newWallet = await WalletService.get(body.wallet_id, auth)
       const newTypeSpending = await TypeSpendingsService.get(body.type_spending_id, auth)
-      msgs.push(`[UPDATE ITEM] <${newWallet.name}> <${newTypeSpending.name}> = ${body.type > 0 ? '+' : body.type < 0 ? '-' : ''}${body.money}`)
+      msgs.push(` - $New: ${newWallet.name} >>> ${newTypeSpending.name} = ${body.type > 0 ? '+' : body.type < 0 ? '-' : ''}${SpendingsService.formatNumber(body.money)}`)
 
       if (oldItem.wallet_id !== body.wallet_id) {
         const oldWallet = await WalletService.get(oldItem.wallet_id, auth)
@@ -317,7 +319,7 @@ export class SpendingsService {
         await WalletService.update(oldWallet, auth)
 
         const oldTypeSpending = await TypeSpendingsService.get(body.type_spending_id, auth)
-        msgs.push(`        $Old: <${oldWallet.name}> <${oldTypeSpending.name}> = ${oldItem.type > 0 ? '+' : oldItem.type < 0 ? '-' : ''}${oldItem.money}`)
+        msgs.push(` - $Old: ${oldWallet.name} >>> ${oldTypeSpending.name} = ${oldItem.type > 0 ? '+' : oldItem.type < 0 ? '-' : ''}${SpendingsService.formatNumber(oldItem.money)}`)
 
         newWallet.money += body.sign_money
         await WalletService.update(newWallet, auth)
@@ -341,6 +343,9 @@ export class SpendingsService {
         wallet.money += body.sign_money - oldItem.sign_money
         await WalletService.update(wallet, auth)
       }
+
+      if (body.des && body.des.length > 0) msgs.push(`>>> Note: ${body.des}`)
+
       await LogService.push({
         type: 'update-spending',
         data: msgs
@@ -379,7 +384,8 @@ export class SpendingsService {
       }
       let msgs = []
       const typeSpending = await TypeSpendingsService.get(oldItem.type_spending_id, auth)
-      msgs.push(`[REMOVE ITEM] <${wallet.name}> <${typeSpending.name}> = ${oldItem.type > 0 ? '+' : oldItem.type < 0 ? '-' : ''}${oldItem.money}`)
+      msgs.push(`### REMOVE ITEM ###`)
+      msgs.push(` - ${wallet.name} >>> ${typeSpending.name} = ${oldItem.type > 0 ? '+' : oldItem.type < 0 ? '-' : ''}${SpendingsService.formatNumber(oldItem.money)}`)
       await LogService.push({
         type: 'delete-spending',
         data: oldItem
@@ -402,6 +408,10 @@ export class SpendingsService {
     str = str.replace(/-+-/g, '')
     str = str.replace(/^\-+|\-+$/g, '')
     return str
+  }
+
+  private static formatNumber(a: number) {
+    return a.toFixed(1).replace(/(\d)(?=(\d{3})+\.)/g, '$1,')
   }
 
 }
