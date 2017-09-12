@@ -256,7 +256,7 @@ export class SpendingsService {
         })
       const wallet = await WalletService.get(body.wallet_id, auth)
       const typeSpending = await TypeSpendingsService.get(body.type_spending_id, auth)
-      msgs.push(`${wallet.name} >>> ${typeSpending.name} = ${body.type > 0 ? '+' : body.type < 0 ? '-' : ''}${SpendingsService.formatNumber(body.money)}`)
+      msgs.push(` - ${wallet.name} >>> ${typeSpending.name} = ${body.type > 0 ? '+' : body.type < 0 ? '-' : ''}${SpendingsService.formatNumber(body.money)}`)
       if (isUpdateWallet && body.money > 0) { // check them type ko thong ke
         wallet.money += body.sign_money
         await WalletService.update(wallet, auth)
@@ -267,7 +267,7 @@ export class SpendingsService {
           await WalletService.update(wallet, auth)
         }
       }
-      if (body.des && body.des.length > 0) msgs.push(`>>> Note: ${body.des}`)
+      if (body.des && body.des.length > 0) msgs.push(`#Note: ${body.des}`)
       await LogService.push({
         type: 1,
         data: msgs
@@ -338,13 +338,13 @@ export class SpendingsService {
           newWallet.money += body.sign_money
           await WalletService.update(newWallet, auth)
         }
-      } else if (oldItem.money !== body.money) {
+      } else if (oldItem.money !== body.money && body.walletGS_id) {
         const wallet = await WalletService.get(body.walletGS_id, auth)
         wallet.money += body.sign_money - oldItem.sign_money
         await WalletService.update(wallet, auth)
       }
 
-      if (body.des && body.des.length > 0) msgs.push(`>>> Note: ${body.des}`)
+      if (body.des && body.des.length > 0) msgs.push(`#Note: ${body.des}`)
 
       await LogService.push({
         type: 'update-spending',
@@ -388,7 +388,7 @@ export class SpendingsService {
       msgs.push(` - ${wallet.name} >>> ${typeSpending.name} = ${oldItem.type > 0 ? '+' : oldItem.type < 0 ? '-' : ''}${SpendingsService.formatNumber(oldItem.money)}`)
       await LogService.push({
         type: 'delete-spending',
-        data: oldItem
+        data: msgs
       }, auth)
       return _id
     })
