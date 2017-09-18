@@ -177,8 +177,9 @@ export class WalletService {
     })
   }
 
-  @VALIDATE((body: Wallet) => {
+  @VALIDATE((type: number, body: Wallet) => {
     Checker.required(body, '_id', Uuid)
+    Checker.required(type, [, 'type'], Number)
     body.updated_at = new Date()
   })
   static async resetInitMoney(type: number, body: Wallet, auth: any) {
