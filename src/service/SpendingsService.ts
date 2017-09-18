@@ -256,7 +256,7 @@ export class SpendingsService {
         })
       const wallet = await WalletService.get(body.wallet_id, auth)
       const typeSpending = await TypeSpendingsService.get(body.type_spending_id, auth)
-      msgs.push(` - ${wallet.name} >>> ${typeSpending.name} = ${body.type > 0 ? '+' : body.type < 0 ? '-' : ''}${SpendingsService.formatNumber(body.money)}`)
+      msgs.push(` - ${wallet.name} >>> ${typeSpending.name} = ${body.type > 0 ? '+' : body.type < 0 ? '-' : ''}${SpendingsService.formatNumber(body.money)} (${body.input_date.getDate()}/${body.input_date.getMonth() + 1}/${body.input_date.getFullYear()})`)
       if (isUpdateWallet && body.money > 0) { // check them type ko thong ke
         wallet.money += body.sign_money
         await WalletService.update(wallet, auth)
@@ -311,7 +311,7 @@ export class SpendingsService {
         })
       const newWallet = await WalletService.get(body.wallet_id, auth)
       const newTypeSpending = await TypeSpendingsService.get(body.type_spending_id, auth)
-      msgs.push(` - $New: ${newWallet.name} >>> ${newTypeSpending.name} = ${body.type > 0 ? '+' : body.type < 0 ? '-' : ''}${SpendingsService.formatNumber(body.money)}`)
+      msgs.push(` - $New: ${newWallet.name} >>> ${newTypeSpending.name} = ${body.type > 0 ? '+' : body.type < 0 ? '-' : ''}${SpendingsService.formatNumber(body.money)} (${body.input_date.getDate()}/${body.input_date.getMonth() + 1}/${body.input_date.getFullYear()})`)
 
       if (oldItem.wallet_id !== body.wallet_id) {
         const oldWallet = await WalletService.get(oldItem.wallet_id, auth)
@@ -319,7 +319,7 @@ export class SpendingsService {
         await WalletService.update(oldWallet, auth)
 
         const oldTypeSpending = await TypeSpendingsService.get(body.type_spending_id, auth)
-        msgs.push(` - $Old: ${oldWallet.name} >>> ${oldTypeSpending.name} = ${oldItem.type > 0 ? '+' : oldItem.type < 0 ? '-' : ''}${SpendingsService.formatNumber(oldItem.money)}`)
+        msgs.push(` - $Old: ${oldWallet.name} >>> ${oldTypeSpending.name} = ${oldItem.type > 0 ? '+' : oldItem.type < 0 ? '-' : ''}${SpendingsService.formatNumber(oldItem.money)} (${oldItem.input_date.getDate()}/${oldItem.input_date.getMonth() + 1}/${oldItem.input_date.getFullYear()})`)
 
         newWallet.money += body.sign_money
         await WalletService.update(newWallet, auth)
@@ -385,7 +385,7 @@ export class SpendingsService {
       let msgs = []
       const typeSpending = await TypeSpendingsService.get(oldItem.type_spending_id, auth)
       msgs.push(`### REMOVE ITEM ###`)
-      msgs.push(` - ${wallet.name} >>> ${typeSpending.name} = ${oldItem.type > 0 ? '+' : oldItem.type < 0 ? '-' : ''}${SpendingsService.formatNumber(oldItem.money)}`)
+      msgs.push(` - ${wallet.name} >>> ${typeSpending.name} = ${oldItem.type > 0 ? '+' : oldItem.type < 0 ? '-' : ''}${SpendingsService.formatNumber(oldItem.money)} (${oldItem.input_date.getDate()}/${oldItem.input_date.getMonth() + 1}/${oldItem.input_date.getFullYear()})`)
       await LogService.push({
         type: 'delete-spending',
         data: msgs
