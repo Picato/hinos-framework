@@ -410,7 +410,7 @@ export class SpendingsService {
     return str
   }
 
-  private static formatNumber(a: number) {
+  public static formatNumber(a: number) {
     return a.toFixed(1).replace(/(\d)(?=(\d{3})+\.)/g, '$1,')
   }
 

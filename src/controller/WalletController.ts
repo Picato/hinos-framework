@@ -57,6 +57,7 @@ export default class WalletController {
       icon: String,
       name: String,
       money: Number,
+      initmoney: Number,
       oder: Number,
       type: Number,
       input_date: Date,
@@ -67,6 +68,22 @@ export default class WalletController {
   static async add({ body, state }) {
     const rs: Wallet = await WalletService.insert(body, state.auth, true)
     return rs
+  }
+
+  @PUT('/Wallet/reset/:_id')
+  @INJECT(authoriz(`${AppConfig.name}>Wallet`, ['UPDATE']))
+  @BODYPARSER()
+  @MATCHER({
+    params: {
+      _id: Mongo.uuid
+    },
+    query: {
+      type: Number
+    }
+  })
+  static async resetInitMoney({ query, params, body, state }) {
+    body._id = params._id
+    await WalletService.resetInitMoney(query.type, body, state.auth)
   }
 
   @PUT('/Wallet/:_id')
@@ -80,6 +97,7 @@ export default class WalletController {
       icon: String,
       name: String,
       money: Number,
+      initmoney: Number,
       oder: Number,
       type: Number,
       input_date: Date,

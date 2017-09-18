@@ -4,6 +4,7 @@ import { Mongo, Uuid, Collection, MONGO } from 'hinos-mongo'
 import { TypeSpendingsService } from './TypeSpendingsService'
 import { SpendingsService } from './SpendingsService'
 import HttpError from '../common/HttpError'
+import { LogService } from './LogService'
 
 /************************************************
  ** WalletService || 4/10/2017, 10:19:24 AM **
@@ -16,6 +17,7 @@ export class Wallet {
   icon?: string
   name?: string
   money?: number
+  initmoney?: number
   oder?: number
   type?: number
   input_date?: Date
@@ -75,6 +77,7 @@ export class WalletService {
     Checker.option(body, 'icon', String)
     Checker.required(body, 'name', String)
     Checker.required(body, 'money', Number)
+    Checker.option(body, 'initmoney', Number)
     Checker.option(body, 'oder', Number, 1)
     Checker.required(body, 'type', Number)
     Checker.option(body, 'input_date', Date)
@@ -124,6 +127,7 @@ export class WalletService {
     Checker.option(body, 'icon', String)
     Checker.option(body, 'name', String)
     Checker.option(body, 'money', Number)
+    Checker.option(body, 'initmoney', Number)
     Checker.option(body, 'oder', Number)
     Checker.option(body, 'type', Number)
     body.updated_at = new Date()
@@ -169,6 +173,30 @@ export class WalletService {
           year: timeUpdate.getFullYear()
         }, auth, false)
       }
+      return body
+    })
+  }
+
+  @VALIDATE((body: Wallet) => {
+    Checker.required(body, '_id', Uuid)
+    body.updated_at = new Date()
+  })
+  static async resetInitMoney(type: number, body: Wallet, auth: any) {
+    return await WalletService.mongo.manual(Wallet, async (_collection) => {
+      const wallet = await WalletService.get(body._id, auth)
+
+      if (type > 0) body.money += wallet.initmoney || 0
+      else if (type < 0) body.money -= wallet.initmoney || 0
+      else body.money = wallet.initmoney || 0
+
+      let msgs = []
+      msgs.push(`### WALLET: RESET INIT MONEY ###`)
+      msgs.push(` - ${wallet.name} >>> ${type > 0 ? '+' : type < 0 ? '-' : '='}${SpendingsService.formatNumber(wallet.money)})`)
+      await LogService.push({
+        type: 'delete-spending',
+        data: msgs
+      }, auth)
+
       return body
     })
   }
