@@ -183,12 +183,17 @@ export class WalletService {
     body.updated_at = new Date()
   })
   static async resetInitMoney(type: number, body: Wallet, auth: any) {
-    return await WalletService.mongo.manual(Wallet, async (_collection) => {
+    return await WalletService.mongo.manual(Wallet, async (collection) => {
       const wallet = await WalletService.get(body._id, auth)
 
       if (type > 0) body.money += wallet.initmoney || 0
       else if (type < 0) body.money -= wallet.initmoney || 0
       else body.money = wallet.initmoney || 0
+
+      await collection.update({
+        user_id: auth.accountId,
+        'wallets._id': body._id
+      }, { $set: { 'wallets.$': body } })
 
       let msgs = []
       msgs.push(`### WALLET: RESET INIT MONEY ###`)
