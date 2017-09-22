@@ -12,7 +12,7 @@ export function authoriz(path: string, actions: string[]) {
         }
       })
       ctx.state.auth = {
-        token: res.headers.token,
+        token: headers.token,
         projectId: Mongo.uuid(res.headers.project_id),
         accountId: Mongo.uuid(res.headers.account_id)
       }
