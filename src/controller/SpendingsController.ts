@@ -150,7 +150,7 @@ export default class SpendingsController {
   })
   static async find({ query, state }) {
     let where = {}
-    if (query.walletId) where['spendings.wallet_id'] = query.walletId
+    if (query.walletId) where['$or'] = [{ 'spendings.wallet_id': query.walletId }, { 'spendings.walletGS_id': query.walletId }]
     if (query.typeSpendingId) where['spendings.type_spending_id'] = query.typeSpendingId
     if (query.startDate || query.endDate) {
       where['spendings.input_date'] = {}
