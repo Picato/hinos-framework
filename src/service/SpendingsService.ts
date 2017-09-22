@@ -309,21 +309,26 @@ export class SpendingsService {
             'spendings.$': body
           }
         })
-      const newWallet = await WalletService.get(body.wallet_id, auth)
-      const newTypeSpending = await TypeSpendingsService.get(body.type_spending_id, auth)
-      msgs.push(` - $New: ${newWallet.name} >>> ${newTypeSpending.name} = ${body.type > 0 ? '+' : body.type < 0 ? '-' : ''}${SpendingsService.formatNumber(body.money)} (${body.input_date.getDate()}/${body.input_date.getMonth() + 1}/${body.input_date.getFullYear()})`)
-
       if (oldItem.wallet_id.toString() !== body.wallet_id.toString()) {
         const oldWallet = await WalletService.get(oldItem.wallet_id, auth)
         oldWallet.money += oldItem.sign_money * -1
         await WalletService.update(oldWallet, auth)
 
-        const oldTypeSpending = await TypeSpendingsService.get(body.type_spending_id, auth)
-        msgs.push(` - $Old: ${oldWallet.name} >>> ${oldTypeSpending.name} = ${oldItem.type > 0 ? '+' : oldItem.type < 0 ? '-' : ''}${SpendingsService.formatNumber(oldItem.money)} (${oldItem.input_date.getDate()}/${oldItem.input_date.getMonth() + 1}/${oldItem.input_date.getFullYear()})`)
-
+        const newWallet = await WalletService.get(body.wallet_id, auth)
         newWallet.money += body.sign_money
         await WalletService.update(newWallet, auth)
+
+        const newTypeSpending = await TypeSpendingsService.get(body.type_spending_id, auth)
+        const oldTypeSpending = await TypeSpendingsService.get(body.type_spending_id, auth)
+        msgs.push(` - $New: ${newWallet.name} >>> ${newTypeSpending.name} = ${body.type > 0 ? '+' : body.type < 0 ? '-' : ''}${SpendingsService.formatNumber(body.money)} (${body.input_date.getDate()}/${body.input_date.getMonth() + 1}/${body.input_date.getFullYear()})`)
+        msgs.push(` - $Old: ${oldWallet.name} >>> ${oldTypeSpending.name} = ${oldItem.type > 0 ? '+' : oldItem.type < 0 ? '-' : ''}${SpendingsService.formatNumber(oldItem.money)} (${oldItem.input_date.getDate()}/${oldItem.input_date.getMonth() + 1}/${oldItem.input_date.getFullYear()})`)
+        if (body.des && body.des.length > 0) msgs.push(`#Note: ${body.des}`)
+        await LogService.push({
+          type: 'update-spending',
+          data: msgs
+        }, auth)
       } else if (oldItem.money !== body.money) {
+        const newWallet = await WalletService.get(body.wallet_id, auth)
         newWallet.money += body.sign_money - oldItem.sign_money
         await WalletService.update(newWallet, auth)
       }
@@ -348,12 +353,6 @@ export class SpendingsService {
         await WalletService.update(wallet, auth)
       }
 
-      if (body.des && body.des.length > 0) msgs.push(`#Note: ${body.des}`)
-
-      await LogService.push({
-        type: 'update-spending',
-        data: msgs
-      }, auth)
       return body
     })
   }
@@ -415,7 +414,7 @@ export class SpendingsService {
   }
 
   public static formatNumber(a: number) {
-    return a.toFixed(1).replace(/(\d)(?=(\d{3})+\.)/g, '$1,')
+    return a.toFixed(1).replace(/(\d)(?=(\d{3})+\.)/g, '$1,').replace(/\.0+$/g, '')
   }
 
 }
