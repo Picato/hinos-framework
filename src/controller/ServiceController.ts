@@ -43,6 +43,7 @@ export class ServiceController {
     body: {
       name: String,
       link: String,
+      email: Array,
       status: Number
     }
   })

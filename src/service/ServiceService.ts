@@ -18,6 +18,7 @@ export class Service {
   link?: string
   logs?: Log[]
   status?: number
+  email?: String[]
   project_id?: Uuid
   lastSent?: Date
   created_at?: Date
@@ -79,7 +80,7 @@ export class ServiceService {
           status: Service.Status.DEAD
         }
         const mailConfig = AppConfig.app.configs[s.project_id.toString()]
-        if (mailConfig && mailConfig.mailConfigId && mailConfig.mailTo && mailConfig.mailTo.length > 0 && (!s.lastSent || (s.lastSent.getTime() - new Date().getTime() >= AppConfig.app.timeoutSpamMail))) {
+        if (mailConfig && mailConfig.mailConfigId && ((mailConfig.mailTo && mailConfig.mailTo.length > 0) || (s.email && s.email.length > 0)) && (!s.lastSent || (s.lastSent.getTime() - new Date().getTime() >= AppConfig.app.timeoutSpamMail))) {
           try {
             await Http.post(`${AppConfig.services.mail}/Mail/Send/${mailConfig.mailConfigId}`, {
               headers: {
@@ -89,7 +90,7 @@ export class ServiceService {
                 subject: `Micro service ${s.name} is downing, please check ASAP !`,
                 text: error.toString(),
                 from: 'Monitor@email.com',
-                to: mailConfig.mailTo
+                to: mailConfig.mailTo.concat(s.email as string[] || [])
               }
             })
             item.lastSent = new Date()
@@ -128,6 +129,7 @@ export class ServiceService {
     Checker.required(body, 'link', String)
     Checker.required(body, 'project_id', Uuid)
     Checker.option(body, 'status', Number, 0)
+    Checker.option(body, 'email', Array, [])
     body.created_at = new Date()
     body.updated_at = new Date()
   })
