@@ -17,7 +17,7 @@ export class Script {
   _name?: string
   ext?: string
   content?: string
-  tag?: string
+  tag?: string[]
   created_at?: Date
   updated_at?: Date
 }
@@ -101,8 +101,8 @@ export class ScriptService {
     if (existed) throw HttpError.BAD_REQUEST(`Existed script name "${body.name}"`)
     body._name = body.name.toLowerCase()
     Checker.required(body, 'content', String)
-    Checker.required(body, 'tag', Array)
     Checker.required(body, 'ext', String)
+    Checker.option(body, 'tag', Array)
     Checker.option(body, 'is_private', Boolean, false)
     body.content = await ScriptService.replaceContent(body.content, body.project_id)
     body.created_at = new Date()
