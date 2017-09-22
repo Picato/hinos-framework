@@ -313,7 +313,7 @@ export class SpendingsService {
       const newTypeSpending = await TypeSpendingsService.get(body.type_spending_id, auth)
       msgs.push(` - $New: ${newWallet.name} >>> ${newTypeSpending.name} = ${body.type > 0 ? '+' : body.type < 0 ? '-' : ''}${SpendingsService.formatNumber(body.money)} (${body.input_date.getDate()}/${body.input_date.getMonth() + 1}/${body.input_date.getFullYear()})`)
 
-      if (oldItem.wallet_id !== body.wallet_id) {
+      if (oldItem.wallet_id.toString() !== body.wallet_id.toString()) {
         const oldWallet = await WalletService.get(oldItem.wallet_id, auth)
         oldWallet.money += oldItem.sign_money * -1
         await WalletService.update(oldWallet, auth)
@@ -327,7 +327,11 @@ export class SpendingsService {
         newWallet.money += body.sign_money - oldItem.sign_money
         await WalletService.update(newWallet, auth)
       }
-      if (oldItem.walletGS_id !== body.walletGS_id) {
+      let oldWalletGSId = oldItem.walletGS_id
+      let bodyWalletGSId = body.walletGS_id
+      if (oldWalletGSId) oldWalletGSId = oldWalletGSId.toString()
+      if (bodyWalletGSId) bodyWalletGSId = bodyWalletGSId.toString()
+      if (oldWalletGSId !== bodyWalletGSId) {
         if (oldItem.walletGS_id) {
           const oldWallet = await WalletService.get(oldItem.walletGS_id, auth)
           oldWallet.money += oldItem.sign_money * -1
@@ -338,7 +342,7 @@ export class SpendingsService {
           newWallet.money += body.sign_money
           await WalletService.update(newWallet, auth)
         }
-      } else if (oldItem.money !== body.money && body.walletGS_id) {
+      } else if (oldItem.money !== body.money && bodyWalletGSId) {
         const wallet = await WalletService.get(body.walletGS_id, auth)
         wallet.money += body.sign_money - oldItem.sign_money
         await WalletService.update(wallet, auth)
