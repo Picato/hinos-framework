@@ -56,7 +56,10 @@ export class ScriptController {
         }
       ]
     } else {
-      where.project_id = state.auth.projectId
+      where.$or = [
+        { project_id: state.auth.projectId },
+        { is_private: false }
+      ]
     }
     const rs = await ScriptService.find({
       $where: where,
