@@ -138,6 +138,19 @@ export class ServiceService {
     return rs
   }
 
+  @VALIDATE((body: Service) => {
+    Checker.required(body, '_id', Object)
+    Checker.required(body._id, '_id', Uuid)
+    Checker.required(body._id, 'project_id', Uuid)
+    Checker.option(body, 'name', String)
+    Checker.option(body, 'link', String)
+    Checker.option(body, 'email', Array, [])
+    body.updated_at = new Date()
+  })
+  static async update(body: Service) {
+    await ServiceService.mongo.update<Service>(Service, body)
+  }
+
   @VALIDATE((where) => {
     Checker.required(where, '_id', Uuid)
     Checker.required(where, 'project_id', Uuid)

@@ -1,4 +1,4 @@
-import { GET, POST, DELETE, INJECT } from 'hinos-route'
+import { GET, POST, DELETE, INJECT, PUT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
 import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { Mongo } from 'hinos-mongo'
@@ -51,6 +51,27 @@ export class ServiceController {
     body.project_id = state.auth.projectId
     const rs = await ServiceService.insert(body)
     return rs
+  }
+
+  @PUT('/Service/:_id')
+  @INJECT(authoriz(`${AppConfig.name}>Service`, ['INSERT']))
+  @BODYPARSER()
+  @RESTRICT({
+    params: {
+      _id: Mongo.uuid
+    },
+    body: {
+      name: String,
+      link: String,
+      email: Array
+    }
+  })
+  static async edit({ body, state, params }) {
+    body._id = {
+      _id: params._id,
+      project_id: state.auth.projectId
+    }
+    await ServiceService.update(body)
   }
 
   @DELETE('/Service/:_id')
