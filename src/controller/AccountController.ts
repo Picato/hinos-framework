@@ -14,6 +14,7 @@ import { authoriz } from '../service/Authoriz'
 export class AccountController {
 
   @GET('/Account')
+  @INJECT(authoriz(`${AppConfig.name}>Account`, ['FIND']))
   @RESTRICT({
     query: {
       page: Number,
@@ -23,7 +24,6 @@ export class AccountController {
       fields: Object
     }
   })
-  @INJECT(authoriz(`${AppConfig.name}>Account`, ['FIND']))
   static async find({ query, state }) {
     let where: any = Mongo.autocast(query.where || {})
     let sort: any = query.sort || {}
