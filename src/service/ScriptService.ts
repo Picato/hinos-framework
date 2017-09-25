@@ -101,6 +101,7 @@ export class ScriptService {
     if (existed) throw HttpError.BAD_REQUEST(`Existed script name "${body.name}"`)
     body._name = body.name.toLowerCase()
     Checker.required(body, 'content', String)
+    Checker.option(body, 'des', String)
     Checker.required(body, 'ext', String)
     Checker.option(body, 'tag', Array)
     Checker.option(body, 'is_private', Boolean, false)
@@ -117,6 +118,7 @@ export class ScriptService {
     Checker.required(body, '_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
     Checker.option(body, 'content', String)
+    Checker.option(body, 'des', String)
     await Checker.option(body, 'name', String, async () => {
       body._name = body.name.toLowerCase()
     })

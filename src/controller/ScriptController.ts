@@ -91,6 +91,7 @@ export class ScriptController {
       name: String,
       ext: String,
       content: String,
+      des: String,
       is_private: Boolean,
       tag: e => e.split(',').map(e => e.trim().toLowerCase())
     }
@@ -113,6 +114,7 @@ export class ScriptController {
       name: String,
       ext: String,
       content: String,
+      des: String,
       is_private: Boolean,
       tag: e => e.split(',').map(e => e.trim().toLowerCase())
     }
