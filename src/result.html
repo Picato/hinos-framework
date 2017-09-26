@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hello Bulma!</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.5.3/css/bulma.min.css">
+</head>
+
+<body>
+  <section class="section">
+    <div class="container">
+      <h1 class="title">
+        Test result
+      </h1>
+      <p class="subtitle">
+        My first website with <strong>Bulma</strong>!
+      </p>
+    </div>
+    <div class="container" id="mainContent">
+
+    </div>
+  </section>
+</body>
+<script src="https://unpkg.com/vue@2.4.4/dist/vue.js"></script>
+<script>
+  new Vue({
+    el: '#mainContent',
+    template: `
+    <table class="table">
+        <thead>
+          <tr>
+            <th><abbr title="Position">Pos</abbr></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="tc in result">
+            <td>{{tc.url}}</td>
+          </tr>
+        </tbody>
+      </table>
+    `,
+    data: {
+      result: [
+        {
+          "extends": "login",
+          "disabled": false,
+          "key": "user-login",
+          "body": {
+            "password": "admin123",
+            "username": "admin"
+          },
+          "var": "token",
+          "method": "POST",
+          "url": "http://service.clipvnet.com/oauth/Login",
+          "headers": {
+            "pj": "597aaa573f91b427e66ab09d"
+          },
+          "res": {
+            "headers": {
+              "server": "nginx",
+              "date": "Tue, 26 Sep 2017 10:10:49 GMT",
+              "connection": "close",
+              "x-dns-prefetch-control": "off",
+              "x-frame-options": "SAMEORIGIN",
+              "strict-transport-security": "max-age=15552000; includeSubDomains",
+              "x-download-options": "noopen",
+              "x-content-type-options": "nosniff",
+              "x-xss-protection": "1; mode=block",
+              "token": "3f792df9ae50b0fd7319bc75c1feff97?2700"
+            },
+            "data": ""
+          }
+        },
+        {
+          "url": "http://service.clipvnet.com/log",
+          "method": "POST",
+          "headers": {
+            "token": "3f792df9ae50b0fd7319bc75c1feff97?2700"
+          },
+          "body": {
+            "title": "auto test"
+          },
+          "var": "log",
+          "res": {
+            "headers": {
+              "server": "nginx",
+              "date": "Tue, 26 Sep 2017 10:10:49 GMT",
+              "content-type": "application/json",
+              "content-length": "214",
+              "connection": "close",
+              "x-dns-prefetch-control": "off",
+              "x-frame-options": "SAMEORIGIN",
+              "strict-transport-security": "max-age=15552000; includeSubDomains",
+              "x-download-options": "noopen",
+              "x-content-type-options": "nosniff",
+              "x-xss-protection": "1; mode=block"
+            },
+            "data": {
+              "title": "auto test",
+              "project_id": "597aaa573f91b427e66ab09d",
+              "account_id": "597aaa573f91b427e66ab0a0",
+              "_id": "59ca27a9eaaaa22cfdcc45f6",
+              "created_at": "2017-09-26T10:10:49.164Z",
+              "updated_at": "2017-09-26T10:10:49.164Z"
+            }
+          }
+        },
+        {
+          "url": {
+            "url": "http://service.clipvnet.com/log/59ca27a9eaaaa22cfdcc45f6",
+            "vars": [
+              {
+                "name": "log.data._id"
+              }
+            ]
+          },
+          "method": "DELETE",
+          "headers": {
+            "token": "3f792df9ae50b0fd7319bc75c1feff97?2700"
+          },
+          "body": {
+            "title": "auto test"
+          },
+          "res": {
+            "headers": {
+              "server": "nginx",
+              "date": "Tue, 26 Sep 2017 10:10:49 GMT",
+              "connection": "close",
+              "x-dns-prefetch-control": "off",
+              "x-frame-options": "SAMEORIGIN",
+              "strict-transport-security": "max-age=15552000; includeSubDomains",
+              "x-download-options": "noopen",
+              "x-content-type-options": "nosniff",
+              "x-xss-protection": "1; mode=block"
+            },
+            "data": ""
+          }
+        }
+      ]
+    },
+    created() {
+
+    },
+    methods: {
+
+    }
+  })
+
+</script>
+
+</html>
