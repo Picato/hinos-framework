@@ -13,15 +13,19 @@ export class ApiDoc {
   }
   // Thanh : check lai phan get Doc
   private static getDocType(obj: any) {
-    let rs = {} as any
     if (obj instanceof Array) {
-      rs = {
+      const rs = {
         des: '',
-        type: 'array',
-        item: ApiDoc.getDocType(obj[0])
+        type: `array`
+      } as any
+      if (typeof obj[0] === 'object') {
+        rs.item = ApiDoc.getDocType(obj[0])
+      } else {
+        rs.type = `array<${('' + typeof (obj[0])).toUpperCase()}>`
       }
+      return rs
     } else if (typeof obj === 'object') {
-      rs = {
+      const rs = {
         des: '',
         type: 'object',
         item: {} as any
@@ -29,33 +33,13 @@ export class ApiDoc {
       for (let k in obj) {
         rs.item[k] = ApiDoc.getDocType(obj[k])
       }
+      return rs
     } else {
-      rs = {
+      return {
         des: '',
         type: typeof obj
       }
     }
-    // for (let k in obj) {
-    //   if (obj instanceof Array) {
-    //     rs[k] = {
-    //       des: '',
-    //       type: 'array',
-    //       item: ApiDoc.getDocType(obj[k])
-    //     }
-    //   } else if (typeof obj[k] === 'object') {
-    //     rs[k] = {
-    //       des: '',
-    //       type: 'object',
-    //       item: ApiDoc.getDocType(obj[k])
-    //     }
-    //   } else {
-    //     rs[k] = {
-    //       des: '',
-    //       type: typeof obj[k]
-    //     }
-    //   }
-    // }
-    return rs
   }
 
   pushToGroup(api) {

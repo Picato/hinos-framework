@@ -29,6 +29,15 @@ export const Test = {
       var: 'token'
     },
     {
+      extends: 'authRequest',
+      disabled: false,
+      doc: {
+        group: 'account'
+      },
+      url: 'http://service.clipvnet.com/oauth/role',
+      method: 'GET'
+    },
+    {
       des: 'Push log to log service',
       extends: 'authRequest',
       disabled: false,
