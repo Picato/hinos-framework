@@ -1,39 +1,37 @@
 import { Api } from './Api'
 
+export interface Testcase {
+  key?: string
+  des?: string
+  disabled?: boolean
+  apis?: Api[]
+}
+
 export class Testcase {
-  static all = {} as { [key: string]: Testcase }
-  key: string
-  des: string
-  apis: Api[]
-  vars: { [key: string]: any } = {}
+  static all = [] as Testcase[]
+
+  id: number
+  apiIndexes = [] as number[]
 
   async run() {
-    const apis = []
-    for (let api of this.apis) {
-      api.load()
-      if (!api.disabled) {
-        await api.install(this.vars)
-        await api.call()
-        if (api.var) {
-          this.vars[api.var] = {
-            data: api.res.data,
-            headers: api.res.headers
-          }
-        }
-        if (api.error) console.log(api.error)
-        apis.push(api)
-      }
+    for (let i of this.apiIndexes) {
+      await Api.all[i].run()
     }
-    this.apis = apis
   }
 }
 
 export namespace Testcase {
   export function loadScenario(scenario) {
     const tc = new Testcase()
-    tc.des = scenario.des
-    if (scenario.apis) tc.apis = scenario.apis.map(e => Api.loadScenario(e))
-    Testcase.all[scenario.key] = tc
-    return tc
+    for (let k in scenario) {
+      if (k === 'apis') {
+        tc.apiIndexes = tc.apiIndexes.concat(scenario.apis.map(e => Api.loadScenario(e)).filter(e => e !== -1))
+      } else {
+        tc[k] = scenario[k]
+      }
+    }
+    tc.id = Testcase.all.length
+    Testcase.all.push(tc)
+    return !tc.disabled ? tc.id : -1
   }
 }
