@@ -1,9 +1,7 @@
 import * as _ from 'lodash'
 import axios from 'axios'
 import { Var, Url } from './Eval'
-import { ApiDoc } from './ApiDoc'
-
-axios.defaults.headers['content-type'] = 'application/json'
+import { Doc, DocImpl } from './ApiDoc'
 
 function replaceVars(obj, $var) {
   if (obj === undefined || obj === null) return obj
@@ -42,20 +40,23 @@ function replaceVars(obj, $var) {
   return obj
 }
 
-export interface Api {
+export abstract class Api {
   key?: string
   des?: string
   method: 'POST' | 'PUT' | 'GET' | 'HEAD' | 'DELETE'
-  url: string
-  headers?: { [key: string]: string | number }
+  url: string | Url
+  headers?: { [key: string]: any }
   body?: any
   extends?: string
   var?: string
   disabled?: boolean
-  doc?: ApiDoc
+  doc?: Doc
 }
 
-export class Api {
+export class ApiImpl extends Api {
+  static defaultHeaders = {
+    'content-type': 'application/json'
+  }
   static all = [] as Api[]
   static vars = {} as any
 
@@ -67,15 +68,14 @@ export class Api {
   async run() {
     this.load()
     if (!this.disabled) {
-      this.install(Api.vars)
+      this.install(ApiImpl.vars)
       await this.call()
       if (this.var) {
-        Api.vars[this.var] = {
+        ApiImpl.vars[this.var] = {
           data: this.res.data,
           headers: this.res.headers
         }
       }
-      if (this.error) console.log(this.error)
       return true
     }
     return false
@@ -83,7 +83,7 @@ export class Api {
 
   private load() {
     if (!this.extends) return this
-    const api = Api.all.find(e => e.key === this.extends)
+    const api = ApiImpl.all.find(e => e.key === this.extends)
     if (!api) throw new Error(`Could not found api with key "${this.extends}" to extends`)
     const tmp = _.merge({}, api, this)
     _.merge(this, tmp)
@@ -118,9 +118,9 @@ export class Api {
         }
         this.error = e.response.data
       }
-      if (!this.error) this.error = e.message || e
+      if (!this.error) this.error = e.message || e || 'Unknown error'
     } finally {
-      this.doc.install(this)
+      (this.doc as DocImpl).install(this)
       this.executeTime = new Date().getTime() - now.getTime()
     }
   }
@@ -129,13 +129,14 @@ export class Api {
 
 export namespace Api {
   export function loadScenario(scenario: Api) {
-    const api = new Api()
+    const api = new ApiImpl()
     for (let k in scenario) {
       api[k] = scenario[k]
     }
-    api.doc = ApiDoc.loadScenario(api.doc)
-    api.id = Api.all.length
-    Api.all.push(api)
+    api.headers = _.merge({}, ApiImpl.defaultHeaders, api.headers)
+    api.doc = DocImpl.loadScenario(api.doc)
+    api.id = ApiImpl.all.length
+    ApiImpl.all.push(api)
     return !api.disabled ? api.id : -1
   }
 }

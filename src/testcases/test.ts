@@ -32,9 +32,20 @@ export const Test = {
       extends: 'authRequest',
       disabled: false,
       doc: {
-        group: 'account'
+        group: 'account',
+        i18doc: {
+          'res.data.0._id': 'Id cua role'
+        },
+        i18ignore: []
       },
       url: 'http://service.clipvnet.com/oauth/role',
+      method: 'GET'
+    },
+    {
+      doc: {
+        group: 'test'
+      },
+      url: 'http://localhost:1007/test',
       method: 'GET'
     },
     {
