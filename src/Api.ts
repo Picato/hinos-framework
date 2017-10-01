@@ -47,7 +47,7 @@ export abstract class Api {
   url: string | Url
   headers?: { [key: string]: any }
   body?: any
-  extends?: string
+  extends?: string | string[]
   var?: string
   disabled?: boolean
   doc?: Doc
@@ -65,28 +65,33 @@ export class ApiImpl extends Api {
   error: any
   res: any
 
-  async run() {
-    this.load()
-    if (!this.disabled) {
-      this.install(ApiImpl.vars)
-      await this.call()
-      if (this.var) {
-        ApiImpl.vars[this.var] = {
-          data: this.res.data,
-          headers: this.res.headers
-        }
-      }
-      return true
-    }
-    return false
+  get _disabled() {
+    return this.disabled || !this.url
   }
 
-  private load() {
-    if (!this.extends) return this
-    const api = ApiImpl.all.find(e => e.key === this.extends)
-    if (!api) throw new Error(`Could not found api with key "${this.extends}" to extends`)
-    const tmp = _.merge({}, api, this)
-    _.merge(this, tmp)
+  async run() {
+    this.install(ApiImpl.vars)
+    await this.call()
+    if (this.var) {
+      ApiImpl.vars[this.var] = {
+        data: this.res.data,
+        headers: this.res.headers
+      }
+    }
+  }
+
+  load() {
+    if (this.extends) {
+      const _extends = (this.extends instanceof Array) ? this.extends : [this.extends]
+      let tmp = {}
+      for (const ext of _extends) {
+        const api = ApiImpl.all.find(e => e.key === ext)
+        if (!api) throw new Error(`Could not found api with key "${this.extends}" to extends`)
+        _.merge(tmp, api, this)
+      }
+      _.merge(this, tmp)
+    }
+    return this
   }
 
   private async install(vars: any) {
@@ -136,7 +141,8 @@ export namespace Api {
     api.headers = _.merge({}, ApiImpl.defaultHeaders, api.headers)
     api.doc = DocImpl.loadScenario(api.doc)
     api.id = ApiImpl.all.length
+    api.load()
     ApiImpl.all.push(api)
-    return !api.disabled ? api.id : -1
+    return !api._disabled ? api.id : -1
   }
 }

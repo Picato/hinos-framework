@@ -55,15 +55,35 @@ export class DocImpl extends Doc {
     }).sort((a, b) => a.order - b.order)
   }
 
+  ignoreDoc(obj, prefix) {
+    if (obj instanceof Array) {
+      const rs = []
+      if (obj.length > 0 && this.i18ignore.indexOf(`${prefix}.0`.toLowerCase()) === -1) {
+        rs.push(this.ignoreDoc(obj[0], `${prefix}.0`))
+      }
+      return rs
+    } else if (typeof obj === 'object') {
+      const rs = {}
+      for (let k in obj) {
+        if (this.i18ignore.indexOf(`${prefix}.${k}`.toLowerCase()) !== -1) continue
+        rs[k] = this.ignoreDoc(obj[k], `${prefix}.${k}`)
+      }
+      return rs
+    } else {
+      return obj
+    }
+  }
+
   install(api: ApiImpl) {
     this.i18doc = _.merge({}, DocImpl.i18doc, this.i18doc)
     this.i18ignore = _.union(DocImpl.i18ignore, this.i18ignore)
-    this.headers = this.getDocType(api.headers, 'value', 'headers')
-    this.body = this.getDocType(api.body, 'name', 'body')
+    this.headers = this.getDocType(this.ignoreDoc(api.headers, 'headers'), 'value', 'headers')
+    this.body = this.getDocType(this.ignoreDoc(api.body, 'body'), 'name', 'body')
+    if (api.des === 'Get secret key which allow access api without login') debugger
     this.res = {
       status: this.getDocType(api.res.status, 'value', 'res.status'),
-      headers: this.getDocType(api.res.headers, 'value', 'res.headers'),
-      data: this.getDocType(api.res.data, 'name', 'res.data')
+      headers: this.getDocType(this.ignoreDoc(api.res.headers, 'res.headers'), 'value', 'res.headers'),
+      data: this.getDocType(this.ignoreDoc(api.res.data, 'res.data'), 'name', 'res.data')
     }
 
     this.pushToGroup(api)
@@ -94,11 +114,18 @@ export class DocImpl extends Doc {
         item: {} as any
       }
       for (let k in obj) {
-        if (this.i18ignore.indexOf(`${prefix}.${k}`.toLowerCase()) !== -1) continue
         rs.item[k] = this.getDocType(obj[k], type, `${prefix}.${k}`, type === 'name' ? k : obj[k])
       }
       return rs
     } else {
+      if (prefix === 'res.data' || prefix === 'body') {
+        return {
+          '': {
+            des: this.i18doc[prefix] || defaultValue || obj,
+            type: typeof obj
+          }
+        }
+      }
       return {
         des: this.i18doc[prefix] || defaultValue || obj,
         type: typeof obj

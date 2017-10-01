@@ -34,11 +34,11 @@ export async function runner() {
     vars: {}
   }
 
-  const scenarios = ['./testcases/oauth/client'] as string[]
-  const tcs = scenarios.map(imp => {
-    const { Test } = require(imp) as { Test: Testcase }
-    return TestcaseImpl.loadScenario(Test)
-  }).filter(i => i !== -1).map(e => TestcaseImpl.all[e]) as TestcaseImpl[]
+  const scenarios = ['./testcases/oauth/client', './testcases/oauth/admin'] as string[]
+  const tcs = (await Promise.all(scenarios.map(async (imp) => {
+    const Test = await import(imp) as { default: Testcase }
+    return TestcaseImpl.loadScenario(Test.default)
+  }))).filter(i => i !== -1).map(e => TestcaseImpl.all[e]) as TestcaseImpl[]
 
   console.log(`${chalk.bgGreen.bold(`                 `)}`)
   console.log(`${chalk.bgGreen.bold(`   API testing   `)}`)

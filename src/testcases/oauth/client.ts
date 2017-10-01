@@ -1,20 +1,34 @@
 import { Testcase } from '../../Testcase'
-import { $var, $url } from '../../Eval'
+import { $var } from '../../Eval'
 
 const user = {
   username: 'testuser',
   password: 'test123'
 }
 
-export const Test = {
-  des: 'Testcase for User',
+export default {
+  des: '[Account] Testcase for user role',
   apis: [
     {
-      key: 'authRequest',
-      disabled: true,
+      key: '#authRequestByToken',
       headers: {
         token: $var('token.headers.token')
       }
+    },
+    {
+      key: '#authRequestBySecretkey',
+      headers: {
+        token: $var('secretkey.data')
+      }
+    },
+    {
+      key: '#ping',
+      des: 'Ping to keep connection',
+      extends: '#authRequestByToken',
+      disabled: true,
+      doc: { group: 'account' },
+      method: 'HEAD',
+      url: 'http://service.clipvnet.com/oauth/ping'
     },
     {
       des: 'Register',
@@ -38,6 +52,7 @@ export const Test = {
       var: 'user'
     },
     {
+      key: '#login',
       des: 'Login web',
       disabled: false,
       doc: { group: 'account' },
@@ -53,8 +68,38 @@ export const Test = {
       var: 'token'
     },
     {
+      key: '#generate-secretkey',
+      des: 'Generate secret key which allow access api without login',
+      extends: '#authRequestByToken',
+      disabled: false,
+      doc: { group: 'account' },
+      method: 'PUT',
+      url: 'http://service.clipvnet.com/oauth/Secretkey',
+      var: 'secretkey'
+    },
+    {
+      des: 'Get secret key which allow access api without login',
+      extends: '#authRequestBySecretkey',
+      disabled: false,
+      doc: { group: 'account' },
+      method: 'GET',
+      url: 'http://service.clipvnet.com/oauth/Secretkey'
+    },
+    {
+      des: 'Remove secret key which not allow access api without login',
+      extends: '#authRequestByToken',
+      disabled: false,
+      doc: { group: 'account' },
+      method: 'DELETE',
+      url: 'http://service.clipvnet.com/oauth/Secretkey'
+    },
+    {
+      extends: ['#ping', '#authRequestBySecretkey'],
+      disabled: false
+    },
+    {
       des: 'Update user information',
-      extends: 'authRequest',
+      extends: '#authRequestByToken',
       disabled: false,
       doc: { group: 'account' },
       method: 'PUT',
@@ -67,7 +112,7 @@ export const Test = {
     },
     {
       des: 'Get user information',
-      extends: 'authRequest',
+      extends: '#authRequestByToken',
       disabled: false,
       doc: { group: 'account' },
       method: 'GET',
@@ -75,28 +120,25 @@ export const Test = {
       var: 'me'
     },
     {
-      des: 'Ping to keep connection',
-      extends: 'authRequest',
+      des: 'Get user roles which grant permission for web, api or mobile',
+      extends: '#authRequestByToken',
       disabled: false,
       doc: { group: 'account' },
-      method: 'HEAD',
-      url: 'http://service.clipvnet.com/oauth/ping'
+      method: 'GET',
+      url: 'http://service.clipvnet.com/oauth/MyRoles?type=web',
+      var: 'roles'
     },
     {
       des: 'Logout',
-      extends: 'authRequest',
-      disabled: true,
+      extends: '#authRequestByToken',
+      disabled: false,
       doc: { group: 'account' },
       method: 'GET',
       url: 'http://service.clipvnet.com/oauth/logout'
     },
     {
-      des: 'Remove user after test client api',
-      extends: 'authRequest',
-      disabled: false,
-      doc: { group: 'account' },
-      method: 'DELETE',
-      url: $url('http://service.clipvnet.com/oauth/account/:accountId', $var('user.data._id')),
+      extends: '#ping',
+      disabled: false
     }
   ]
 } as Testcase

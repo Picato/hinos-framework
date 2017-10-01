@@ -1,43 +1,22 @@
 import { Testcase } from '../../Testcase'
-import { $var } from '../../Eval'
+import { $var, $url } from '../../Eval'
 
 const user = {
   username: 'testuser',
   password: 'test123'
 }
 
-export const Test = {
-  des: 'Testcase for User',
+export default {
+  des: '[Account] Testcase for admin role',
   apis: [
     {
-      key: 'authRequest',
-      disabled: true,
+      key: '#authRequestByToken',
       headers: {
         token: $var('token.headers.token')
       }
     },
     {
-      des: 'Register',
-      disabled: false,
-      doc: { group: 'account' },
-      method: 'POST',
-      url: 'http://service.clipvnet.com/oauth/register',
-      headers: {
-        pj: '597aaa573f91b427e66ab09d',
-        role: '597aaa573f91b427e66ab09e'
-      },
-      body: {
-        username: user.username,
-        password: user.password,
-        recover_by: 'testuser@abc.com',
-        more: {
-          fullname: 'Test user name',
-          phone: '093239842'
-        }
-      },
-      var: 'user'
-    },
-    {
+      key: '#login',
       des: 'Login web',
       disabled: false,
       doc: { group: 'account' },
@@ -51,6 +30,14 @@ export const Test = {
         password: user.password
       },
       var: 'token'
+    },
+    {
+      des: 'Remove user after test client api',
+      extends: '#authRequestByToken',
+      disabled: false,
+      doc: { group: 'account' },
+      method: 'DELETE',
+      url: $url('http://service.clipvnet.com/oauth/account/:accountId', $var('user.data._id'))
     }
   ]
 } as Testcase
