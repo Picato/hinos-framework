@@ -120,7 +120,10 @@ export class ScriptController {
     }
   })
   static async update({ params, body, state }) {
-    body._id = params._id
+    body._id = {
+      _id: params._id,
+      project_id: state.auth.projectId
+    }
     body.account_id = state.auth.accountId
     await ScriptService.update(body)
   }
@@ -132,8 +135,11 @@ export class ScriptController {
       _id: Mongo.uuid
     }
   })
-  static async del({ params }) {
-    await ScriptService.delete(params._id)
+  static async del({ params, state }) {
+    await ScriptService.delete({
+      _id: params._id,
+      project_id: state.auth.projectId
+    })
   }
 
 }

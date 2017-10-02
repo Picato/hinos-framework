@@ -115,7 +115,9 @@ export class ScriptService {
   }
 
   @VALIDATE(async (body: Script) => {
-    Checker.required(body, '_id', Uuid)
+    Checker.required(body, '_id', Object)
+    Checker.required(body._id, '_id', Uuid)
+    Checker.required(body._id, 'project_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
     Checker.option(body, 'content', String)
     Checker.option(body, 'des', String)
@@ -143,11 +145,13 @@ export class ScriptService {
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
   }
 
-  @VALIDATE((_id: Uuid) => {
-    Checker.required(_id, [, '_id'], Uuid)
+  @VALIDATE((where: any) => {
+    Checker.required(where, '_id', Object)
+    Checker.required(where._id, '_id', Uuid)
+    Checker.required(where._id, 'project_id', Uuid)
   })
-  static async delete(_id: Uuid) {
-    const rs = await ScriptService.mongo.delete(Script, _id)
+  static async delete(where: any) {
+    const rs = await ScriptService.mongo.delete(Script, where)
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to delete')
   }
 }
