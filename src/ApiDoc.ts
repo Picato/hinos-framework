@@ -6,6 +6,7 @@ export abstract class Doc {
   i18ignore?: any
   group: string
   order?: number
+  note?: string
 }
 
 export class DocImpl extends Doc {
@@ -79,7 +80,7 @@ export class DocImpl extends Doc {
     this.i18ignore = _.union(DocImpl.i18ignore, this.i18ignore)
     this.headers = this.getDocType(this.ignoreDoc(api.headers, 'headers'), 'value', 'headers')
     this.body = this.getDocType(this.ignoreDoc(api.body, 'body'), 'name', 'body')
-    if (api.des === 'Get secret key which allow access api without login') debugger
+    // if (api.des === 'Get secret key which allow access api without login') debugger
     this.res = {
       status: this.getDocType(api.res.status, 'value', 'res.status'),
       headers: this.getDocType(this.ignoreDoc(api.res.headers, 'res.headers'), 'value', 'res.headers'),

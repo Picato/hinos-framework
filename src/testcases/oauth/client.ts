@@ -123,7 +123,10 @@ export default {
       des: 'Get user roles which grant permission for web, api or mobile',
       extends: '#authRequestByToken',
       disabled: false,
-      doc: { group: 'account' },
+      doc: {
+        group: 'account',
+        note: `Note: Type must be in [web, mob, api]`
+      },
       method: 'GET',
       url: 'http://service.clipvnet.com/oauth/MyRoles?type=web',
       var: 'roles'

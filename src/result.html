@@ -15,7 +15,9 @@
       padding-left: 24px;
     }
 
-    .json-doc-container>.json-doc {
+    .json-doc-container>.json-doc,
+    .json-doc-item.json-doc-item-array,
+    .json-doc-item.json-doc-item-object {
       padding-left: 24px;
     }
 
@@ -31,17 +33,13 @@
       
     }
 
-    .json-doc-item.json-doc-item-array,
-    .json-doc-item.json-doc-item-object {
-      padding-left: 24px;
-    }
-
     .json-doc {
-      padding: 0px 24px;
-      border-radius: 8px;
+      padding: 8px 24px;
+      border-radius: 0px;
       position: relative;
-      /* background-color: #efefef; */
+      background-color: #fff;
       color: #838383;
+      box-shadow: 0px 0px 1px #a0a0a0;
       /* border: solid 1px #9c9c9c; */
       /* text-shadow: 0px 1px 1px #fff; */
     }
@@ -59,10 +57,6 @@
       margin: 0;      
     }
 
-    .no-style .key {
-      color: #703b02;
-    }
-
     .json-doc td {
       vertical-align: middle;
     }
@@ -75,6 +69,17 @@
       display: none;
     }
 
+    .no-style thead .key {
+      color: #868686;      
+    }
+    .no-style thead .des {
+      color: #6d6d6d;      
+    }
+
+    .no-style .key {
+      color: #19796b;
+    }
+
     .no-style .type {
       color: #9d9d9d;
       background: #c14903;
@@ -84,7 +89,7 @@
       zoom: 0.5;
       border: solid 1px #9a3900;
       position: relative;
-      top: 8px;
+      top: 4px;
       left: -8px;
     }
 
@@ -103,10 +108,11 @@
     }
 
     .json-doc .clipboard {
-      right: 1px;
-      top: 1px;
-      border-radius: 0px 6px 0px 0px;
+      right: 0px;
+      top: 0px;
+      border-radius: 0px 0px 0px 0px;
       height: auto;
+      font-weight: bold;
     }
 
     details .disabled>summary {
@@ -118,13 +124,8 @@
       font-weight: bold;
     }
 
-    details[open] {
-      
-    }
-
-    .no-style hr {
-      border: solid 1px #ccc;
-      margin: 4px 0px 0px;
+    details {
+      padding: 8px 0px;
     }
 
     summary {
@@ -182,9 +183,9 @@
     }
 
     .tag.method {
-      width: 50px;
+      width: 60px;
       color: white;
-      padding: 22px 38px;
+      font-weight: bold;
     }
 
     .tag.POST {
@@ -233,11 +234,11 @@
       props: ['data', 'copyData'],
       data() {
         return {
-          copyText: 'Copy example'
+          copyText: 'Example'
         }
       },
       template: `<ul class="body">
-        <a class="button clipboard is-small is-light" @click="copy()" v-if="copyData">
+        <a class="button clipboard is-small is-dark" @click="copy()" v-if="copyData">
           <i class="fa fa-clipboard"></i>&nbsp;
           <span>{{copyText}}</span>
         </a>
@@ -270,7 +271,7 @@
           clipboard.copy(JSON.stringify(this.copyData, null, '  '))
           this.copyText = 'Copied'
           setTimeout(() => {
-            this.copyText = 'Copy example'
+            this.copyText = 'Example'
           }, 1000)
         }
       }
@@ -279,11 +280,11 @@
       props: ['data', 'copyData'],
       data() {
         return {
-          copyText: 'Copy example'
+          copyText: 'Example'
         }
       },
       template: `<ul class="header">
-        <a class="button clipboard is-small is-light" @click="copy()" v-if="copyData">
+        <a class="button clipboard is-small is-dark" @click="copy()" v-if="copyData">
           <i class="fa fa-clipboard"></i>&nbsp;
           <span>{{copyText}}</span>
         </a>        
@@ -298,7 +299,7 @@
           clipboard.copy(JSON.stringify(this.copyData, null, '  '))
           this.copyText = 'Copied'
           setTimeout(() => {
-            this.copyText = 'Copy example'
+            this.copyText = 'Example'
           }, 1000)
         }
       }
@@ -333,23 +334,23 @@
             </thead>
             <tbody v-for="(api, j) in gp.apis" v-show="!gp.isHide" v-if="api">
               <tr @click="toggleApi(i, j)" class="link">
-                <td class="has-text-centered" style="vertical-align: middle">
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag is-small method" :class="api.method">{{api.method}}</span>
+                <td style="vertical-align: middle">
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag is-small method" :class="api.method">{{api.method}}</span>                  
                 </td>
-                <td>
-                  <div><a :class="api.error ? 'has-text-danger' : 'has-text-success'">{{api.des}}</a></div>
-                  <p class="help is-dark is-small">{{api.url.url || api.url}}</p>
+                <td>                  
+                  <a>{{api.des}}</a>
+                  <span class="tag">{{api.url.url || api.url}}</span>
                 </td>
                 <td class="has-text-centered">
-                  <span class="tag is-small" :class="{'has-text-danger': api.error, 'has-text-success': !api.error}">{{api.res.status}}</span>
+                  <span class="tag is-small" :class="{'is-danger': api.error, 'is-success': !api.error}">{{api.res.status}}</span>
                 </td>
               </tr>
               <tr v-show="api.isShow" class="no-style">
                 <td colspan="3" style="padding-left: 40px">
-                  <table class="table">
+                  <table class="table is-fullwidth">
                     <thead>
                       <tr>
-                        <td colspan="2" width="50%">
+                        <td colspan="2">
                           <details open>
                             <summary>General</summary>
                             <ul class="general">
@@ -358,34 +359,33 @@
                               <li><b class="key">Status:</b> <i class="fa fa-circle" :class="api.error ? 'has-text-danger' : 'has-text-success'"></i> <span class="des">{{api.res.status}}</span></li>
                             </ul>
                           </details>
-                          <hr/>
+                          <hr style="margin-top: 0px" />
                         </td>
                       </tr>
                     </thead>
                     <tbody>
                       <tr>
-                        <td>
+                        <td width="50%">                          
                           <details open>
-                            <summary>Request Headers <span>({{Object.keys(api.headers).length}})</span></summary>
-                            <div class="json-doc-container" v-if="api.doc.headers.type">
+                            <summary>Request Headers <span>({{Object.keys(api.doc.headers.item).length}})</span></summary>
+                            <div class="json-doc-container" v-if="Object.keys(api.doc.headers.item).length">
                               <prop-doc class="json-doc" :data="api.doc.headers" :copyData="api.headers"></prop-doc>
                             </div>
                           </details>
-                          <hr />
                           <details open>
                             <summary>Request Payload</summary>
                             <div class="json-doc-container" v-if="api.doc.body.type">
                               <json-doc class="json-doc" :data="api.doc.body" :copyData="api.body"></json-doc>
                             </div>
                           </details>
-                          <hr />
+                        </td>
+                        <td width="50%">
                           <details open>
-                            <summary>Response Headers <span>({{Object.keys(api.res.headers).length}})</span></summary>                    
-                            <div class="json-doc-container" v-if="api.doc.res.headers.type">
+                            <summary>Response Headers <span>({{Object.keys(api.doc.res.headers.item).length}})</span></summary>
+                            <div class="json-doc-container" v-if="Object.keys(api.doc.res.headers.item).length">
                               <prop-doc class="json-doc" :data="api.doc.res.headers" :copyData="api.res.headers"></prop-doc>
                             </div>
                           </details>
-                          <hr />
                           <details open>
                             <summary>Response Body</summary>                    
                             <div class="json-doc-container" v-if="api.doc.res.data.type">
@@ -395,6 +395,13 @@
                         </td>
                       </tr>
                     </tbody>
+                    <tfooter v-if="api.doc.note">
+                      <tr>
+                        <td colspan="2">
+                          <pre>{{api.doc.note}}</pre>
+                        </td>
+                      </tr>
+                    </tfooter>
                   </table>                
                 </td>  
               </tr>
