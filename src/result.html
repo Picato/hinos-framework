@@ -342,7 +342,7 @@
                   <span class="tag">{{api.url.url || api.url}}</span>
                 </td>
                 <td class="has-text-centered">
-                  <span class="tag is-small" :class="{'is-danger': api.error, 'is-success': !api.error}">{{api.res.status}}</span>
+                  <span class="tag is-small" :class="{'is-danger': api.error, 'is-success': !api.error}">{{api.status}}</span>
                 </td>
               </tr>
               <tr v-show="api.isShow" class="no-style">
@@ -356,7 +356,7 @@
                             <ul class="general">
                               <li><b class="key">Request URL:</b> <span class="des">{{api.url.url || api.url}}</span></li>
                               <li><b class="key">Request Method:</b> <span class="des">{{api.method}}</span></li>
-                              <li><b class="key">Status:</b> <i class="fa fa-circle" :class="api.error ? 'has-text-danger' : 'has-text-success'"></i> <span class="des">{{api.res.status}}</span></li>
+                              <li><b class="key">Status:</b> <i class="fa fa-circle" :class="api.error ? 'has-text-danger' : 'has-text-success'"></i> <span class="des">{{api.status}}</span></li>
                             </ul>
                           </details>
                           <hr style="margin-top: 0px" />
@@ -373,7 +373,7 @@
                             </div>
                           </details>
                           <details open>
-                            <summary>Request Payload</summary>
+                            <summary>Request Body</summary>
                             <div class="json-doc-container" v-if="api.doc.body.type">
                               <json-doc class="json-doc" :data="api.doc.body" :copyData="api.body"></json-doc>
                             </div>
@@ -381,15 +381,15 @@
                         </td>
                         <td width="50%">
                           <details open>
-                            <summary>Response Headers <span>({{Object.keys(api.doc.res.headers.item).length}})</span></summary>
-                            <div class="json-doc-container" v-if="Object.keys(api.doc.res.headers.item).length">
-                              <prop-doc class="json-doc" :data="api.doc.res.headers" :copyData="api.res.headers"></prop-doc>
+                            <summary>Response Headers <span>({{Object.keys(api.doc.$headers.item).length}})</span></summary>
+                            <div class="json-doc-container" v-if="Object.keys(api.doc.$headers.item).length">
+                              <prop-doc class="json-doc" :data="api.doc.$headers" :copyData="api.$headers"></prop-doc>
                             </div>
-                          </details>
+                          </details>                          
                           <details open>
                             <summary>Response Body</summary>                    
-                            <div class="json-doc-container" v-if="api.doc.res.data.type">
-                              <json-doc class="json-doc" :data="api.doc.res.data" :copyData="api.res.data"></json-doc>
+                            <div class="json-doc-container" v-if="api.doc.$body.type">
+                              <json-doc class="json-doc" :data="api.doc.$body" :copyData="api.$body"></json-doc>
                             </div>
                           </details>
                         </td>
@@ -441,11 +441,6 @@
         tcCount(tc, status) {
           if (status === 1) return tc.apis.filter(e => !e.error).length
           return tc.apis.filter(e => e.error).length
-        },
-        log(varName, varValue) {
-          console.group(`"${varName}"`)
-          console.log(JSON.parse(JSON.stringify(varValue)))
-          console.groupEnd()
         }
       }
     })
@@ -495,21 +490,21 @@
                   <p class="help is-danger tag is-small" v-if="api.error">{{api.error}}</p>
                 </td>
                 <td class="has-text-centered">
-                  <span class="tag is-small" :class="{'has-text-danger': api.error, 'has-text-success': !api.error}">{{api.res.status}}</span>
+                  <span class="tag is-small" :class="{'has-text-danger': api.error, 'has-text-success': !api.error}">{{api.status}}</span>
                 </td>
                 <td class="has-text-centered">
-                  <a class="has-text-danger" @click="log('REQUEST', { headers: api.headers, body: api.body })">
+                  <a class="has-text-danger" @click="log(api, 'REQUEST')">
                     <span class="icon is-small icon-request">
                       <i class="fa fa-level-down"></i>
                     </span>
-                  </a>/<a class="has-text-success" @click="log('RESPONSE', api.res)">
+                  </a>/<a class="has-text-success" @click="log(api, 'RESPONSE')">
                     <span class="icon is-small icon-response">
                       <i class="fa fa-level-down"></i>
                     </span>
                   </a>
                 </td>
                 <td class="has-text-centered">
-                  <a v-if="api.var" @click="log(api.var, vars[api.var])"><strong>{{api.var}}</strong></a>
+                  <a v-if="api.var" @click="log(api)"><strong>{{api.var}}</strong></a>
                 </td>
               </tr>              
             </tbody>
@@ -547,22 +542,49 @@
           if (status === 1) return tc.apis.filter(e => !e.error).length
           return tc.apis.filter(e => e.error).length
         },
-        log(varName, varValue) {
-          if (varName === 'RESPONSE') console.group(`${varName}: ${varValue.status}`)
-          else if (varName === 'REQUEST') console.group(`${varName}`)
-          else console.group(`VARIABLE: ${varName}`)
-
-          for (let k of ['headers', 'body', 'data']) {
-            if (varValue[k] === undefined) continue
-
-            console.group(`${k}`)
-
-            if (typeof varValue[k] === 'object') console.log(JSON.stringify(varValue[k], null, '  '))
-            else console.log(varValue[k])
-
+        log(api, type) {
+          const logData = (groupName, data, jsonType, isCollapsed) => {
+            if(isCollapsed) console.groupCollapsed(groupName)
+            else console.group(groupName)
+            if(data !== undefined) {
+              if(typeof data === 'object') {
+                if(jsonType) {
+                  console.log(JSON.stringify(data, null, '  '))
+                } else {
+                  for(let k in data) {
+                    if(typeof data[k] === 'string') console.log(`"${k}": "${data[k]}"`)
+                    else console.log(`"${k}": ${data[k]}`)
+                  }
+                }
+              }else {
+                console.log(data)
+              }
+            }
             console.groupEnd()
           }
-          console.groupEnd()
+          if (type === 'REQUEST') {
+            console.group(`REQUEST: ${api.des}`)
+            logData(`${api.method} ${api.url.url || api.url}`)
+            logData(`Headers (${Object.keys(api.headers).length})`, api.headers, false, !!api.body)
+            logData(`Body`, api.body, true)
+            console.groupEnd()
+          }
+          else if (type === 'RESPONSE') {
+            console.group(`RESPONSE[${api.status}]: ${api.des}`)
+            logData(`Headers (${Object.keys(api.$headers).length})`, api.$headers, false, !!api.$body)
+            logData(`Body`, api.$body, true)
+            console.groupEnd()
+          } else {
+            console.group(`VARIABLE: ${api.var}`)
+            const vl = this.vars[api.var]
+            if(vl) {
+              for(let k in vl) {
+                if(typeof vl[k] === 'object') logData(`${k}`, vl[k], true, true)
+                else logData(`${k}: ${vl[k]}`)
+              }       
+            }     
+            console.groupEnd()
+          }
         }
       }
     })

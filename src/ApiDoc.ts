@@ -15,26 +15,24 @@ export class DocImpl extends Doc {
     'headers.token': 'Token which is received after login'
   }
   static i18ignore = [
-    'res.headers.date',
-    'res.headers.connection',
-    'res.headers.content-length',
-    'res.headers.server',
-    'res.headers.x-dns-prefetch-control',
-    'res.headers.x-frame-options',
-    'res.headers.strict-transport-security',
-    'res.headers.x-download-options',
-    'res.headers.x-content-type-options',
-    'res.headers.x-xss-protection',
-    'res.headers.vary'
+    '$headers.date',
+    '$headers.connection',
+    '$headers.content-length',
+    '$headers.server',
+    '$headers.x-dns-prefetch-control',
+    '$headers.x-frame-options',
+    '$headers.strict-transport-security',
+    '$headers.x-download-options',
+    '$headers.x-content-type-options',
+    '$headers.x-xss-protection',
+    '$headers.vary'
   ]
   static all = [] as [{ group: string, order: number, apiIndexes: number[] }]
   headers?: any
   body?: any
-  res?= {
-    status: undefined as any,
-    headers: undefined as any,
-    data: undefined as any
-  }
+  status: any
+  $headers: any
+  $body: any
 
   pushToGroup(api) {
     const gIndex = DocImpl.all.findIndex(e => e.group === this.group)
@@ -81,11 +79,9 @@ export class DocImpl extends Doc {
     this.headers = this.getDocType(this.ignoreDoc(api.headers, 'headers'), 'value', 'headers')
     this.body = this.getDocType(this.ignoreDoc(api.body, 'body'), 'name', 'body')
     // if (api.des === 'Get secret key which allow access api without login') debugger
-    this.res = {
-      status: this.getDocType(api.res.status, 'value', 'res.status'),
-      headers: this.getDocType(this.ignoreDoc(api.res.headers, 'res.headers'), 'value', 'res.headers'),
-      data: this.getDocType(this.ignoreDoc(api.res.data, 'res.data'), 'name', 'res.data')
-    }
+    this.status = this.getDocType(api.status, 'value', 'status')
+    this.$headers = this.getDocType(this.ignoreDoc(api.$headers, '$headers'), 'value', '$headers')
+    this.$body = this.getDocType(this.ignoreDoc(api.$body, '$body'), 'name', '$body')
 
     this.pushToGroup(api)
   }
@@ -119,7 +115,7 @@ export class DocImpl extends Doc {
       }
       return rs
     } else {
-      if (prefix === 'res.data' || prefix === 'body') {
+      if (prefix === '$body' || prefix === 'body') {
         return {
           '': {
             des: this.i18doc[prefix] || defaultValue || obj,

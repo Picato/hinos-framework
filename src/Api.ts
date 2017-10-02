@@ -58,12 +58,14 @@ export class ApiImpl extends Api {
     'content-type': 'application/json'
   }
   static all = [] as Api[]
-  static vars = {} as any
+  static vars = {} as { [key: string]: any }
 
   id: number
   executeTime: number
   error: any
-  res: any
+  status: number
+  $headers: any
+  $body: any
 
   get _disabled() {
     return this.disabled || !this.url
@@ -74,8 +76,11 @@ export class ApiImpl extends Api {
     await this.call()
     if (this.var) {
       ApiImpl.vars[this.var] = {
-        data: this.res.data,
-        headers: this.res.headers
+        status: this.status,
+        headers: this.headers,
+        body: this.body,
+        $headers: this.$headers,
+        $body: this.$body
       }
     }
   }
@@ -109,19 +114,15 @@ export class ApiImpl extends Api {
         headers: this.headers,
         url: this.url.toString()
       })
-      this.res = {
-        headers: res.headers,
-        status: res.status,
-        data: res.data === '' ? undefined : res.data
-      }
+      this.status = res.status
+      this.$headers = res.headers
+      this.$body = res.data === '' ? undefined : res.data
     } catch (e) {
       if (e.response) {
-        this.res = {
-          headers: e.response.headers,
-          status: e.response.status,
-          data: e.response.data === '' ? undefined : e.response.data
-        }
-        this.error = e.response.data
+        this.status = e.response.status
+        this.$headers = e.response.headers
+        this.$body = e.response.data === '' ? undefined : e.response.data
+        this.error = this.$body
       }
       if (!this.error) this.error = e.message || e || 'Unknown error'
     } finally {

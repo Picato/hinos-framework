@@ -5,6 +5,8 @@ const user = {
   username: 'testuser',
   password: 'test123'
 }
+const pj = '597aaa573f91b427e66ab09d'
+const role = '597aaa573f91b427e66ab09e'
 
 export default {
   des: '[Account] Testcase for user role',
@@ -12,13 +14,13 @@ export default {
     {
       key: '#authRequestByToken',
       headers: {
-        token: $var('token.headers.token')
+        token: $var('token.$headers.token')
       }
     },
     {
       key: '#authRequestBySecretkey',
       headers: {
-        token: $var('secretkey.data')
+        token: $var('secretkey.$body')
       }
     },
     {
@@ -37,8 +39,8 @@ export default {
       method: 'POST',
       url: 'http://service.clipvnet.com/oauth/register',
       headers: {
-        pj: '597aaa573f91b427e66ab09d',
-        role: '597aaa573f91b427e66ab09e'
+        pj,
+        role
       },
       body: {
         username: user.username,
@@ -59,10 +61,10 @@ export default {
       method: 'POST',
       url: 'http://service.clipvnet.com/oauth/Login',
       headers: {
-        pj: '597aaa573f91b427e66ab09d'
+        pj
       },
       body: {
-        username: $var('user.data.username'),
+        username: $var('user.$body.username'),
         password: user.password
       },
       var: 'token'

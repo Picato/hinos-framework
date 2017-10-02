@@ -26,7 +26,7 @@ export default {
         pj: '597aaa573f91b427e66ab09d'
       },
       body: {
-        username: $var('user.data.username'),
+        username: $var('user.$body.username'),
         password: user.password
       },
       var: 'token'
@@ -37,7 +37,7 @@ export default {
       disabled: false,
       doc: { group: 'account' },
       method: 'DELETE',
-      url: $url('http://service.clipvnet.com/oauth/account/:accountId', $var('user.data._id'))
+      url: $url('http://service.clipvnet.com/oauth/account/:accountId', $var('user.$body._id'))
     }
   ]
 } as Testcase
