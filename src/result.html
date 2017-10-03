@@ -32,12 +32,11 @@
 
     .json-doc {
       padding: 8px 24px;
-      border-radius: 0px;
+      border-radius: 2px;
       position: relative;
       background-color: #fff;
       color: #838383;
-      box-shadow: 0px 0px 1px #a0a0a0;
-      /* border: solid 1px #9c9c9c; */
+      border: dashed 1px #9c9c9c;
       /* text-shadow: 0px 1px 1px #fff; */
     }
 
@@ -66,13 +65,13 @@
       display: none;
     }
 
-    .no-style thead .key {
+    /* .no-style thead .key {
       color: #868686;
     }
 
     .no-style thead .des {
       color: #6d6d6d;
-    }
+    } */
 
     .no-style .key {
       color: #19796b;
@@ -96,19 +95,25 @@
       color: rgb(160, 80, 31);
     }
 
+    .url-doc:hover .clipboard,
     .json-doc:hover .clipboard {
       visibility: visible;
     }
 
+    .url-doc .clipboard {
+      visibility: hidden;
+    }
+    
     .json-doc .clipboard {
       position: absolute;
       visibility: hidden;
     }
 
+    .url-doc .clipboard,
     .json-doc .clipboard {
-      right: 0px;
-      top: 0px;
-      border-radius: 0px 0px 0px 0px;
+      right: 1px;
+      top: 1px;
+      /* border-radius: 0px 0px 0px 0px; */
       height: auto;
       font-weight: bold;
     }
@@ -232,13 +237,14 @@
       props: ['data', 'copyData'],
       data() {
         return {
-          copyText: 'Example'
+          copyText: undefined
         }
       },
       template: `<ul class="body">
         <a class="button clipboard is-small is-dark" @click="copy()" v-if="copyData">
-          <i class="fa fa-clipboard"></i>&nbsp;
-          <span>{{copyText}}</span>
+          <i class="fa fa-clipboard" v-if="copyText === undefined"></i>
+          <i class="fa fa-check" v-else></i>
+          &nbsp;<span>{{copyText || 'Example'}}</span>
         </a>
         <template v-if="data && data.type !== 'undefined'">
           <li v-if="data.type === 'array'">
@@ -246,10 +252,12 @@
               <json-doc :data="data.item" class="json-doc-item json-doc-item-array"></json-doc>
             <span class="mark">]</span>
           </li>
-          <li v-else-if="data.type === 'object' && Object.keys(data.item).length > 0">
-            <span class="mark">{</span>
-              <json-doc :data="data.item" class="json-doc-item json-doc-item-object"></json-doc>
-            <span class="mark">}</span>
+          <li v-else-if="data.type === 'object'">
+            <template v-if="data.item && Object.keys(data.item).length > 0">
+              <span class="mark">{</span>
+                <json-doc :data="data.item" class="json-doc-item json-doc-item-object"></json-doc>
+              <span class="mark">}</span>
+            </template>
           </li>
           <template v-else v-for="(vl, k) in data">
             <li>
@@ -269,7 +277,7 @@
           clipboard.copy(JSON.stringify(this.copyData, null, '  '))
           this.copyText = 'Copied'
           setTimeout(() => {
-            this.copyText = 'Example'
+            this.copyText = undefined
           }, 1000)
         }
       }
@@ -278,13 +286,14 @@
       props: ['data', 'copyData'],
       data() {
         return {
-          copyText: 'Example'
+          copyText: undefined
         }
       },
       template: `<ul class="header">
         <a class="button clipboard is-small is-dark" @click="copy()" v-if="copyData">
-          <i class="fa fa-clipboard"></i>&nbsp;
-          <span>{{copyText}}</span>
+          <i class="fa fa-clipboard" v-if="copyText === undefined"></i>
+          <i class="fa fa-check" v-else></i>
+          &nbsp;<span>{{copyText || 'Example'}}</span>
         </a>        
         <li v-if="data && data.type === 'object'" v-for="(vl, k) in data.item">          
           <b class="key">{{k}}</b>
@@ -297,7 +306,7 @@
           clipboard.copy(JSON.stringify(this.copyData, null, '  '))
           this.copyText = 'Copied'
           setTimeout(() => {
-            this.copyText = 'Example'
+            this.copyText = undefined
           }, 1000)
         }
       }
@@ -357,9 +366,17 @@
                           <details open>
                             <summary>General</summary>
                             <ul class="general">
-                              <li><b class="key">Request URL:</b> <span class="des">{{api.url.url || api.url}}</span></li>
-                              <li><b class="key">Request Method:</b> <span class="des">{{api.method}}</span></li>
-                              <li><b class="key">Status:</b> <i class="fa fa-circle" :class="api.error ? 'has-text-danger' : 'has-text-success'"></i> <span class="des">{{api.status}}</span></li>
+                              <li class="url-doc">
+                                <b class="key">Request URL:</b> <a class="has-text-dark" @click="copy(api.url.url || api.url, i, j)"><u><i v-html="formatUrl(api.url.url || api.url)"></i></u></a>
+                                &nbsp;
+                                <a class="button clipboard is-small is-light" @click="copy(api.url.url || api.url, i, j)">
+                                  <i class="fa fa-clipboard" v-if="api.copyText === undefined"></i>
+                                  <i class="fa fa-check" v-else></i>
+                                  &nbsp;<span>{{api.copyText || 'Copy link'}}</span>
+                                </a>
+                              </li>                                
+                              <li><b class="key">Request Method:</b> <b class="des">{{api.method}}</b></li>
+                              <li><b class="key">Status:</b> <i class="fa fa-circle" :class="api.error ? 'has-text-danger' : 'has-text-success'"></i> <b class="des">{{api.status}}</b></li>
                             </ul>
                           </details>
                           <hr style="margin-top: 0px" />
@@ -436,6 +453,16 @@
 
       },
       methods: {
+        copy(txt, i, j) {
+          clipboard.copy(txt)
+          this.$set(this.doc[i].apis[j], 'copyText', 'Copied')
+          setTimeout(() => {
+            this.$delete(this.doc[i].apis[j], 'copyText')
+          }, 1000)
+        },
+        formatUrl(url){
+          return url.toString().replace(/\/(:[^\/]+)/g, '/<b class="key">$1</b>').replace(/([^=?&]+)=(:[^&]+)/g, '<b class="key">$1</b>=<span class="des">$2</span>')
+        },
         toggleTc(i) {
           this.$set(this.doc[i], 'isHide', !this.doc[i].isHide)
         },
