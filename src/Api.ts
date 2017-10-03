@@ -2,43 +2,7 @@ import * as _ from 'lodash'
 import axios from 'axios'
 import { Var, Url } from './Eval'
 import { Doc, DocImpl } from './ApiDoc'
-
-function replaceVars(obj, $var) {
-  if (obj === undefined || obj === null) return obj
-  if (obj instanceof Array) {
-    obj = obj.map(e => replaceVars(e, $var))
-  } else if (obj instanceof Url) {
-    if (obj.vars && obj.vars.length > 0) {
-      let idx = 0
-      obj.toString = () => {
-        return obj.url.replace(/:([A-Za-z0-9_]+)/g, (_all, _m) => {
-          try {
-            // tslint:disable-next-line:no-eval
-            return replaceVars(obj.vars[idx++], $var)
-          } catch (_e) {
-            return undefined
-          }
-        })
-      }
-    } else {
-      obj = obj.url
-    }
-  } else if (obj instanceof Var) {
-    obj = obj.toString().replace(/\$\{([^\}]+)\}/g, (_all, m) => {
-      try {
-        // tslint:disable-next-line:no-eval
-        return eval(`${m}`)
-      } catch (_e) {
-        return undefined
-      }
-    })
-  } else if (typeof obj === 'object') {
-    for (let k in obj) {
-      obj[k] = replaceVars(obj[k], $var)
-    }
-  }
-  return obj
-}
+import { TestcaseImpl } from './Testcase'
 
 export abstract class Api {
   key?: string
@@ -49,8 +13,8 @@ export abstract class Api {
   body?: any
   extends?: string | string[]
   var?: string
-  disabled?: boolean
-  doc?: Doc
+  disabled?: boolean = false
+  doc?: Doc = undefined
 }
 
 export class ApiImpl extends Api {
@@ -72,15 +36,22 @@ export class ApiImpl extends Api {
   }
 
   async run() {
-    this.install(ApiImpl.vars)
+    const vars = ApiImpl.vars
+    this.install(vars)
     await this.call()
     if (this.var) {
-      ApiImpl.vars[this.var] = {
-        status: this.status,
-        headers: this.headers,
-        body: this.body,
-        $headers: this.$headers,
-        $body: this.$body
+      if (typeof this.var === 'string') {
+        ApiImpl.vars[this.var] = {
+          status: this.status,
+          headers: this.headers,
+          body: this.body,
+          $headers: this.$headers,
+          $body: this.$body
+        }
+      } else {
+        for (let k in this.var) {
+          ApiImpl.vars[k] = this.replaceVars(this.var[k], vars)
+        }
       }
     }
   }
@@ -88,21 +59,21 @@ export class ApiImpl extends Api {
   load() {
     if (this.extends) {
       const _extends = (this.extends instanceof Array) ? this.extends : [this.extends]
-      let tmp = {}
+      let tmp = {} as any
       for (const ext of _extends) {
         const api = ApiImpl.all.find(e => e.key === ext)
         if (!api) throw new Error(`Could not found api with key "${this.extends}" to extends`)
-        _.merge(tmp, api, this)
+        _.merge(tmp, api)
       }
-      _.merge(this, tmp)
+      _.defaultsDeep(this, tmp)
     }
     return this
   }
 
   private async install(vars: any) {
-    this.url = replaceVars(this.url, vars)
-    this.headers = replaceVars(this.headers, vars)
-    this.body = replaceVars(this.body, vars)
+    this.url = this.replaceVars(this.url, vars)
+    this.headers = this.replaceVars(this.headers, vars)
+    this.body = this.replaceVars(this.body, vars)
   }
 
   private async call() {
@@ -126,23 +97,66 @@ export class ApiImpl extends Api {
       }
       if (!this.error) this.error = e.message || e || 'Unknown error'
     } finally {
-      (this.doc as DocImpl).install(this)
       this.executeTime = new Date().getTime() - now.getTime()
+      if (this.doc) (this.doc as DocImpl).install(this)
     }
+  }
+
+  private replaceVars(obj, $var) {
+    if (obj === undefined || obj === null) return obj
+    if (obj instanceof Array) {
+      obj = obj.map(e => this.replaceVars(e, $var))
+    } else if (obj instanceof Url) {
+      if (obj.vars && obj.vars.length > 0) {
+        let idx = 0
+        obj.toString = () => {
+          return obj.url.replace(/:([A-Za-z0-9_]+)/g, (_all, _m) => {
+            try {
+              // tslint:disable-next-line:no-eval
+              return this.replaceVars(obj.vars[idx++], $var)
+            } catch (_e) {
+              return undefined
+            }
+          })
+        }
+      } else {
+        obj = obj.url
+      }
+    } else if (obj instanceof Var) {
+      obj = JSON.parse(obj.toString().replace(/\$\{([^\}]+)\}/g, (_all, m) => {
+        try {
+          // tslint:disable-next-line:no-eval
+          const rs = eval(`${m}`)
+          return JSON.stringify(rs)
+        } catch (_e) {
+          return undefined
+        }
+      }))
+    } else if (typeof obj === 'object') {
+      for (let k in obj) {
+        obj[k] = this.replaceVars(obj[k], $var)
+      }
+    }
+    return obj
   }
 
 }
 
 export namespace Api {
-  export function loadScenario(scenario: Api) {
+  export function loadScenario(scenario: Api | string | string[], tc: TestcaseImpl) {
     const api = new ApiImpl()
-    for (let k in scenario) {
+    if (typeof scenario === 'string' || (scenario instanceof Array)) {
+      scenario = { extends: scenario } as Api
+    }
+    for (let k in scenario as Api) {
       api[k] = scenario[k]
     }
+    if (!api.method && api.url instanceof Url) api.method = api.url.method as any
     api.headers = _.merge({}, ApiImpl.defaultHeaders, api.headers)
-    api.doc = DocImpl.loadScenario(api.doc)
+    if (api.doc) api.doc = DocImpl.loadScenario(api.doc)
     api.id = ApiImpl.all.length
     api.load()
+    if (tc.disabled) api.disabled = true
     ApiImpl.all.push(api)
     return !api._disabled ? api.id : -1
   }

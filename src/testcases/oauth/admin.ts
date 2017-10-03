@@ -1,43 +1,41 @@
 import { Testcase } from '../../Testcase'
-import { $var, $url } from '../../Eval'
-
-const user = {
-  username: 'testuser',
-  password: 'test123'
-}
+import { $var, GET, POST, PUT, DELETE, HEAD, PATCH } from '../../Eval'
 
 export default {
   des: '[Account] Testcase for admin role',
+  var: {
+    $$admin: {
+      username: 'testuser',
+      password: 'test123'
+    }
+  },
   apis: [
-    {
-      key: '#authRequestByToken',
-      headers: {
-        token: $var('token.headers.token')
-      }
-    },
     {
       key: '#login',
       des: 'Login web',
-      disabled: false,
-      doc: { group: 'account' },
-      method: 'POST',
-      url: 'http://service.clipvnet.com/oauth/Login',
+      url: POST('http://service.clipvnet.com/oauth/Login'),
       headers: {
-        pj: '597aaa573f91b427e66ab09d'
+        pj: $var('$$pj')
       },
       body: {
-        username: $var('user.$body.username'),
-        password: user.password
+        username: $var('$$admin.username'),
+        password: $var('$$admin.password')
       },
-      var: 'token'
+      var: {
+        'token': $var('this.$headers.token')
+      }
+    },
+    {
+      extends: '#authRequestByToken',
+      des: 'Check authorization when call api',
+      url: HEAD('http://service.clipvnet.com/oauth/Authoriz?path=:path&actions=:actions', 'hinos-oauth-service>Me', 'GET_INFOR, UPDATE'),
+      doc: { group: 'Admin Account' }
     },
     {
       des: 'Remove user after test client api',
       extends: '#authRequestByToken',
-      disabled: false,
-      doc: { group: 'account' },
-      method: 'DELETE',
-      url: $url('http://service.clipvnet.com/oauth/account/:accountId', $var('user.$body._id'))
+      url: DELETE('http://service.clipvnet.com/oauth/account/:accountId', $var('user._id')),
+      doc: { group: 'Admin Account' }
     }
   ]
 } as Testcase

@@ -1,149 +1,113 @@
 import { Testcase } from '../../Testcase'
-import { $var } from '../../Eval'
-
-const user = {
-  username: 'testuser',
-  password: 'test123'
-}
-const pj = '597aaa573f91b427e66ab09d'
-const role = '597aaa573f91b427e66ab09e'
+import { $var, GET, POST, PUT, DELETE, HEAD, PATCH } from '../../Eval'
 
 export default {
   des: '[Account] Testcase for user role',
+  var: {
+    $$user: {
+      username: 'testuser',
+      password: 'test123'
+    }
+  },
   apis: [
     {
-      key: '#authRequestByToken',
-      headers: {
-        token: $var('token.$headers.token')
-      }
-    },
-    {
-      key: '#authRequestBySecretkey',
-      headers: {
-        token: $var('secretkey.$body')
-      }
-    },
-    {
-      key: '#ping',
-      des: 'Ping to keep connection',
-      extends: '#authRequestByToken',
-      disabled: true,
-      doc: { group: 'account' },
-      method: 'HEAD',
-      url: 'http://service.clipvnet.com/oauth/ping'
-    },
-    {
       des: 'Register',
-      disabled: false,
-      doc: { group: 'account' },
-      method: 'POST',
-      url: 'http://service.clipvnet.com/oauth/register',
+      url: POST('http://service.clipvnet.com/oauth/register'),
       headers: {
-        pj,
-        role
+        pj: $var('$$pj'),
+        role: $var('$$role')
       },
       body: {
-        username: user.username,
-        password: user.password,
+        username: $var('$$user.username'),
+        password: $var('$$user.password'),
         recover_by: 'testuser@abc.com',
         more: {
           fullname: 'Test user name',
           phone: '093239842'
         }
       },
-      var: 'user'
+      var: {
+        'user': $var('this.$body')
+      },
+      doc: { group: 'ACCOUNT' }
     },
     {
       key: '#login',
       des: 'Login web',
-      disabled: false,
-      doc: { group: 'account' },
-      method: 'POST',
-      url: 'http://service.clipvnet.com/oauth/Login',
+      url: POST('http://service.clipvnet.com/oauth/Login'),
       headers: {
-        pj
+        pj: $var('$$pj')
       },
       body: {
-        username: $var('user.$body.username'),
-        password: user.password
+        username: $var('user.username'),
+        password: $var('$$user.password')
       },
-      var: 'token'
+      var: {
+        'token': $var('this.$headers.token')
+      },
+      doc: { group: 'ACCOUNT' }
+    },
+    {
+      extends: '#ping',
+      doc: { group: 'ACCOUNT' }
     },
     {
       key: '#generate-secretkey',
       des: 'Generate secret key which allow access api without login',
       extends: '#authRequestByToken',
-      disabled: false,
-      doc: { group: 'account' },
-      method: 'PUT',
-      url: 'http://service.clipvnet.com/oauth/Secretkey',
-      var: 'secretkey'
+      url: PUT('http://service.clipvnet.com/oauth/Secretkey'),
+      var: {
+        'secretkey': $var('this.$body')
+      },
+      doc: { group: 'SECRET KEY' }
     },
     {
       des: 'Get secret key which allow access api without login',
       extends: '#authRequestBySecretkey',
-      disabled: false,
-      doc: { group: 'account' },
-      method: 'GET',
-      url: 'http://service.clipvnet.com/oauth/Secretkey'
+      url: GET('http://service.clipvnet.com/oauth/Secretkey'),
+      doc: { group: 'SECRET KEY' }
     },
     {
       des: 'Remove secret key which not allow access api without login',
       extends: '#authRequestByToken',
-      disabled: false,
-      doc: { group: 'account' },
-      method: 'DELETE',
-      url: 'http://service.clipvnet.com/oauth/Secretkey'
+      url: DELETE('http://service.clipvnet.com/oauth/Secretkey'),
+      doc: { group: 'SECRET KEY' }
     },
-    {
-      extends: ['#ping', '#authRequestBySecretkey'],
-      disabled: false
-    },
+    ['#ping', '#authRequestBySecretkey'],
     {
       des: 'Update user information',
       extends: '#authRequestByToken',
-      disabled: false,
-      doc: { group: 'account' },
-      method: 'PUT',
-      url: 'http://service.clipvnet.com/oauth/me',
+      url: PUT('http://service.clipvnet.com/oauth/me'),
       body: {
         more: {
           fullname: 'Updated name'
         }
-      }
+      },
+      doc: { group: 'ACCOUNT' }
     },
     {
       des: 'Get user information',
       extends: '#authRequestByToken',
-      disabled: false,
-      doc: { group: 'account' },
-      method: 'GET',
-      url: 'http://service.clipvnet.com/oauth/me',
-      var: 'me'
+      url: GET('http://service.clipvnet.com/oauth/me'),
+      var: 'me',
+      doc: { group: 'ACCOUNT' }
     },
     {
       des: 'Get user roles which grant permission for web, api or mobile',
       extends: '#authRequestByToken',
-      disabled: false,
+      url: GET('http://service.clipvnet.com/oauth/MyRoles?type=:deviceType', 'web'),
+      var: 'roles',
       doc: {
-        group: 'account',
+        group: 'ROLE',
         note: `Note: Type must be in [web, mob, api]`
-      },
-      method: 'GET',
-      url: 'http://service.clipvnet.com/oauth/MyRoles?type=web',
-      var: 'roles'
+      }
     },
     {
       des: 'Logout',
       extends: '#authRequestByToken',
-      disabled: false,
-      doc: { group: 'account' },
-      method: 'GET',
-      url: 'http://service.clipvnet.com/oauth/logout'
+      url: GET('http://service.clipvnet.com/oauth/logout'),
+      doc: { group: 'ACCOUNT' }
     },
-    {
-      extends: '#ping',
-      disabled: false
-    }
+    '#ping'
   ]
 } as Testcase

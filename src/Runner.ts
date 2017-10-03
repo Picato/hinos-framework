@@ -5,13 +5,15 @@ import { ApiImpl } from './Api'
 import { Url } from './Eval'
 import * as fs from 'fs'
 import * as path from 'path'
+import { Config } from './Config'
 
-export async function runner() {
+export async function runner(config: Config) {
   const c0 = chalk.black('┌')
   const c1 = chalk.black('├')
   const c2 = chalk.black('└')
   const ce = chalk.black('│')
   const result = {
+    title: config.title,
     summary: {
       testcase: {
         passed: 0,
@@ -28,21 +30,23 @@ export async function runner() {
         }
       }
     },
-    tcs: [],
-    apis: [],
+    tcs: [] as TestcaseImpl[],
+    apis: [] as ApiImpl[],
     doc: [],
-    vars: {}
+    vars: {} as any
   }
 
-  const scenarios = ['./testcases/oauth/client', './testcases/oauth/admin'] as string[]
-  const tcs = (await Promise.all(scenarios.map(async (imp) => {
+  const tcs = (await Promise.all(config.scenarios.map(async (imp) => {
     const Test = await import(imp) as { default: Testcase }
     return TestcaseImpl.loadScenario(Test.default)
   }))).filter(i => i !== -1).map(e => TestcaseImpl.all[e]) as TestcaseImpl[]
 
-  console.log(`${chalk.bgGreen.bold(`                 `)}`)
-  console.log(`${chalk.bgGreen.bold(`   API testing   `)}`)
-  console.log(`${chalk.bgGreen.bold(`                 `)}`)
+  // tslint:disable-next-line:no-multi-spaces
+  console.log(`${chalk.bgGreen.bold(`   ${result.title.replace(/./g, ' ')}   `)}`)
+  // tslint:disable-next-line:no-multi-spaces
+  console.log(`${chalk.bgGreen.bold(`   ${result.title}   `)}`)
+  // tslint:disable-next-line:no-multi-spaces
+  console.log(`${chalk.bgGreen.bold(`   ${result.title.replace(/./g, ' ')}   `)}`)
   console.log('')
   console.log('')
 
@@ -72,11 +76,12 @@ export async function runner() {
   }
   const executeTime = new Date().getTime() - now.getTime()
   result.vars = ApiImpl.vars
-  result.apis = ApiImpl.all
+  result.apis = ApiImpl.all as ApiImpl[]
   result.doc = DocImpl.all
+  result.doc.sort((a, b) => config.groups.indexOf(a.group) - config.groups.indexOf(b.group))
 
   const fin = path.join('src', 'result.html')
-  const fout = path.join('src', 'doc-test.html')
+  const fout = config.output
   let cnt = fs.readFileSync(fin).toString()
   cnt = cnt.replace(/\/\*TEST_RESULT_DATA\*\//, JSON.stringify(result))
   fs.writeFileSync(fout, cnt)

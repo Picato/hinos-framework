@@ -1,3 +1,8 @@
 import { runner } from './Runner'
+import Config from './Config'
 
-runner()
+(async () => {
+  for (let config of Config) {
+    await runner(config)
+  }
+})()

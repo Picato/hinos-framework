@@ -78,7 +78,6 @@ export class DocImpl extends Doc {
     this.i18ignore = _.union(DocImpl.i18ignore, this.i18ignore)
     this.headers = this.getDocType(this.ignoreDoc(api.headers, 'headers'), 'value', 'headers')
     this.body = this.getDocType(this.ignoreDoc(api.body, 'body'), 'name', 'body')
-    // if (api.des === 'Get secret key which allow access api without login') debugger
     this.status = this.getDocType(api.status, 'value', 'status')
     this.$headers = this.getDocType(this.ignoreDoc(api.$headers, '$headers'), 'value', '$headers')
     this.$body = this.getDocType(this.ignoreDoc(api.$body, '$body'), 'name', '$body')

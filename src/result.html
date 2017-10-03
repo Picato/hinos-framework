@@ -11,6 +11,7 @@
     .link {
       cursor: pointer;
     }
+
     .general {
       padding-left: 24px;
     }
@@ -25,13 +26,9 @@
       text-shadow: none;
     }
 
-    .json-doc.header {
-      
-    }
+    .json-doc.header {}
 
-    .json-doc.body {
-      
-    }
+    .json-doc.body {}
 
     .json-doc {
       padding: 8px 24px;
@@ -46,7 +43,7 @@
 
     .json-doc table,
     .json-doc table tr {
-      background: inherit;      
+      background: inherit;
     }
 
     .no-style .table {
@@ -54,7 +51,7 @@
     }
 
     .json-doc .table {
-      margin: 0;      
+      margin: 0;
     }
 
     .json-doc td {
@@ -70,10 +67,11 @@
     }
 
     .no-style thead .key {
-      color: #868686;      
+      color: #868686;
     }
+
     .no-style thead .des {
-      color: #6d6d6d;      
+      color: #6d6d6d;
     }
 
     .no-style .key {
@@ -308,6 +306,11 @@
       el: '#mainContent',
       template: `
       <div>
+        <section class="hero is-primary">
+          <div class="hero-body">
+            <h1 class="title">{{title}}</h1>
+          </div>
+        </section>
         <table class="table is-striped is-narrow hover">
           <thead>
             <tr>
@@ -338,7 +341,7 @@
                   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag is-small method" :class="api.method">{{api.method}}</span>                  
                 </td>
                 <td>                  
-                  <a>{{api.des}}</a>
+                  <a><b>{{api.des}}</b></a>
                   <span class="tag">{{api.url.url || api.url}}</span>
                 </td>
                 <td class="has-text-centered">
@@ -412,6 +415,7 @@
       `,
       data() {
         return {
+          title: data.title,
           doc: []
         }
       },
@@ -447,15 +451,20 @@
   } else {
     new Vue({
       el: '#mainContent',
-      template: `
+      template: `      
       <div>
+        <section class="hero is-primary">
+          <div class="hero-body">
+            <h1 class="title">{{title}}</h1>
+          </div>
+        </section>
         <table class="table is-striped is-narrow">
           <thead>
             <tr>
-              <th colspan="2">API Url</th>
-              <th width="1">Status</th>
-              <th width="1">Req/Res</th>
-              <th width="1">Var</th>
+              <th colspan="2">Description</th>
+              <th width="1">status</th>
+              <th width="1">req/res</th>
+              <th width="1">$var</th>
             </tr>
           </thead>
           <template v-for="(tc, i) in tcs">
@@ -504,7 +513,10 @@
                   </a>
                 </td>
                 <td class="has-text-centered">
-                  <a v-if="api.var" @click="log(api)"><strong>{{api.var}}</strong></a>
+                  <template v-if="api.var">
+                    <a v-if="typeof api.var !== 'object'" @click="log(api.var)"><strong>{{api.var}}</strong></a>
+                    <a v-else @click="log(k)" v-for="(vl, k) in api.var"><strong>{{k}}</strong></a>
+                  </template>
                 </td>
               </tr>              
             </tbody>
@@ -514,6 +526,7 @@
       `,
       data() {
         return {
+          title: data.title,
           vars: data.vars,
           tcs: []
         }
@@ -544,19 +557,19 @@
         },
         log(api, type) {
           const logData = (groupName, data, jsonType, isCollapsed) => {
-            if(isCollapsed) console.groupCollapsed(groupName)
+            if (isCollapsed) console.groupCollapsed(groupName)
             else console.group(groupName)
-            if(data !== undefined) {
-              if(typeof data === 'object') {
-                if(jsonType) {
+            if (data !== undefined) {
+              if (typeof data === 'object') {
+                if (jsonType) {
                   console.log(JSON.stringify(data, null, '  '))
                 } else {
-                  for(let k in data) {
-                    if(typeof data[k] === 'string') console.log(`"${k}": "${data[k]}"`)
+                  for (let k in data) {
+                    if (typeof data[k] === 'string') console.log(`"${k}": "${data[k]}"`)
                     else console.log(`"${k}": ${data[k]}`)
                   }
                 }
-              }else {
+              } else {
                 console.log(data)
               }
             }
@@ -575,14 +588,20 @@
             logData(`Body`, api.$body, true)
             console.groupEnd()
           } else {
-            console.group(`VARIABLE: ${api.var}`)
-            const vl = this.vars[api.var]
-            if(vl) {
-              for(let k in vl) {
-                if(typeof vl[k] === 'object') logData(`${k}`, vl[k], true, true)
-                else logData(`${k}: ${vl[k]}`)
-              }       
-            }     
+            const varName = api
+            console.group(`$var: ${varName}`)
+            const vl = this.vars[varName]
+            if (vl) {
+              if (typeof vl === 'object' && vl.body && vl.headers && vl.$body && vl.$headers && vl.status) {
+                for (let k in vl) {
+                  if (typeof vl[k] === 'object') logData(`${k}`, vl[k], true, k !== '$body')
+                  else if (typeof vl[k] === 'string') console.log(`%c${k}:`, `font-weight: bold;`, `"${vl[k]}"`)
+                  else console.log(`%c${k}:`, `font-weight: bold;`, `${vl[k]}`)
+                }
+              } else {
+                console.log(JSON.stringify(vl, null, '  '))
+              }
+            }
             console.groupEnd()
           }
         }
