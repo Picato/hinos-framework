@@ -4,9 +4,11 @@ import { ApiImpl } from './Api'
 export abstract class Doc {
   i18doc?: any
   i18ignore?: any
+  title?: string
   group: string
   order?: number
   note?: string
+  tags?: string | string[] = []
 }
 
 export class DocImpl extends Doc {
@@ -74,6 +76,9 @@ export class DocImpl extends Doc {
   }
 
   install(api: ApiImpl) {
+    if (!this.title) this.title = api.des
+    if (!this.tags) this.tags = []
+    if (typeof this.tags === 'string') this.tags = [this.tags]
     this.i18doc = _.merge({}, DocImpl.i18doc, this.i18doc)
     this.i18ignore = _.union(DocImpl.i18ignore, this.i18ignore)
     this.headers = this.getDocType(this.ignoreDoc(api.headers, 'headers'), 'value', 'headers')
@@ -88,43 +93,43 @@ export class DocImpl extends Doc {
   private getDocType(obj: any, type: ('value' | 'name'), prefix: string, defaultValue?: any) {
     if (obj instanceof Array) {
       const rs = {
-        des: this.i18doc[prefix],
-        type: `array`
+        $des: this.i18doc[prefix],
+        $type: `array`
       } as any
       if (obj[0] instanceof Array) {
-        rs.item = this.getDocType(obj[0], type, `${prefix}.0`)
-        if (rs.item.type.includes('array<')) {
-          rs.type += `<${rs.item.type}>`
-          delete rs.item
+        rs.$item = this.getDocType(obj[0], type, `${prefix}.0`)
+        if (rs.$item.type.includes('array<')) {
+          rs.$type += `<${rs.$item.type}>`
+          delete rs.$item
         }
       } else if (typeof obj[0] === 'object') {
-        rs.item = this.getDocType(obj[0], type, `${prefix}.0`)
+        rs.$item = this.getDocType(obj[0], type, `${prefix}.0`)
       } else {
-        rs.type = `array<${('' + typeof (obj[0])).toUpperCase()}>`
+        rs.$type = `array<${('' + typeof (obj[0])).toUpperCase()}>`
       }
       return rs
     } else if (typeof obj === 'object') {
       const rs = {
-        des: this.i18doc[prefix],
-        type: 'object',
-        item: {} as any
+        $des: this.i18doc[prefix],
+        $type: 'object',
+        $item: {} as any
       }
       for (let k in obj) {
-        rs.item[k] = this.getDocType(obj[k], type, `${prefix}.${k}`, type === 'name' ? k : obj[k])
+        rs.$item[k] = this.getDocType(obj[k], type, `${prefix}.${k}`, type === 'name' ? k : obj[k])
       }
       return rs
     } else {
       if (prefix === '$body' || prefix === 'body') {
         return {
           '': {
-            des: this.i18doc[prefix] || defaultValue || obj,
-            type: typeof obj
+            $des: this.i18doc[prefix] || defaultValue || obj,
+            $type: typeof obj
           }
         }
       }
       return {
-        des: this.i18doc[prefix] || defaultValue || obj,
-        type: typeof obj
+        $des: this.i18doc[prefix] || defaultValue || obj,
+        $type: typeof obj
       }
     }
   }
@@ -139,4 +144,13 @@ export namespace DocImpl {
     }
     return doc
   }
+}
+
+export function DOC(title: string, group: string, tags?: string | string[], options?: Api, meta?: { key?: string, extends?: string }): Api {
+  if (typeof tags !== 'string' && !(tags instanceof Array)) {
+    meta = options as any
+    options = tags as Api
+    tags = []
+  }
+  return _.merge({ des: title, doc: { title, group, tags } }, options, meta)
 }

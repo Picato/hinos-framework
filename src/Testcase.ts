@@ -2,10 +2,10 @@ import { Api, ApiImpl } from './Api'
 
 export abstract class Testcase {
   key?: string
-  des?: string
+  des: string
   disabled?: boolean
   apis?: Api[]
-  var = {} as any
+  var?: string | { [key: string]: any } = {}
 }
 
 export class TestcaseImpl extends Testcase {
@@ -27,9 +27,9 @@ export namespace TestcaseImpl {
     for (let k in scenario) {
       if (k === 'apis') {
         tc.apiIndexes = tc.apiIndexes.concat(scenario.apis.map(e => Api.loadScenario(e, this)).filter(e => e !== -1))
-      } else if (k === 'var' && typeof scenario[k] === 'object') {
-        for (let k0 in scenario[k]) {
-          ApiImpl.vars[k0] = scenario[k][k0]
+      } else if (k === 'var' && typeof scenario.var === 'object') {
+        for (let k0 in scenario.var) {
+          ApiImpl.vars[k0] = scenario.var[k0]
         }
       } else {
         tc[k] = scenario[k]

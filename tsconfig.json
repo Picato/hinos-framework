@@ -2,7 +2,7 @@
     "compilerOptions": {
         "module": "commonjs",
         "target": "esnext",
-        "declaration": false,
+        "declaration": true,
         "sourceMap": false,
         "preserveConstEnums": true,
         "removeComments": true,

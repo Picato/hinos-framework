@@ -7,12 +7,12 @@ import { TestcaseImpl } from './Testcase'
 export abstract class Api {
   key?: string
   des?: string
-  method: 'POST' | 'PUT' | 'GET' | 'HEAD' | 'DELETE'
-  url: string | Url
+  method?: 'POST' | 'PUT' | 'GET' | 'HEAD' | 'DELETE' | 'PATCH'
+  url?: string | Url
   headers?: { [key: string]: any }
   body?: any
   extends?: string | string[]
-  var?: string
+  var?: string | { [key: string]: any }
   disabled?: boolean = false
   doc?: Doc = undefined
 }
@@ -160,4 +160,8 @@ export namespace Api {
     ApiImpl.all.push(api)
     return !api._disabled ? api.id : -1
   }
+}
+
+export function API(des: string, options: Api, meta: { key?: string, extends?: string } = {}): Api {
+  return _.merge({ des }, options, meta)
 }

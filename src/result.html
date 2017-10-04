@@ -8,12 +8,92 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="./doc.css">
   <style>
+    .tag.api-tag {
+      font-size: 9px;
+      padding: 0px 5px;
+      height: auto;
+      font-weight: bold;
+    }
+
     .link {
       cursor: pointer;
     }
 
     .general {
-      padding-left: 24px;
+      position: relative;
+    }
+
+    .json-doc-container {
+      margin: 4px 16px;
+    }
+    
+    .api-table > tbody.show > tr:hover {
+      background-color: inherit;
+    }
+    .api-table > tbody.show > .link a > b {
+      color: white;
+    }
+    .api-table > tbody.show > .link {
+      background-color: #00d1b2;      
+    }
+    .api-table > tbody.show .no-style {
+
+    }
+
+    .no-style:hover {
+      background-color: inherit;
+    }
+    .no-style {
+      background-color: #00d1b2 !important;
+    }
+
+    .no-style summary {
+      color: white;
+    }
+
+    .no-style details.disabled summary {
+      color: #06927d;
+      text-decoration: line-through;
+      font-weight: normal !important;
+    }
+    .no-style details.disabled .json-doc {
+      background-color: #dedede;
+    }
+
+    .no-style .table {
+      background: inherit;
+    }
+
+    .no-style details>summary span {
+      display: inline;
+    }
+
+    .no-style details[open]>summary span {
+      display: none;
+    }
+
+    .no-style .key {
+      color: #19796b;
+    }
+
+    .no-style .type {
+      color: #9d9d9d;
+      background: #ff470f;
+      color: #fafafa;
+      padding: 0px 4px;
+      border: dashed 1px #ffffff;
+      position: relative;
+      top: 4px;
+      left: -4px;
+      font-style: normal;
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 9px;
+    }
+
+    .no-style .des {
+      color: #b9b9b9;
+      color: rgb(160, 80, 31);
     }
 
     .json-doc-container>.json-doc,
@@ -37,15 +117,10 @@
       background-color: #fff;
       color: #838383;
       border: dashed 1px #9c9c9c;
-      /* text-shadow: 0px 1px 1px #fff; */
     }
 
     .json-doc table,
     .json-doc table tr {
-      background: inherit;
-    }
-
-    .no-style .table {
       background: inherit;
     }
 
@@ -57,59 +132,35 @@
       vertical-align: middle;
     }
 
-    .no-style details>summary span {
-      display: inline;
-    }
-
-    .no-style details[open]>summary span {
-      display: none;
-    }
-
-    /* .no-style thead .key {
-      color: #868686;
-    }
-
-    .no-style thead .des {
-      color: #6d6d6d;
-    } */
-
-    .no-style .key {
-      color: #19796b;
-    }
-
-    .no-style .type {
-      color: #9d9d9d;
-      background: #c14903;
-      color: #fafafa;
-      padding: 0px 4px;
-      border-radius: 8px 2px;
-      zoom: 0.5;
-      border: solid 1px #9a3900;
-      position: relative;
-      top: 4px;
-      left: -8px;
-    }
-
-    .no-style .des {
-      color: #b9b9b9;
-      color: rgb(160, 80, 31);
-    }
-
     .url-doc:hover .clipboard,
     .json-doc:hover .clipboard {
       visibility: visible;
     }
 
-    .url-doc .clipboard {
-      visibility: hidden;
+    .url-doc {
+      background-color: white;
+      padding: 8px 24px;
+      border: dashed 1px #484848;
+      border-radius: 24px
     }
-    
+
+    .url-doc .clipboard {
+      border-radius: 16px
+    }
+
+    .url-doc .clipboard,
     .json-doc .clipboard {
       position: absolute;
       visibility: hidden;
     }
 
-    .url-doc .clipboard,
+    .url-doc .clipboard {
+      right: 16px;
+      top: 8px;
+      height: auto;
+      font-weight: bold;
+    }
+    
     .json-doc .clipboard {
       right: 1px;
       top: 1px;
@@ -240,33 +291,33 @@
           copyText: undefined
         }
       },
-      template: `<ul class="body">
-        <a class="button clipboard is-small is-dark" @click="copy()" v-if="copyData">
-          <i class="fa fa-clipboard" v-if="copyText === undefined"></i>
-          <i class="fa fa-check" v-else></i>
-          &nbsp;<span>{{copyText || 'Example'}}</span>
-        </a>
-        <template v-if="data && data.type !== 'undefined'">
-          <li v-if="data.type === 'array'">
+      template: `<ul class="body" v-if="data">
+        <template>
+          <a class="button clipboard is-small is-dark" @click="copy()" v-if="copyData">
+            <i class="fa fa-clipboard" v-if="copyText === undefined"></i>
+            <i class="fa fa-check" v-else></i>
+            &nbsp;<span>{{copyText || 'Example'}}</span>
+          </a>     
+          <li v-if="data.$type === 'array'">
             <span class="mark">[</span>
-              <json-doc :data="data.item" class="json-doc-item json-doc-item-array"></json-doc>
+              <json-doc :data="data.$item" class="json-doc-item json-doc-item-array"></json-doc>
             <span class="mark">]</span>
           </li>
-          <li v-else-if="data.type === 'object'">
-            <template v-if="data.item && Object.keys(data.item).length > 0">
+          <li v-else-if="data.$type === 'object'">
+            <template v-if="data.$item && Object.keys(data.$item).length">
               <span class="mark">{</span>
-                <json-doc :data="data.item" class="json-doc-item json-doc-item-object"></json-doc>
+                <json-doc :data="data.$item" class="json-doc-item json-doc-item-object"></json-doc>
               <span class="mark">}</span>
             </template>
           </li>
           <template v-else v-for="(vl, k) in data">
             <li>
               <b class="key">{{k}}</b>
-              <i class="type">{{vl.type}}</i> 
-              <span class="des">{{vl.des || k}}</span>
+              <i class="type">{{vl.$type}}</i>
+              <span class="des">{{vl.$des || k}}</span>
             </li>
-            <li v-if="vl.item">
-              <json-doc v-if="vl.item.type === 'array'" :data="vl" class="json-doc-item json-doc-item-array1"></json-doc>
+            <li v-if="vl.$item">
+              <json-doc v-if="vl.$item.$type === 'array'" :data="vl" class="json-doc-item json-doc-item-array1"></json-doc>
               <json-doc v-else                          :data="vl" class="json-doc-item json-doc-item-object1"></json-doc>
             </li>        
           </template>
@@ -289,17 +340,19 @@
           copyText: undefined
         }
       },
-      template: `<ul class="header">
-        <a class="button clipboard is-small is-dark" @click="copy()" v-if="copyData">
-          <i class="fa fa-clipboard" v-if="copyText === undefined"></i>
-          <i class="fa fa-check" v-else></i>
-          &nbsp;<span>{{copyText || 'Example'}}</span>
-        </a>        
-        <li v-if="data && data.type === 'object'" v-for="(vl, k) in data.item">          
-          <b class="key">{{k}}</b>
-          <i class="type">{{vl.type}}</i> 
-          <span class="des">{{vl.des || k}}</span>
-        </li>
+      template: `<ul class="header" v-if="data && data.$type === 'object'">
+        <template v-for="(vl, k) in data.$item">
+          <a class="button clipboard is-small is-dark" @click="copy()" v-if="copyData">
+            <i class="fa fa-clipboard" v-if="copyText === undefined"></i>
+            <i class="fa fa-check" v-else></i>
+            &nbsp;<span>{{copyText || 'Example'}}</span>
+          </a>
+          <li>          
+            <b class="key">{{k}}</b>
+            <i class="type">{{vl.$type}}</i> 
+            <span class="des">{{vl.$des || k}}</span>
+          </li>
+        </template>
       </ul>`,
       methods: {
         copy() {
@@ -320,7 +373,7 @@
             <h1 class="title">{{title}}</h1>
           </div>
         </section>
-        <table class="table is-striped is-narrow hover">
+        <table class="table is-striped is-narrow hover api-table">
           <thead>
             <tr>
               <th colspan="2">API Url</th>
@@ -344,71 +397,71 @@
                 </td>
               </tr>
             </thead>
-            <tbody v-for="(api, j) in gp.apis" v-show="!gp.isHide" v-if="api">
+            <tbody v-for="(api, j) in gp.apis" v-show="!gp.isHide" v-if="api" :class="{'show': api.isShow}">
               <tr @click="toggleApi(i, j)" class="link">
                 <td style="vertical-align: middle">
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag is-small method" :class="api.method">{{api.method}}</span>                  
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 </td>
                 <td>                  
-                  <a><b>{{api.des}}</b></a>
-                  <span class="tag">{{api.url.url || api.url}}</span>
+                  <a><b>{{api.doc.title}}</b></a>
+                  <span class="tag">
+                    <b class="method" :class="api.method">{{api.method}}</b>
+                    &nbsp;{{api.url.url || api.url}}
+                  </span>
+                  <span class="tag is-danger api-tag" v-for="tag in api.doc.tags"><i class="fa fa-tag"></i>&nbsp;{{tag}}</span>
                 </td>
                 <td class="has-text-centered">
                   <span class="tag is-small" :class="{'is-danger': api.error, 'is-success': !api.error}">{{api.status}}</span>
                 </td>
               </tr>
               <tr v-show="api.isShow" class="no-style">
-                <td colspan="3" style="padding-left: 40px">
+                <td colspan="3" style="padding: 20px 40px">
                   <table class="table is-fullwidth">
                     <thead>
                       <tr>
-                        <td colspan="2">
-                          <details open>
-                            <summary>General</summary>
-                            <ul class="general">
-                              <li class="url-doc">
-                                <b class="key">Request URL:</b> <a class="has-text-dark" @click="copy(api.url.url || api.url, i, j)"><u><i v-html="formatUrl(api.url.url || api.url)"></i></u></a>
-                                &nbsp;
-                                <a class="button clipboard is-small is-light" @click="copy(api.url.url || api.url, i, j)">
-                                  <i class="fa fa-clipboard" v-if="api.copyText === undefined"></i>
-                                  <i class="fa fa-check" v-else></i>
-                                  &nbsp;<span>{{api.copyText || 'Copy link'}}</span>
-                                </a>
-                              </li>                                
-                              <li><b class="key">Request Method:</b> <b class="des">{{api.method}}</b></li>
-                              <li><b class="key">Status:</b> <i class="fa fa-circle" :class="api.error ? 'has-text-danger' : 'has-text-success'"></i> <b class="des">{{api.status}}</b></li>
-                            </ul>
-                          </details>
-                          <hr style="margin-top: 0px" />
+                        <td colspan="2" class="general">
+                          <div class="url-doc">
+                            <div>
+                              <strong>{{api.method}}</strong> <a class="has-text-dark" @click="copy(api.url.url || api.url, i, j)"><u><i v-html="formatUrl(api.url.url || api.url)"></i></u></a>                                
+                              <a class="button clipboard is-small is-dark" @click="copy(api.url.url || api.url, i, j)">
+                                <i class="fa fa-clipboard" v-if="api.copyText === undefined"></i>
+                                <i class="fa fa-check" v-else></i>
+                                &nbsp;<span>{{api.copyText || 'Copy link'}}</span>
+                              </a>
+                            </div>
+                            <div>
+                              <b>Status:</b> <span class="tag"><i class="fa fa-circle has-text-success"></i>&nbsp;{{api.status}}</span>
+                            </div>
+                          </div>
                         </td>
                       </tr>
                     </thead>
                     <tbody>
                       <tr>
                         <td width="50%">                          
-                          <details open>
-                            <summary>Request Headers <span>({{Object.keys(api.doc.headers.item).length}})</span></summary>
-                            <div class="json-doc-container" v-if="Object.keys(api.doc.headers.item).length">
+                          <details open :class="{'disabled': !Object.keys(api.doc.headers.$item).length}">
+                            <summary>Request Headers <span>({{Object.keys(api.doc.headers.$item).length}})</span></summary>
+                            <div class="json-doc-container" v-if="Object.keys(api.doc.headers.$item).length">
                               <prop-doc class="json-doc" :data="api.doc.headers" :copyData="api.headers"></prop-doc>
                             </div>
                           </details>
-                          <details open>
+                          <details open :class="{'disabled': !api.doc.body.$type}">
                             <summary>Request Body</summary>
-                            <div class="json-doc-container" v-if="api.doc.body.type">
+                            <div class="json-doc-container" v-if="api.doc.body.$type">
                               <json-doc class="json-doc" :data="api.doc.body" :copyData="api.body"></json-doc>
                             </div>
                           </details>
                         </td>
                         <td width="50%">
-                          <details open>
-                            <summary>Response Headers <span>({{Object.keys(api.doc.$headers.item).length}})</span></summary>
-                            <div class="json-doc-container" v-if="Object.keys(api.doc.$headers.item).length">
+                          <details open :class="{'disabled': !Object.keys(api.doc.$headers.$item).length}">
+                            <summary>Response Headers <span>({{Object.keys(api.doc.$headers.$item).length}})</span></summary>
+                            <div class="json-doc-container" v-if="Object.keys(api.doc.$headers.$item).length">
                               <prop-doc class="json-doc" :data="api.doc.$headers" :copyData="api.$headers"></prop-doc>
                             </div>
                           </details>                          
-                          <details open>
+                          <details open :class="{'disabled': !api.doc.$body.$type}">
                             <summary>Response Body</summary>                    
-                            <div class="json-doc-container" v-if="api.doc.$body.type">
+                            <div class="json-doc-container" v-if="api.doc.$body.$type">
                               <json-doc class="json-doc" :data="api.doc.$body" :copyData="api.$body"></json-doc>
                             </div>
                           </details>
@@ -460,7 +513,7 @@
             this.$delete(this.doc[i].apis[j], 'copyText')
           }, 1000)
         },
-        formatUrl(url){
+        formatUrl(url) {
           return url.toString().replace(/\/(:[^\/]+)/g, '/<b class="key">$1</b>').replace(/([^=?&]+)=(:[^&]+)/g, '<b class="key">$1</b>=<span class="des">$2</span>')
         },
         toggleTc(i) {
@@ -518,11 +571,13 @@
             <tbody v-for="(api, j) in tc.apis" v-show="!tc.isHide" v-if="api">
               <tr>
                 <td class="has-text-centered">
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag is-small method" :class="api.method">{{api.method}}</span>
+                  <b>{{api.id}}</b>&nbsp;<span class="tag is-small method" :class="api.method">{{api.method}}</span>
                 </td>
                 <td>
-                  <div><a :class="api.error ? 'has-text-danger' : 'has-text-success'">{{api.des}}</a></div>
-                  <p class="help is-dark is-small">{{api.url.url || api.url}}</p>
+                  <div>
+                    <a :class="api.error ? 'has-text-danger' : 'has-text-success'"><b>{{api.des}}</b></a>
+                    <span class="tag">{{api.url.url || api.url}}</span>
+                  </div>
                   <p class="help is-danger tag is-small" v-if="api.error">{{api.error}}</p>
                 </td>
                 <td class="has-text-centered">

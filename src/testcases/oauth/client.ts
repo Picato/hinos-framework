@@ -1,17 +1,10 @@
-import { Testcase } from '../../Testcase'
-import { $var, GET, POST, PUT, DELETE, HEAD, PATCH } from '../../Eval'
-
 export default {
   des: '[Account] Testcase for user role',
   var: {
-    $$user: {
-      username: 'testuser',
-      password: 'test123'
-    }
+    '$$user': { username: 'testuser', password: 'test123' }
   },
   apis: [
-    {
-      des: 'Register',
+    API('Register', {
       url: POST('http://service.clipvnet.com/oauth/register'),
       headers: {
         pj: $var('$$pj'),
@@ -29,11 +22,9 @@ export default {
       var: {
         'user': $var('this.$body')
       },
-      doc: { group: 'ACCOUNT' }
-    },
-    {
-      key: '#login',
-      des: 'Login web',
+      doc: { group: 'ACCOUNT', title: 'Register new account for guest' }
+    }),
+    API('Login web', {
       url: POST('http://service.clipvnet.com/oauth/Login'),
       headers: {
         pj: $var('$$pj')
@@ -45,38 +36,30 @@ export default {
       var: {
         'token': $var('this.$headers.token')
       },
-      doc: { group: 'ACCOUNT' }
-    },
+      doc: { group: 'ACCOUNT', title: 'Login' }
+    }, { key: '#login' }),
     {
       extends: '#ping',
-      doc: { group: 'ACCOUNT' }
+      doc: { group: 'ACCOUNT', title: 'Extend login timeout' }
     },
-    {
-      key: '#generate-secretkey',
-      des: 'Generate secret key which allow access api without login',
+    API('Generate secret key which allow access api without login', {
       extends: '#authRequestByToken',
       url: PUT('http://service.clipvnet.com/oauth/Secretkey'),
       var: {
         'secretkey': $var('this.$body')
       },
       doc: { group: 'SECRET KEY' }
-    },
-    {
-      des: 'Get secret key which allow access api without login',
-      extends: '#authRequestBySecretkey',
+    }, { extends: '#authRequestByToken', key: '#generate-secretkey' }),
+    API('Get secret key which allow access api without login', {
       url: GET('http://service.clipvnet.com/oauth/Secretkey'),
       doc: { group: 'SECRET KEY' }
-    },
-    {
-      des: 'Remove secret key which not allow access api without login',
-      extends: '#authRequestByToken',
+    }, { extends: '#authRequestBySecretkey' }),
+    API('Remove secret key which not allow access api without login', {
       url: DELETE('http://service.clipvnet.com/oauth/Secretkey'),
       doc: { group: 'SECRET KEY' }
-    },
-    ['#ping', '#authRequestBySecretkey'],
-    {
-      des: 'Update user information',
-      extends: '#authRequestByToken',
+    }, { extends: '#authRequestByToken' }),
+    API('Ping', {}, { extends: '#ping' }),
+    API('Update user information', {
       url: PUT('http://service.clipvnet.com/oauth/me'),
       body: {
         more: {
@@ -84,30 +67,28 @@ export default {
         }
       },
       doc: { group: 'ACCOUNT' }
-    },
-    {
-      des: 'Get user information',
-      extends: '#authRequestByToken',
+    }, { extends: '#authRequestByToken' }),
+    API('Get user information', {
       url: GET('http://service.clipvnet.com/oauth/me'),
-      var: 'me',
+      var: {
+        'me': $var('this.$body')
+      },
       doc: { group: 'ACCOUNT' }
-    },
-    {
-      des: 'Get user roles which grant permission for web, api or mobile',
-      extends: '#authRequestByToken',
+    }, { extends: '#authRequestByToken' }),
+    API('Get user roles which grant permission for web, api or mobile', {
       url: GET('http://service.clipvnet.com/oauth/MyRoles?type=:deviceType', 'web'),
-      var: 'roles',
+      var: {
+        'roles': $var('this.$body')
+      },
       doc: {
         group: 'ROLE',
         note: `Note: Type must be in [web, mob, api]`
       }
-    },
-    {
-      des: 'Logout',
-      extends: '#authRequestByToken',
+    }, { extends: '#authRequestByToken' }),
+    API('Logout', {
       url: GET('http://service.clipvnet.com/oauth/logout'),
       doc: { group: 'ACCOUNT' }
-    },
+    }, { extends: '#authRequestByToken' }),
     '#ping'
   ]
 } as Testcase
