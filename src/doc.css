@@ -4638,10 +4638,6 @@ print {
   text-align: left
 }
 
-.table.hover > tbody > tr:hover {
-  background-color: #fafafa
-}
-
 .table tr.is-selected {
   background-color: #00d1b2;
   color: #fff

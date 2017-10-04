@@ -14,6 +14,7 @@ export async function runner(config: Config) {
   const ce = chalk.black('│')
   const result = {
     title: config.title,
+    des: config.des,
     summary: {
       testcase: {
         passed: 0,

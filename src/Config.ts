@@ -3,6 +3,7 @@ import * as path from 'path'
 export default [
   {
     title: 'Oauth APIs',
+    des: 'Manage oauth apis',
     output: path.join('src', 'doc-test.html'),
     groups: ['MEMBER', 'ROLE', 'SECRET KEY'],
     scenarios: ['./doc/oauth/shared', './doc/oauth/client', './doc/oauth/admin']
@@ -11,6 +12,7 @@ export default [
 
 export type Config = {
   title: string,
+  des: string,
   output: string,
   groups?: string[],
   scenarios: string[]
