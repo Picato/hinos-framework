@@ -18,7 +18,8 @@ export function authoriz(path: string, actions: string[]) {
       }
       await next()
     } catch (e) {
-      throw HttpError.CUSTOMIZE(e.response.status, e.response.data)
+      if (e.response) throw HttpError.CUSTOMIZE(e.response.status)
+      throw e
     }
   }
 }
