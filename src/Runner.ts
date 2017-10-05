@@ -37,10 +37,10 @@ export async function runner(config: Config) {
     vars: {} as any
   }
 
-  const tcs = (await Promise.all(config.scenarios.map(async (imp) => {
-    const Test = await import(imp) as { default: Testcase }
-    return TestcaseImpl.loadScenario(Test.default)
-  }))).filter(i => i !== -1).map(e => TestcaseImpl.all[e]) as TestcaseImpl[]
+  const tcs = config.scenarios.map((imp) => {
+    const Test = require(imp).default as Testcase
+    return TestcaseImpl.loadScenario(Test)
+  }).filter(i => i !== -1).map(e => TestcaseImpl.all[e]) as TestcaseImpl[]
 
   // tslint:disable-next-line:no-multi-spaces
   console.log(`${chalk.bgGreen.bold(`   ${result.title.replace(/./g, ' ')}   `)}`)
@@ -56,19 +56,25 @@ export async function runner(config: Config) {
     console.log(`${chalk.bgCyan.bold(` ${tc.des} `)}`)
     const apis = tc.apiIndexes.map(i => ApiImpl.all[i]) as ApiImpl[]
     // tslint:disable-next-line:one-variable-per-declaration
-    for (let i = 0, len = apis.length; i < len; i++) {
-      const api = apis[i]
-      const c = i === 0 ? c0 : (i === len - 1 ? c2 : c1)
-      await api.run()
-      if (!api.error) {
-        console.log(' ', c, chalk.green.bold(api.method), chalk.black.underline.italic((api.url as Url).url || api.url as string), chalk.blue(`(${api.executeTime} ms)`))
-        result.summary.api.passed++
-      } else {
-        if (tc.status === TestcaseImpl.Status.PASSED) tc.status = TestcaseImpl.Status.FAILED
-        result.summary.api.failed++
-        console.log(' ', c, chalk.red.bold(api.method), chalk.black.underline.italic((api.url as Url).url || api.url as string), chalk.blue(`(${api.executeTime} ms)`))
-        console.log(' ', ce, chalk.red.italic(` > ${api.error}`))
+    try {
+      const len = apis.length
+      for (let i = 0; i < len; i++) {
+        const api = apis[i]
+        const c = i === 0 ? c0 : (i === len - 1 ? c2 : c1)
+        await api.run()
+        if (!api.error) {
+          console.log(' ', c, chalk.green.bold(api.method), chalk.black.underline.italic((api.url as Url).url || api.url as string), chalk.blue(`(${api.executeTime} ms)`))
+          result.summary.api.passed++
+        } else {
+          if (tc.status === TestcaseImpl.Status.PASSED) tc.status = TestcaseImpl.Status.FAILED
+          result.summary.api.failed++
+          console.log(' ', c, chalk.red.bold(api.method), chalk.black.underline.italic((api.url as Url).url || api.url as string), chalk.blue(`(${api.executeTime} ms)`))
+          console.log(' ', ce, chalk.red.italic(` > ${api.error}`))
+          // throw new Error(api.error)
+        }
       }
+    } catch (e) {
+      tc.status = TestcaseImpl.Status.FAILED
     }
     if (tc.status === TestcaseImpl.Status.PASSED) result.summary.testcase.passed++
     else result.summary.testcase.failed++
@@ -84,7 +90,7 @@ export async function runner(config: Config) {
   const fin = path.join('src', 'result.html')
   const fout = config.output
   let cnt = fs.readFileSync(fin).toString()
-  cnt = cnt.replace(/\/\*TEST_RESULT_DATA\*\//, JSON.stringify(result))
+  cnt = cnt.replace(/\/\*DATA\*\//, JSON.stringify(result))
   fs.writeFileSync(fout, cnt)
 
   console.log('')

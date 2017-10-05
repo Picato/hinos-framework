@@ -7,7 +7,7 @@ export abstract class Doc {
   title?: string
   group: string
   order?: number
-  note?: string
+  note?: string | string[]
   tags?: string | string[] = []
 }
 
@@ -78,6 +78,7 @@ export class DocImpl extends Doc {
   install(api: ApiImpl) {
     if (!this.title) this.title = api.des
     if (!this.tags) this.tags = []
+    if (this.note && this.note instanceof Array) this.note = this.note.join('\n')
     if (typeof this.tags === 'string') this.tags = [this.tags]
     this.i18doc = _.merge({}, DocImpl.i18doc, this.i18doc)
     this.i18ignore = _.union(DocImpl.i18ignore, this.i18ignore)
@@ -146,7 +147,7 @@ export namespace DocImpl {
   }
 }
 
-export function DOC(title: string, group: string, tags?: string | string[], options?: Api, meta?: { key?: string, extends?: string }): Api {
+export function DOC(title: string, group: string, tags?: string | string[], options?: Api, meta?: { key?: string, extends?: string | string[] }): Api {
   if (typeof tags !== 'string' && !(tags instanceof Array)) {
     meta = options as any
     options = tags as Api

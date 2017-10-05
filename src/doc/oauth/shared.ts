@@ -2,8 +2,10 @@ export default {
   disabled: true,
   des: 'Declare template apis',
   var: {
-    $$pj: '597aaa573f91b427e66ab09d',
-    $$role: '597aaa573f91b427e66ab09e'
+    '$$pj': '597aaa573f91b427e66ab09d',
+    '$$role': '597aaa573f91b427e66ab09e',
+    '$$user': { username: 'testuser', password: 'test123' },
+    '$$admin': { username: 'thanhdt', password: '123' }
   },
   apis: [
     API('Template request with token', {

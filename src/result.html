@@ -237,8 +237,12 @@
       bottom: -3px;
     }
 
+    a.tag.method {
+      border-style: double;
+    }
+    
     .tag.method {
-      width: 60px;
+      min-width: 60px;
       color: white;
       font-weight: bold;
     }
@@ -282,7 +286,7 @@
 
 </script>
 <script>
-  let data = /*TEST_RESULT_DATA*/
+  let data = /*DATA*/
   let mode = location.href.indexOf('?test') !== -1 ? 'test' : 'doc'
   if (mode === 'doc') {
     Vue.component('json-doc', {
@@ -397,11 +401,11 @@
             </thead>
             <tbody v-for="(api, j) in gp.apis" v-show="!gp.isHide" v-if="api" class="list-api">
               <tr @click="toggleApi(i, j)" :class="{'is-selected': api.isShow}">
-                <td style="vertical-align: middle">
-                  &nbsp;&nbsp;
-                </td>
+                <th class="has-text-right">
+                  {{j+1}}
+                </th>
                 <td class="pointer">                  
-                  <strong>{{j+1}}.</strong>&nbsp;<b :class="api.isShow ? 'has-text-light' : 'has-text-primary'">{{api.doc.title}}</b>
+                  <b :class="api.isShow ? 'has-text-light' : 'has-text-primary'">{{api.doc.title}}</b>
                   <span class="tag">
                     <b class="method" :class="api.method">{{api.method}}</b>
                     &nbsp;{{api.url.url || api.url}}
@@ -418,7 +422,7 @@
                     <div class="column url-doc">
                       <div>
                         <b class="tag is-medium">Request URL</b>&nbsp;
-                        <a class="tag has-text-dark is-medium" @click="copy(api.url.url || api.url, i, j)"><u><i v-html="formatUrl(api.url.url || api.url)"></i></u></a>
+                        <a class="tag method is-medium" :class="api.method" @click="copy(api.url.url || api.url, i, j)"><i v-html="formatUrl(api.url.url || api.url)"></i></a>
                         <a class="button clipboard is-small is-dark" @click="copy(api.url.url || api.url, i, j)">
                           <i class="fa fa-clipboard" v-if="api.copyText === undefined"></i>
                           <i class="fa fa-check" v-else></i>
@@ -532,6 +536,7 @@
         <table class="table is-striped is-narrow">
           <thead>
             <tr>
+              <th></th>
               <th colspan="2">Description</th>
               <th width="1">status</th>
               <th width="1">req/res</th>
@@ -541,7 +546,7 @@
           <template v-for="(tc, i) in tcs">
             <thead class="tc-title">
               <tr>
-                <td colspan="5">
+                <td colspan="6">
                   <div class="columns">
                     <div class="column">
                       <a class="has-text-dark no-wrap" @click="toggleTc(i)">
@@ -561,8 +566,9 @@
             </thead>
             <tbody v-for="(api, j) in tc.apis" v-show="!tc.isHide" v-if="api">
               <tr>
-                <td class="has-text-centered">
-                  <b>{{api.id}}</b>&nbsp;<span class="tag is-small method" :class="api.method">{{api.method}}</span>
+                <th class="has-text-right">{{j+1}}</th>
+                <td>
+                  <span class="tag is-small method" :class="api.method">{{api.method}}</span>
                 </td>
                 <td>
                   <div>

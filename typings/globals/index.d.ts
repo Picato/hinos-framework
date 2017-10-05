@@ -6,7 +6,7 @@ declare interface Doc {
   group?: string
   title?: string
   order?: number
-  note?: string
+  note?: string | string[]
   tags?: string[] | string
 }
 declare interface Api {
@@ -19,7 +19,7 @@ declare interface Api {
   extends?: string | string[]
   var?: string | { [key: string]: any }
   disabled?: boolean
-  doc?: Doc  
+  doc?: Doc
 }
 declare interface Testcase {
   des: string
@@ -28,9 +28,11 @@ declare interface Testcase {
   apis?: Api[]
   var?: string | { [key: string]: any }
 }
-declare function API(des: string, options: Api, meta?: { key?: string, extends?: string }): Api
-declare function DOC(title: string, group: string, options: Api, meta?: { key?: string, extends?: string }): Api
+declare function INCLUDE(path: string): Api[]
+declare function API(des: string, options: Api, meta?: { key?: string, extends?: string | string[] }): Api
+declare function DOC(title: string, group: string, options: Api, meta?: { key?: string, extends?: string | string[] }): Api
 declare function DOC(title: string, group: string, tags: string | string[], options: Api, meta?: { key?: string, extends?: string }): Api
+declare function Multipart(form: any): FormData
 declare function $var(name: string): Var
 
 declare function GET(url: string, ...vars: (Var | string)[]): Url

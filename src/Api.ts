@@ -1,8 +1,11 @@
 import * as _ from 'lodash'
 import axios from 'axios'
 import { Var, Url } from './Eval'
+import * as url from 'url'
 import { Doc, DocImpl } from './ApiDoc'
 import { TestcaseImpl } from './Testcase'
+import * as FormData from 'form-data'
+import { Http } from 'hinos-common/Http'
 
 export abstract class Api {
   key?: string
@@ -65,6 +68,7 @@ export class ApiImpl extends Api {
         if (!api) throw new Error(`Could not found api with key "${this.extends}" to extends`)
         _.merge(tmp, api)
       }
+      tmp.doc = undefined
       _.defaultsDeep(this, tmp)
     }
     return this
@@ -79,15 +83,30 @@ export class ApiImpl extends Api {
   private async call() {
     const now = new Date()
     try {
-      const res = await axios({
-        method: this.method,
-        data: this.body,
-        headers: this.headers,
-        url: this.url.toString()
-      })
-      this.status = res.status
-      this.$headers = res.headers
-      this.$body = res.data === '' ? undefined : res.data
+      let res
+      if (this.body instanceof FormData) {
+        this.body.headers = this.headers
+        const str = this.url.toString()
+        res = await Http.post(str, {
+          headers: this.headers,
+          attach: {
+            files: require('fs').createReadStream(`C:\\test.jpg`)
+          }
+        })
+        this.status = res.status
+        this.$headers = res.headers
+        this.$body = res.body === '' ? undefined : res.body
+      } else {
+        res = await axios({
+          method: this.method,
+          data: this.body,
+          headers: this.headers,
+          url: this.url.toString()
+        })
+        this.status = res.status
+        this.$headers = res.headers
+        this.$body = res.data === '' ? undefined : res.data
+      }
     } catch (e) {
       if (e.response) {
         this.status = e.response.status
@@ -162,6 +181,14 @@ export namespace Api {
   }
 }
 
-export function API(des: string, options: Api, meta: { key?: string, extends?: string } = {}): Api {
+export function API(des: string, options: Api, meta: { key?: string, extends?: string | string[] } = {}): Api {
   return _.merge({ des }, options, meta)
+}
+
+export function Multipart(obj: any) {
+  const form = new FormData()
+  for (let i in obj) {
+    form.append(i, obj[i])
+  }
+  return form
 }

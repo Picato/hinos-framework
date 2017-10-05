@@ -40,3 +40,8 @@ export namespace TestcaseImpl {
     return (!tc.disabled && tc.apiIndexes.length > 0) ? tc.id : -1
   }
 }
+
+export function INCLUDE(p): Api[] {
+  const rs = require(p).default
+  return rs
+}
