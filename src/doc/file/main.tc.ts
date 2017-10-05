@@ -1,5 +1,5 @@
 export default {
-  des: 'Testcase for mail',
+  des: 'Testcase for file',
   apis: [
     API('Login', {
       url: POST('http://service.clipvnet.com/oauth/Login'),

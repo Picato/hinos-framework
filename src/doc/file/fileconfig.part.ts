@@ -1,6 +1,6 @@
 import { TAG } from '../common'
 
-const GROUP = 'MAIL CONFIG'
+const GROUP = 'FILE CONFIG'
 
 export default [
   DOC('Add file config', GROUP, TAG.ADMIN, {

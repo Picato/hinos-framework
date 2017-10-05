@@ -1,5 +1,6 @@
 declare interface Var { }
 declare interface Url { }
+declare interface FileData { }
 declare interface Doc {
   i18doc?: any
   i18ignore?: any
@@ -32,7 +33,7 @@ declare function INCLUDE(path: string): Api[]
 declare function API(des: string, options: Api, meta?: { key?: string, extends?: string | string[] }): Api
 declare function DOC(title: string, group: string, options: Api, meta?: { key?: string, extends?: string | string[] }): Api
 declare function DOC(title: string, group: string, tags: string | string[], options: Api, meta?: { key?: string, extends?: string }): Api
-declare function Multipart(form: any): FormData
+declare function Part(src: string): FileData
 declare function $var(name: string): Var
 
 declare function GET(url: string, ...vars: (Var | string)[]): Url

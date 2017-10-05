@@ -1,7 +1,6 @@
 import { TAG } from '../common'
-import * as fs from 'fs'
 
-const GROUP = 'MAIL'
+const GROUP = 'FILE'
 
 export default [
   DOC('Upload file', GROUP, TAG.ADMIN, {
@@ -9,9 +8,9 @@ export default [
     headers: {
       'content-type': 'multipart/form-data'
     },
-    body: Multipart({
-      files: fs.createReadStream(`C:\\test.jpg`)
-    }),
+    body: {
+      files: Part(`C:\\test.jpg`)
+    },
     var: {
       'newfile': $var('this.$body')
     },
@@ -24,17 +23,10 @@ export default [
     }
   }, { extends: '#authRequestByToken', key: '#uploadFile' }),
   API('Upload new file to replace', {
-    url: POST('http://service.clipvnet.com/files/upload/:fileConfigId?store=:isStore&name=:fileName', $var('newfileconfig._id'), false, 'imagename.png'),
-    headers: {
-      'content-type': 'multipart/form-data'
-    },
-    body: Multipart({
-      files: fs.createReadStream(`C:\\test.jpg`)
-    }),
     var: {
       'newfile1': $var('this.$body')
     }
-  }, { extends: ['#authRequestByToken'] }),
+  }, { extends: ['#uploadFile', '#authRequestByToken'] }),
   DOC('Store file(s) after uploading to make sure it wont be removed after period time', GROUP, TAG.ADMIN, {
     url: PUT('http://service.clipvnet.com/files/store'),
     body: {

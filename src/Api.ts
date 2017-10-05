@@ -1,18 +1,17 @@
 import * as _ from 'lodash'
 import axios from 'axios'
 import { Var, Url } from './Eval'
-import * as url from 'url'
 import { Doc, DocImpl } from './ApiDoc'
 import { TestcaseImpl } from './Testcase'
-import * as FormData from 'form-data'
 import { Http } from 'hinos-common/Http'
+import * as fs from 'fs'
 
 export abstract class Api {
   key?: string
   des?: string
   method?: 'POST' | 'PUT' | 'GET' | 'HEAD' | 'DELETE' | 'PATCH'
   url?: string | Url
-  headers?: { [key: string]: any }
+  headers?: { [key: string]: any } = {}
   body?: any
   extends?: string | string[]
   var?: string | { [key: string]: any }
@@ -28,7 +27,7 @@ export class ApiImpl extends Api {
   static vars = {} as { [key: string]: any }
 
   id: number
-  executeTime: number
+  executeTime: number = -1
   error: any
   status: number
   $headers: any
@@ -42,7 +41,7 @@ export class ApiImpl extends Api {
     const vars = ApiImpl.vars
     this.install(vars)
     await this.call()
-    if (this.var) {
+    if (this.var && !this.error) {
       if (typeof this.var === 'string') {
         ApiImpl.vars[this.var] = {
           status: this.status,
@@ -60,6 +59,7 @@ export class ApiImpl extends Api {
   }
 
   load() {
+    // if (this.des === 'Upload file') debugger
     if (this.extends) {
       const _extends = (this.extends instanceof Array) ? this.extends : [this.extends]
       let tmp = {} as any
@@ -68,13 +68,17 @@ export class ApiImpl extends Api {
         if (!api) throw new Error(`Could not found api with key "${this.extends}" to extends`)
         _.merge(tmp, api)
       }
-      tmp.doc = undefined
+      delete tmp.doc
+      delete tmp.var
+      delete tmp.disabled
+      delete tmp.key
       _.defaultsDeep(this, tmp)
     }
     return this
   }
 
-  private async install(vars: any) {
+  private install(vars: any) {
+    _.defaults(this.headers, ApiImpl.defaultHeaders)
     this.url = this.replaceVars(this.url, vars)
     this.headers = this.replaceVars(this.headers, vars)
     this.body = this.replaceVars(this.body, vars)
@@ -84,18 +88,10 @@ export class ApiImpl extends Api {
     const now = new Date()
     try {
       let res
-      if (this.body instanceof FormData) {
-        this.body.headers = this.headers
-        const str = this.url.toString()
-        res = await Http.post(str, {
-          headers: this.headers,
-          attach: {
-            files: require('fs').createReadStream(`C:\\test.jpg`)
-          }
+      if (this.headers['content-type'] === 'multipart/form-data') {
+        res = await FileData.upload(this.url.toString(), this.body, {
+          headers: this.headers
         })
-        this.status = res.status
-        this.$headers = res.headers
-        this.$body = res.body === '' ? undefined : res.body
       } else {
         res = await axios({
           method: this.method,
@@ -103,10 +99,10 @@ export class ApiImpl extends Api {
           headers: this.headers,
           url: this.url.toString()
         })
-        this.status = res.status
-        this.$headers = res.headers
-        this.$body = res.data === '' ? undefined : res.data
       }
+      this.status = res.status
+      this.$headers = res.headers
+      this.$body = res.data === '' ? undefined : res.data
     } catch (e) {
       if (e.response) {
         this.status = e.response.status
@@ -143,13 +139,10 @@ export class ApiImpl extends Api {
       }
     } else if (obj instanceof Var) {
       obj = JSON.parse(obj.toString().replace(/\$\{([^\}]+)\}/g, (_all, m) => {
-        try {
-          // tslint:disable-next-line:no-eval
-          const rs = eval(`${m}`)
-          return JSON.stringify(rs)
-        } catch (_e) {
-          return undefined
-        }
+        // tslint:disable-next-line:no-eval
+        const rs = eval(`${m}`)
+        if (rs === undefined) throw new Error(`Could not found var "${m}"`)
+        return JSON.stringify(rs)
       }))
     } else if (typeof obj === 'object') {
       for (let k in obj) {
@@ -159,6 +152,42 @@ export class ApiImpl extends Api {
     return obj
   }
 
+}
+
+export class FileData {
+  constructor(public src: string | string[]) { }
+
+  static async upload(url: string, body: any, headers: { [key: string]: any } = {}) {
+    let attach = {} as any
+    let field = {} as any
+    for (let k in body) {
+      if (body[k] instanceof FileData) {
+        attach[k] = fs.createReadStream(body[k].src)
+      } else {
+        field[k] = body[k]
+      }
+    }
+    try {
+      const res = await Http.post(url, {
+        headers,
+        field,
+        attach
+      })
+      return {
+        status: res.status,
+        headers: JSON.parse(JSON.stringify(res.headers)),
+        data: res.body
+      }
+    } catch (e) {
+      throw _.merge(e.error, {
+        response: {
+          status: e.status,
+          headers: e.headers,
+          data: e.body
+        }
+      })
+    }
+  }
 }
 
 export namespace Api {
@@ -171,7 +200,6 @@ export namespace Api {
       api[k] = scenario[k]
     }
     if (!api.method && api.url instanceof Url) api.method = api.url.method as any
-    api.headers = _.merge({}, ApiImpl.defaultHeaders, api.headers)
     if (api.doc) api.doc = DocImpl.loadScenario(api.doc)
     api.id = ApiImpl.all.length
     api.load()
@@ -185,10 +213,6 @@ export function API(des: string, options: Api, meta: { key?: string, extends?: s
   return _.merge({ des }, options, meta)
 }
 
-export function Multipart(obj: any) {
-  const form = new FormData()
-  for (let i in obj) {
-    form.append(i, obj[i])
-  }
-  return form
+export function Part(src: string): FileData {
+  return new FileData(src)
 }

@@ -1,11 +1,11 @@
 import { runner } from './Runner'
 import Config from './Config'
 import { $var, GET, POST, PUT, DELETE, HEAD, PATCH } from './Eval'
-import { API, Multipart } from './Api'
+import { API, Part } from './Api'
 import { DOC } from './ApiDoc'
 import { INCLUDE } from './Testcase'
 
-(global as any).Multipart = Multipart;
+(global as any).Part = Part;
 (global as any).INCLUDE = INCLUDE;
 (global as any).DOC = DOC;
 (global as any).API = API;

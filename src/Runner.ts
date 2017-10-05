@@ -61,7 +61,11 @@ export async function runner(config: Config) {
       for (let i = 0; i < len; i++) {
         const api = apis[i]
         const c = i === 0 ? c0 : (i === len - 1 ? c2 : c1)
-        await api.run()
+        try {
+          await api.run()
+        } catch (e) {
+          api.error = e.message || e || 'Run api error'
+        }
         if (!api.error) {
           console.log(' ', c, chalk.green.bold(api.method), chalk.black.underline.italic((api.url as Url).url || api.url as string), chalk.blue(`(${api.executeTime} ms)`))
           result.summary.api.passed++
