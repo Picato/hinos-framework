@@ -88,10 +88,7 @@ export class ClientController {
     body.account_id = state.auth.accountId
     delete body.created_at
     delete body.updated_at
-    delete body.type
     delete body.project_id
-    delete body.title
-    // Just allow update status and customize fields
     await LogService.update(body)
   }
 
