@@ -1,10 +1,10 @@
-import { TAG } from '../common'
+import { TAG, HOST } from '../common'
 
 const GROUP = 'FILE'
 
 export default [
   DOC('Upload file', GROUP, TAG.ADMIN, {
-    url: POST('http://localhost:6112/files/upload/:fileConfigId', $var('newfileconfig._id')),
+    url: POST(`${HOST.FILE}/files/upload/:fileConfigId`, $var('newfileconfig._id')),
     headers: {
       'content-type': 'multipart/form-data'
     },
@@ -28,7 +28,7 @@ export default [
     }
   }, { extends: ['#uploadFile', '#authRequestByToken'] }),
   DOC('Store file(s) after uploading to make sure it wont be removed after period time', GROUP, TAG.ADMIN, {
-    url: PUT('http://localhost:6112/files/store'),
+    url: PUT(`${HOST.FILE}/files/store`),
     body: {
       oldFiles: $var('newfile1'),
       files: $var('newfile')
@@ -42,7 +42,7 @@ export default [
     }
   }, { extends: '#authRequestByToken' }),
   DOC('Remove file', GROUP, TAG.ADMIN, {
-    url: PUT('http://localhost:6112/files/remove'),
+    url: PUT(`${HOST.FILE}/files/remove`),
     body: {
       files: $var('newfile')
     }

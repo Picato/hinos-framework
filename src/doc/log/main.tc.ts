@@ -1,25 +1,13 @@
-import { TAG } from '../common'
+import { TAG, HOST } from '../common'
 
 const GROUP = 'LOG'
 
 export default {
   des: 'APIs for log api service',
   apis: [
-    API('Login', {
-      url: POST('http://localhost:6110/oauth/Login'),
-      headers: {
-        pj: $var('$$pj')
-      },
-      body: {
-        username: $var('$$admin.username'),
-        password: $var('$$admin.password')
-      },
-      var: {
-        'token': $var('this.$headers.token')
-      }
-    }, { key: '#login' }),
+    '#login',
     DOC('Add new log', GROUP, TAG.ADMIN, {
-      url: POST('http://localhost:6114/log'),
+      url: POST(`${HOST.LOG}/log`),
       body: {
         title: 'Add new log',
         status: 0,
@@ -36,7 +24,7 @@ export default {
       }
     }, { extends: '#authRequestByToken' }),
     DOC('Update exists log', GROUP, TAG.ADMIN, {
-      url: PUT('http://localhost:6114/log/:logId', $var('newlog._id')),
+      url: PUT(`${HOST.LOG}/log/:logId`, $var('newlog._id')),
       body: {
         status: 1
       },
@@ -47,7 +35,7 @@ export default {
       }
     }, { extends: '#authRequestByToken' }),
     DOC('Get list logs in my project', GROUP, TAG.ADMIN, {
-      url: GET('http://localhost:6114/log?mine=:mine', 'false'),
+      url: GET(`${HOST.LOG}/log?mine=:mine`, 'false'),
       doc: {
         note: [
           `Manual query by add "where", "sort", "fields" in querystring`,
@@ -56,10 +44,10 @@ export default {
       }
     }, { extends: '#authRequestByToken' }),
     DOC('Get details log', GROUP, TAG.ADMIN, {
-      url: GET('http://localhost:6114/log/:logId', $var('newlog._id'))
+      url: GET(`${HOST.LOG}/log/:logId`, $var('newlog._id'))
     }, { extends: '#authRequestByToken' }),
     DOC('Remove log', GROUP, TAG.ADMIN, {
-      url: DELETE('http://localhost:6114/log/:logId', $var('newlog._id'))
+      url: DELETE(`${HOST.LOG}/log/:logId`, $var('newlog._id'))
     }, { extends: '#authRequestByToken' })
   ]
 } as Testcase

@@ -1,3 +1,5 @@
+import * as URL from 'url'
+
 export class Var {
   constructor(public name: string, public value?: any) { }
   get prefix() {
@@ -15,10 +17,16 @@ export class Url {
   method: 'GET' | 'POST' | 'PUT' | 'HEAD' | 'DELETE' | 'PATCH'
   vars: (Var | string)[]
   requestUrl: string
+  requestPath: string
 
   constructor(public url: string, ..._vars: (Var | string)[]) {
     this.vars = _vars
+    this.setRequestUrl(url)
+  }
+
+  setRequestUrl(url) {
     this.requestUrl = url
+    this.requestPath = URL.parse(url).path
   }
 }
 

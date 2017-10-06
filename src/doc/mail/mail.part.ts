@@ -1,10 +1,10 @@
-import { TAG } from '../common'
+import { TAG, HOST } from '../common'
 
 const GROUP = 'MAIL'
 
 export default [
   DOC('Push email to queue for sending', GROUP, TAG.ADMIN, {
-    url: POST('http://localhost:6113/mail/send/:mailConfigId', $var('newmailconfig._id')),
+    url: POST(`${HOST.MAIL}/mail/send/:mailConfigId`, $var('newmailconfig._id')),
     body: {
       subject: 'Test mail',
       text: 'Hello world',
@@ -23,7 +23,7 @@ export default [
     }
   }, { extends: '#authRequestByToken' }),
   DOC('Resend email', GROUP, TAG.ADMIN, {
-    url: PUT('http://localhost:6113/mail/resend/:mailId', $var('newmail._id')),
+    url: PUT(`${HOST.MAIL}/mail/resend/:mailId`, $var('newmail._id')),
     doc: {
       note: [
         `Push your new object to update exists log server`
@@ -31,9 +31,9 @@ export default [
     }
   }, { extends: '#authRequestByToken' }),
   DOC('Get details mail', GROUP, TAG.ADMIN, {
-    url: GET('http://localhost:6113/mail/:mailId', $var('newmail._id'))
+    url: GET(`${HOST.MAIL}/mail/:mailId`, $var('newmail._id'))
   }, { extends: '#authRequestByToken' }),
   DOC('Remove mail', GROUP, TAG.ADMIN, {
-    url: DELETE('http://localhost:6113/mail/:mailId', $var('newmail._id'))
+    url: DELETE(`${HOST.MAIL}/mail/:mailId`, $var('newmail._id'))
   }, { extends: '#authRequestByToken' })
 ]

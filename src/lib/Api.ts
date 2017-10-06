@@ -123,14 +123,14 @@ export class ApiImpl extends Api {
     } else if (obj instanceof Url) {
       if (obj.vars && obj.vars.length > 0) {
         let idx = 0
-        obj.requestUrl = obj.url.replace(/:([^\d][A-Za-z0-9_]+)/g, (_all, _m) => {
+        obj.setRequestUrl(obj.url.replace(/:([^\d][A-Za-z0-9_]+)/g, (_all, _m) => {
           try {
             // tslint:disable-next-line:no-eval
             return this.replaceVars(obj.vars[idx++], $var)
           } catch (_e) {
             return undefined
           }
-        })
+        }))
       }
     } else if (obj instanceof Var) {
       obj = JSON.parse(obj.toString().replace(/\$\{([^\}]+)\}/g, (_all, m) => {

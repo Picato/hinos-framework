@@ -29,6 +29,9 @@ declare interface Testcase {
   apis?: Api[]
   var?: string | { [key: string]: any }
 }
+declare namespace API {
+  export let HOST: string
+}
 declare function INCLUDE(path: string): Api[]
 declare function API(des: string, options: Api, meta?: { key?: string, extends?: string | string[] }): Api
 declare function DOC(title: string, group: string, options: Api, meta?: { key?: string, extends?: string | string[] }): Api

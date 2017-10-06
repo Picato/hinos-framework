@@ -148,7 +148,18 @@
       vertical-align: middle;
     }
 
-    .url-doc > div:first-child:hover .clipboard,
+    .url-doc .pointer {
+      position: relative;
+    }
+    .url-doc .pointer i {
+      font-weight: normal;
+    }
+
+    .url-doc .pointer:hover i {
+      text-decoration: underline;      
+    }
+
+    .url-doc .pointer:hover .clipboard,
     .json-doc:hover .clipboard {
       visibility: visible;
     }
@@ -157,7 +168,6 @@
       background-color: white;
       padding: 8px 24px;
       border: dashed 1px #239180;
-      position: relative;
     }
 
     .url-doc .clipboard,
@@ -168,9 +178,14 @@
       font-weight: bold;
     }
 
+    .url-doc .pointer {
+      width: 100%;
+      justify-content: initial;
+    }
+
     .url-doc .clipboard {
-      right: 16px;
-      top: 10px;
+      right: 0px;
+      top: 1px;
       border-radius: 2px;
     }
 
@@ -427,17 +442,18 @@
               </tr>
               <tr v-show="api.isShow" class="no-style">
                 <td colspan="3" style="padding: 20px 40px">
-                  <div class="columns url-doc no-padding">
+                  <div class="columns url-doc">
                     <div class="column is-paddingless">
-                      <b class="tag method is-medium" :class="api.method">{{api.method}}</b> 
-                      <a class="tag method is-medium" :class="api.method" @click="copy(api.url.url, i, j)"><i v-html="formatUrl(api.url.url)"></i></a>
-                      <span class="tag clipboard button is-dark">
-                        <i class="fa fa-clipboard" v-if="api.copyText === undefined"></i>
-                        <i class="fa fa-check" v-else></i>
-                        &nbsp;<span>{{api.copyText || 'Copy link'}}</span>
-                      </span>
+                      <div class="pointer tag method is-medium" style="width: 100%; justify-content: initial;" :class="api.method" @click="copy(api.url.url, i, j)">
+                        <b>{{api.method}}</b>&nbsp;&nbsp;<i v-html="formatUrl(api.url.url)"></i>
+                        <span class="tag clipboard button is-dark">
+                          <i class="fa fa-clipboard" v-if="api.copyText === undefined"></i>
+                          <i class="fa fa-check" v-else></i>
+                          &nbsp;<span>{{api.copyText || 'Copy link'}}</span>
+                        </span>  
+                      </div>
                     </div>
-                    <div class="column is-3 has-text-right is-paddingless">
+                    <div class="column is-1 has-text-right is-paddingless">
                       <b class="tag has-text-success is-medium status"><i class="fa fa-circle"></i>&nbsp;{{api.status}}</b>
                     </div>
                   </div>

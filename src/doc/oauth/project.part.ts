@@ -1,14 +1,14 @@
-import { TAG } from '../common'
+import { TAG, HOST } from '../common'
 
 const GROUP = 'PROJECT'
 
 export default [
   '#adminLogin',
   DOC('Get project details', GROUP, TAG.ADMIN, {
-    url: GET('http://localhost:6111/oauth/project')
+    url: GET(`${HOST.OAUTH}/oauth/project`)
   }, { extends: '#authRequestByToken' }),
   DOC('Update project', GROUP, TAG.ADMIN, {
-    url: PUT('http://localhost:6111/oauth/project'),
+    url: PUT(`${HOST.OAUTH}/oauth/project`),
     body: {
       des: 'updated'
     }

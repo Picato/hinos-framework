@@ -1,11 +1,13 @@
+const HOST = 'http://service.clipvnet.com'
+
 export default {
   disabled: true,
   des: 'Declare template apis',
   var: {
-    '$$pj': '595c7179d28ff924b0f5c623',
-    '$$role': '5976b908620f4a1f34bc3d12',
+    '$$pj': '597aaa573f91b427e66ab09d',
+    '$$role': '597ab2773f91b427e66ab0a5',
     '$$user': { username: 'testuser', password: 'test123' },
-    '$$admin': { username: 'admin', password: '123' }
+    '$$admin': { username: 'thanhdt', password: '123' }
   },
   apis: [
     API('Template request with token', {
@@ -20,16 +22,16 @@ export default {
     }, { key: '#authRequestBySecretkey' }),
     API('Template ping with token', {
       method: 'HEAD',
-      url: 'http://localhost:6111/oauth/ping'
+      url: `${HOST}/oauth/ping`
     }, { key: '#ping', extends: '#authRequestByToken' }),
     API('Login by admin account', {
-      url: POST('http://localhost:6111/oauth/Login'),
+      url: POST(`${HOST}/oauth/Login`),
       headers: {
         pj: $var('$$pj')
       },
       body: {
-        username: $var('$$user.username'),
-        password: $var('$$user.password')
+        username: $var('$$admin.username'),
+        password: $var('$$admin.password')
       },
       var: {
         'token': $var('this.$headers.token')

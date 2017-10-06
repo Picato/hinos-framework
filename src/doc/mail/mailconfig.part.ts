@@ -1,10 +1,10 @@
-import { TAG } from '../common'
+import { TAG,HOST } from '../common'
 
 const GROUP = 'MAIL CONFIG'
 
 export default [
   DOC('Add mail config', GROUP, TAG.ADMIN, {
-    url: POST('http://localhost:6113/mail/config'),
+    url: POST(`${HOST.MAIL}/mail/config`),
     body: {
       name: 'Test Account',
       config: {
@@ -29,7 +29,7 @@ export default [
     }
   }, { extends: '#authRequestByToken' }),
   DOC('Update mail config', GROUP, TAG.ADMIN, {
-    url: PUT('http://localhost:6113/mail/config/:mailConfigId', $var('newmailconfig._id')),
+    url: PUT(`${HOST.MAIL}/mail/config/:mailConfigId`, $var('newmailconfig._id')),
     body: {
       name: 'Test Account Updated',
       config: {
@@ -46,15 +46,15 @@ export default [
     }
   }, { extends: '#authRequestByToken' }),
   DOC('Get list mail config', GROUP, TAG.ADMIN, {
-    url: GET('http://localhost:6113/mail/config')
+    url: GET(`${HOST.MAIL}/mail/config`)
   }, { extends: '#authRequestByToken' }),
   DOC('Get details mail config', GROUP, TAG.ADMIN, {
-    url: GET('http://localhost:6113/mail/config/:mailConfigId', $var('newmailconfig._id'))
+    url: GET(`${HOST.MAIL}/mail/config/:mailConfigId`, $var('newmailconfig._id'))
   }, { extends: '#authRequestByToken' }),
 
   ...INCLUDE('doc/mail/mail.part'),
 
   DOC('Remove mail config', GROUP, TAG.ADMIN, {
-    url: DELETE('http://localhost:6113/mail/config/:mailConfigId', $var('newmailconfig._id'))
+    url: DELETE(`${HOST.MAIL}/mail/config/:mailConfigId`, $var('newmailconfig._id'))
   }, { extends: '#authRequestByToken' })
 ]

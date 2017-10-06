@@ -1,10 +1,10 @@
-import { TAG } from '../common'
+import { TAG, HOST } from '../common'
 
 const GROUP = 'FILE CONFIG'
 
 export default [
   DOC('Add file config', GROUP, TAG.ADMIN, {
-    url: POST('http://localhost:6112/files/config'),
+    url: POST(`${HOST.FILE}/files/config`),
     body: {
       'config': {
         'maxSize': 2046,
@@ -26,7 +26,7 @@ export default [
     }
   }, { extends: '#authRequestByToken' }),
   DOC('Update files config', GROUP, TAG.ADMIN, {
-    url: PUT('http://localhost:6112/files/config/:fileConfigId', $var('newfileconfig._id')),
+    url: PUT(`${HOST.FILE}/files/config/:fileConfigId`, $var('newfileconfig._id')),
     body: {
       'name': 'test avatar',
       'config': {
@@ -45,12 +45,12 @@ export default [
     }
   }, { extends: '#authRequestByToken' }),
   DOC('Get list files config', GROUP, TAG.ADMIN, {
-    url: GET('http://localhost:6112/files/config')
+    url: GET(`${HOST.FILE}/files/config`)
   }, { extends: '#authRequestByToken' }),
 
   ...INCLUDE('doc/file/file.part'),
 
   DOC('Remove files config', GROUP, TAG.ADMIN, {
-    url: DELETE('http://localhost:6112/files/config/:fileConfigId', $var('newfileconfig._id'))
+    url: DELETE(`${HOST.FILE}/files/config/:fileConfigId`, $var('newfileconfig._id'))
   }, { extends: '#authRequestByToken' })
 ]
