@@ -6,7 +6,7 @@ import HttpError from '../common/HttpError'
 export function authoriz(path: string, actions: string[]) {
   return async ({ ctx, headers }: Context, next: Function) => {
     try {
-      const res = await axios.head(`${AppConfig.services.oauth}/Oauth/Authoriz?path=${path}&actions=${actions.join(',')}`, {
+      const res = await axios.head(`${AppConfig.services.oauth}/oauth/authoriz?path=${path}&actions=${actions.join(',')}`, {
         headers: {
           token: headers.token
         }
@@ -18,7 +18,8 @@ export function authoriz(path: string, actions: string[]) {
       }
       await next()
     } catch (e) {
-      if (e.response) throw HttpError.CUSTOMIZE(e.response.status)
+      if (e instanceof HttpError) throw e
+      if (e.response) throw HttpError.CUSTOMIZE(e.response.status, e.response.data)
       throw e
     }
   }
