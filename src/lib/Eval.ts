@@ -14,11 +14,11 @@ export function $var(name: string) {
 export class Url {
   method: 'GET' | 'POST' | 'PUT' | 'HEAD' | 'DELETE' | 'PATCH'
   vars: (Var | string)[]
+  requestUrl: string
+
   constructor(public url: string, ..._vars: (Var | string)[]) {
     this.vars = _vars
-  }
-  toString() {
-    return this.url
+    this.requestUrl = url
   }
 }
 

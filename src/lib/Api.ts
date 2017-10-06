@@ -32,6 +32,7 @@ export class ApiImpl extends Api {
   status: number
   $headers: any
   $body: any
+  url: Url
 
   get _disabled() {
     return this.disabled || !this.url
@@ -68,8 +69,8 @@ export class ApiImpl extends Api {
         if (!api) throw new Error(`Could not found api with key "${this.extends}" to extends`)
         _.merge(tmp, api)
       }
+      if (this.var && Object.keys(this.var).length > 0) delete tmp.var
       delete tmp.doc
-      delete tmp.var
       delete tmp.disabled
       delete tmp.key
       _.defaultsDeep(this, tmp)
@@ -89,15 +90,13 @@ export class ApiImpl extends Api {
     try {
       let res
       if (this.headers['content-type'] === 'multipart/form-data') {
-        res = await FileData.upload(this.url.toString(), this.body, {
-          headers: this.headers
-        })
+        res = await FileData.upload(this.url.requestUrl, this.body, this.headers)
       } else {
         res = await axios({
           method: this.method,
           data: this.body,
           headers: this.headers,
-          url: this.url.toString()
+          url: this.url.requestUrl
         })
       }
       this.status = res.status
@@ -124,18 +123,14 @@ export class ApiImpl extends Api {
     } else if (obj instanceof Url) {
       if (obj.vars && obj.vars.length > 0) {
         let idx = 0
-        obj.toString = () => {
-          return obj.url.replace(/:([A-Za-z0-9_]+)/g, (_all, _m) => {
-            try {
-              // tslint:disable-next-line:no-eval
-              return this.replaceVars(obj.vars[idx++], $var)
-            } catch (_e) {
-              return undefined
-            }
-          })
-        }
-      } else {
-        obj = obj.url
+        obj.requestUrl = obj.url.replace(/:([^\d][A-Za-z0-9_]+)/g, (_all, _m) => {
+          try {
+            // tslint:disable-next-line:no-eval
+            return this.replaceVars(obj.vars[idx++], $var)
+          } catch (_e) {
+            return undefined
+          }
+        })
       }
     } else if (obj instanceof Var) {
       obj = JSON.parse(obj.toString().replace(/\$\{([^\}]+)\}/g, (_all, m) => {
@@ -197,7 +192,11 @@ export namespace Api {
       scenario = { extends: scenario } as Api
     }
     for (let k in scenario as Api) {
-      api[k] = scenario[k]
+      if (k === 'url' && !(scenario[k] instanceof Url)) {
+        api[k] = new Url(scenario[k] as string)
+      } else {
+        api[k] = scenario[k]
+      }
     }
     if (!api.method && api.url instanceof Url) api.method = api.url.method as any
     if (api.doc) api.doc = DocImpl.loadScenario(api.doc)

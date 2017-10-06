@@ -1,8 +1,8 @@
 export default {
-  des: 'Testcase for mail',
+  des: 'APIs for mail api service',
   apis: [
     API('Login', {
-      url: POST('http://service.clipvnet.com/oauth/Login'),
+      url: POST('http://localhost:6110/oauth/Login'),
       headers: {
         pj: $var('$$pj')
       },
@@ -14,6 +14,6 @@ export default {
         'token': $var('this.$headers.token')
       }
     }, { key: '#login' }),
-    ...INCLUDE('./doc/mail/mailconfig.part')
+    ...INCLUDE('doc/mail/mailconfig.part')
   ]
 } as Testcase

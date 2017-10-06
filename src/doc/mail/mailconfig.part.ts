@@ -4,7 +4,7 @@ const GROUP = 'MAIL CONFIG'
 
 export default [
   DOC('Add mail config', GROUP, TAG.ADMIN, {
-    url: POST('http://service.clipvnet.com/mail/config'),
+    url: POST('http://localhost:6113/mail/config'),
     body: {
       name: 'Test Account',
       config: {
@@ -29,7 +29,7 @@ export default [
     }
   }, { extends: '#authRequestByToken' }),
   DOC('Update mail config', GROUP, TAG.ADMIN, {
-    url: PUT('http://service.clipvnet.com/mail/config/:mailConfigId', $var('newmailconfig._id')),
+    url: PUT('http://localhost:6113/mail/config/:mailConfigId', $var('newmailconfig._id')),
     body: {
       name: 'Test Account Updated',
       config: {
@@ -46,15 +46,15 @@ export default [
     }
   }, { extends: '#authRequestByToken' }),
   DOC('Get list mail config', GROUP, TAG.ADMIN, {
-    url: GET('http://service.clipvnet.com/mail/config')
+    url: GET('http://localhost:6113/mail/config')
   }, { extends: '#authRequestByToken' }),
   DOC('Get details mail config', GROUP, TAG.ADMIN, {
-    url: GET('http://service.clipvnet.com/mail/config/:mailConfigId', $var('newmailconfig._id'))
+    url: GET('http://localhost:6113/mail/config/:mailConfigId', $var('newmailconfig._id'))
   }, { extends: '#authRequestByToken' }),
 
-  ...INCLUDE('./doc/mail/mail.part'),
+  ...INCLUDE('doc/mail/mail.part'),
 
   DOC('Remove mail config', GROUP, TAG.ADMIN, {
-    url: DELETE('http://service.clipvnet.com/mail/config/:mailConfigId', $var('newmailconfig._id'))
+    url: DELETE('http://localhost:6113/mail/config/:mailConfigId', $var('newmailconfig._id'))
   }, { extends: '#authRequestByToken' })
 ]

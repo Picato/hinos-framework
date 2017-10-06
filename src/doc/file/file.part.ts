@@ -4,7 +4,7 @@ const GROUP = 'FILE'
 
 export default [
   DOC('Upload file', GROUP, TAG.ADMIN, {
-    url: POST('http://service.clipvnet.com/files/upload/:fileConfigId?store=:isStore&name=:fileName', $var('newfileconfig._id'), false, 'imagename.png'),
+    url: POST('http://localhost:6112/files/upload/:fileConfigId', $var('newfileconfig._id')),
     headers: {
       'content-type': 'multipart/form-data'
     },
@@ -28,7 +28,7 @@ export default [
     }
   }, { extends: ['#uploadFile', '#authRequestByToken'] }),
   DOC('Store file(s) after uploading to make sure it wont be removed after period time', GROUP, TAG.ADMIN, {
-    url: PUT('http://service.clipvnet.com/files/store'),
+    url: PUT('http://localhost:6112/files/store'),
     body: {
       oldFiles: $var('newfile1'),
       files: $var('newfile')
@@ -42,7 +42,7 @@ export default [
     }
   }, { extends: '#authRequestByToken' }),
   DOC('Remove file', GROUP, TAG.ADMIN, {
-    url: PUT('http://service.clipvnet.com/files/remove'),
+    url: PUT('http://localhost:6112/files/remove'),
     body: {
       files: $var('newfile')
     }

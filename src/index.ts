@@ -1,9 +1,10 @@
-import { runner } from './Runner'
-import Config from './Config'
-import { $var, GET, POST, PUT, DELETE, HEAD, PATCH } from './Eval'
-import { API, Part } from './Api'
-import { DOC } from './ApiDoc'
-import { INCLUDE } from './Testcase'
+import { runner } from './lib/Runner'
+import Config from './config'
+import { $var, GET, POST, PUT, DELETE, HEAD, PATCH } from './lib/Eval'
+import { API, Part } from './lib/Api'
+import { DOC } from './lib/ApiDoc'
+import { INCLUDE } from './lib/Testcase'
+import * as chalk from 'chalk'
 
 (global as any).Part = Part;
 (global as any).INCLUDE = INCLUDE;
@@ -18,7 +19,10 @@ import { INCLUDE } from './Testcase'
 (global as any).PATCH = PATCH;
 
 (async () => {
+  const startTime = new Date().getTime()
   for (let config of Config) {
     await runner(config)
   }
+  console.log(`${chalk.bgYellow.black.bold(` EXECUTED TIME: ${new Date().getTime() - startTime} ms `)}`)
+  console.log('')
 })()

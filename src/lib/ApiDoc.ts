@@ -1,6 +1,15 @@
 import * as _ from 'lodash'
 import { ApiImpl } from './Api'
 
+const i18doc = require('../../src/i18doc.json') as any
+for (let k in i18doc) {
+  if (k.indexOf('*.') === 0) {
+    i18doc[k.replace(/^\*/, 'headers')] = i18doc[k.replace(/^\*/, '$headers')] = i18doc[k.replace(/^\*/, 'body')] = i18doc[k.replace(/^\*/, '$body')] = i18doc[k.replace(/^\*/, '$body.0')] = i18doc[k.replace(/^\*/, 'body.0')] = i18doc[k]
+    delete i18doc[k]
+  }
+}
+const i18ignore = require('../../src/i18ignore.json')
+
 export abstract class Doc {
   i18doc?: any
   i18ignore?: any
@@ -12,23 +21,6 @@ export abstract class Doc {
 }
 
 export class DocImpl extends Doc {
-  static i18doc = {
-    'headers.pj': 'Project id',
-    'headers.token': 'Token which is received after login'
-  }
-  static i18ignore = [
-    '$headers.date',
-    '$headers.connection',
-    '$headers.content-length',
-    '$headers.server',
-    '$headers.x-dns-prefetch-control',
-    '$headers.x-frame-options',
-    '$headers.strict-transport-security',
-    '$headers.x-download-options',
-    '$headers.x-content-type-options',
-    '$headers.x-xss-protection',
-    '$headers.vary'
-  ]
   static all = [] as [{ group: string, order: number, apiIndexes: number[] }]
   headers?: any
   body?: any
@@ -80,8 +72,8 @@ export class DocImpl extends Doc {
     if (!this.tags) this.tags = []
     if (this.note && this.note instanceof Array) this.note = this.note.join('\n')
     if (typeof this.tags === 'string') this.tags = [this.tags]
-    this.i18doc = _.merge({}, DocImpl.i18doc, this.i18doc)
-    this.i18ignore = _.union(DocImpl.i18ignore, this.i18ignore)
+    this.i18doc = _.merge({}, i18doc, this.i18doc)
+    this.i18ignore = _.union(i18ignore, this.i18ignore)
     this.headers = this.getDocType(this.ignoreDoc(api.headers, 'headers'), 'value', 'headers')
     this.body = this.getDocType(this.ignoreDoc(api.body, 'body'), 'name', 'body')
     this.status = this.getDocType(api.status, 'value', 'status')

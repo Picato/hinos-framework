@@ -3,10 +3,10 @@ import { TAG } from '../common'
 const GROUP = 'LOG'
 
 export default {
-  des: 'Testcase for logging',
+  des: 'APIs for log api service',
   apis: [
     API('Login', {
-      url: POST('http://service.clipvnet.com/oauth/Login'),
+      url: POST('http://localhost:6110/oauth/Login'),
       headers: {
         pj: $var('$$pj')
       },
@@ -19,7 +19,7 @@ export default {
       }
     }, { key: '#login' }),
     DOC('Add new log', GROUP, TAG.ADMIN, {
-      url: POST('http://service.clipvnet.com/log'),
+      url: POST('http://localhost:6114/log'),
       body: {
         title: 'Add new log',
         status: 0,
@@ -36,7 +36,7 @@ export default {
       }
     }, { extends: '#authRequestByToken' }),
     DOC('Update exists log', GROUP, TAG.ADMIN, {
-      url: PUT('http://service.clipvnet.com/log/:logId', $var('newlog._id')),
+      url: PUT('http://localhost:6114/log/:logId', $var('newlog._id')),
       body: {
         status: 1
       },
@@ -47,7 +47,7 @@ export default {
       }
     }, { extends: '#authRequestByToken' }),
     DOC('Get list logs in my project', GROUP, TAG.ADMIN, {
-      url: GET('http://service.clipvnet.com/log?mine=:mine', 'false'),
+      url: GET('http://localhost:6114/log?mine=:mine', 'false'),
       doc: {
         note: [
           `Manual query by add "where", "sort", "fields" in querystring`,
@@ -56,10 +56,10 @@ export default {
       }
     }, { extends: '#authRequestByToken' }),
     DOC('Get details log', GROUP, TAG.ADMIN, {
-      url: GET('http://service.clipvnet.com/log/:logId', $var('newlog._id'))
+      url: GET('http://localhost:6114/log/:logId', $var('newlog._id'))
     }, { extends: '#authRequestByToken' }),
     DOC('Remove log', GROUP, TAG.ADMIN, {
-      url: DELETE('http://service.clipvnet.com/log/:logId', $var('newlog._id'))
+      url: DELETE('http://localhost:6114/log/:logId', $var('newlog._id'))
     }, { extends: '#authRequestByToken' })
   ]
 } as Testcase

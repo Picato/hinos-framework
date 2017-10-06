@@ -1,8 +1,6 @@
 export default {
-  des: 'Testcase for user role',
+  des: 'APIs for oauth api service',
   apis: [
-    ...INCLUDE('./doc/oauth/account.part'),
-    ...INCLUDE('./doc/oauth/role.part'),
-    ...INCLUDE('./doc/oauth/project.part')
+    ...INCLUDE('doc/oauth/account.part')
   ]
 } as Testcase

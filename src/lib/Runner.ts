@@ -2,10 +2,9 @@ import * as chalk from 'chalk'
 import { TestcaseImpl, Testcase } from './Testcase'
 import { DocImpl } from './ApiDoc'
 import { ApiImpl } from './Api'
-import { Url } from './Eval'
 import * as fs from 'fs'
 import * as path from 'path'
-import { Config } from './Config'
+import { Config } from '../config'
 
 export async function runner(config: Config) {
   const c0 = chalk.black('┌')
@@ -37,23 +36,27 @@ export async function runner(config: Config) {
     vars: {} as any
   }
 
+  TestcaseImpl.all = []
+  ApiImpl.all = []
+  DocImpl.all = [] as any
+
   const tcs = config.scenarios.map((imp) => {
-    const Test = require(imp).default as Testcase
+    const Test = require(path.join('..', imp)).default as Testcase
     return TestcaseImpl.loadScenario(Test)
   }).filter(i => i !== -1).map(e => TestcaseImpl.all[e]) as TestcaseImpl[]
 
   // tslint:disable-next-line:no-multi-spaces
-  console.log(`${chalk.bgGreen.bold(`   ${result.title.replace(/./g, ' ')}   `)}`)
+  console.log(`${chalk.bgCyan.bold(`   ${result.title.replace(/./g, ' ')}   `)}`)
   // tslint:disable-next-line:no-multi-spaces
-  console.log(`${chalk.bgGreen.bold(`   ${result.title}   `)}`)
+  console.log(`${chalk.bgCyan.bold(`   ${result.title}   `)}`)
   // tslint:disable-next-line:no-multi-spaces
-  console.log(`${chalk.bgGreen.bold(`   ${result.title.replace(/./g, ' ')}   `)}`)
+  console.log(`${chalk.bgCyan.bold(`   ${result.title.replace(/./g, ' ')}   `)}`)
   console.log('')
   console.log('')
 
   const now = new Date()
   for (const tc of tcs) {
-    console.log(`${chalk.bgCyan.bold(` ${tc.des} `)}`)
+    console.log(`${chalk.bgBlue.bold(` ${tc.des} `)}`)
     const apis = tc.apiIndexes.map(i => ApiImpl.all[i]) as ApiImpl[]
     // tslint:disable-next-line:one-variable-per-declaration
     try {
@@ -67,12 +70,12 @@ export async function runner(config: Config) {
           api.error = e.message || e || 'Run api error'
         }
         if (!api.error) {
-          console.log(' ', c, chalk.green.bold(api.method), chalk.black.underline.italic((api.url as Url).url || api.url as string), chalk.blue(`(${api.executeTime} ms)`))
+          console.log(' ', c, chalk.green.bold(api.des), chalk.black.bold(api.method), chalk.black.underline.italic(api.url.url), chalk.blue(`(${api.executeTime} ms)`))
           result.summary.api.passed++
         } else {
           if (tc.status === TestcaseImpl.Status.PASSED) tc.status = TestcaseImpl.Status.FAILED
           result.summary.api.failed++
-          console.log(' ', c, chalk.red.bold(api.method), chalk.black.underline.italic((api.url as Url).url || api.url as string), chalk.blue(`(${api.executeTime} ms)`))
+          console.log(' ', c, chalk.red.bold(api.des), chalk.black.bold(api.method), chalk.black.underline.italic(api.url.url), chalk.blue(`(${api.executeTime} ms)`))
           console.log(' ', ce, chalk.red.italic(` > ${api.error}`))
           // throw new Error(api.error)
         }
@@ -92,7 +95,7 @@ export async function runner(config: Config) {
   result.doc.sort((a, b) => config.groups.indexOf(a.group) - config.groups.indexOf(b.group))
 
   const fin = path.join('src', 'result.html')
-  const fout = config.output
+  const fout = path.resolve(config.output)
   let cnt = fs.readFileSync(fin).toString()
   cnt = cnt.replace(/\/\*DATA\*\//, JSON.stringify(result))
   fs.writeFileSync(fout, cnt)
@@ -106,5 +109,8 @@ export async function runner(config: Config) {
   console.log(chalk.black('  ├'), chalk.bold.cyan('Testcase'), `\t${chalk.green(`${result.summary.testcase.passed}`)}/${chalk.red(`${result.summary.testcase.failed}`)}/${chalk.yellow(`${result.summary.testcase.tested}`)}`)
   console.log(chalk.black('  ├'), chalk.bold.cyan('Api'), `\t${chalk.green(`${result.summary.api.passed}`)}/${chalk.red(`${result.summary.api.failed}`)}/${chalk.yellow(`${result.summary.api.tested}`)}`)
   console.log(chalk.black('  └'), chalk.bold.cyan('Saved to'), `\t${chalk.black.underline.italic(fout)}`)
+  console.log('')
+  console.log('')
+  console.log(chalk.black('-----------------------------------------------------------------------------------'))
   console.log('')
 }

@@ -4,7 +4,7 @@ const GROUP = 'MAIL'
 
 export default [
   DOC('Push email to queue for sending', GROUP, TAG.ADMIN, {
-    url: POST('http://service.clipvnet.com/mail/send/:mailConfigId', $var('newmailconfig._id')),
+    url: POST('http://localhost:6113/mail/send/:mailConfigId', $var('newmailconfig._id')),
     body: {
       subject: 'Test mail',
       text: 'Hello world',
@@ -23,7 +23,7 @@ export default [
     }
   }, { extends: '#authRequestByToken' }),
   DOC('Resend email', GROUP, TAG.ADMIN, {
-    url: PUT('http://service.clipvnet.com/mail/resend/:mailId', $var('newmail._id')),
+    url: PUT('http://localhost:6113/mail/resend/:mailId', $var('newmail._id')),
     doc: {
       note: [
         `Push your new object to update exists log server`
@@ -31,9 +31,9 @@ export default [
     }
   }, { extends: '#authRequestByToken' }),
   DOC('Get details mail', GROUP, TAG.ADMIN, {
-    url: GET('http://service.clipvnet.com/mail/:mailId', $var('newmail._id'))
+    url: GET('http://localhost:6113/mail/:mailId', $var('newmail._id'))
   }, { extends: '#authRequestByToken' }),
   DOC('Remove mail', GROUP, TAG.ADMIN, {
-    url: DELETE('http://service.clipvnet.com/mail/:mailId', $var('newmail._id'))
+    url: DELETE('http://localhost:6113/mail/:mailId', $var('newmail._id'))
   }, { extends: '#authRequestByToken' })
 ]

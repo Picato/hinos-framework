@@ -42,6 +42,6 @@ export namespace TestcaseImpl {
 }
 
 export function INCLUDE(p): Api[] {
-  const rs = require(p).default
+  const rs = require('../' + p).default
   return rs
 }
