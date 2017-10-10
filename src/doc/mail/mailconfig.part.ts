@@ -1,4 +1,4 @@
-import { TAG,HOST } from '../common'
+import { TAG, HOST } from '../common'
 
 const GROUP = 'MAIL CONFIG'
 
@@ -23,6 +23,10 @@ export default [
       'newmailconfig': $var('this.$body')
     },
     doc: {
+      i18doc: {
+        'body.config': DOC.required(),
+        'body.config.*': DOC.required()
+      },
       note: [
         `Declare SMTP server for sending`
       ]
@@ -42,6 +46,11 @@ export default [
         host: 'smtp.gmail.com',
         port: 465,
         secure: true
+      }
+    },
+    doc: {
+      i18doc: {
+        'body.config.*': DOC.required()
       }
     }
   }, { extends: '#authRequestByToken' }),

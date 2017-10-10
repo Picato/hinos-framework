@@ -1,17 +1,20 @@
 import * as _ from 'lodash'
 import { ApiImpl } from './Api'
 
-const i18doc = require('../../src/i18doc.json') as any
-for (let k in i18doc) {
-  if (k.indexOf('*.') === 0) {
-    i18doc[k.replace(/^\*/, 'headers')] = i18doc[k.replace(/^\*/, '$headers')] = i18doc[k.replace(/^\*/, 'body')] = i18doc[k.replace(/^\*/, '$body')] = i18doc[k.replace(/^\*/, '$body.0')] = i18doc[k.replace(/^\*/, 'body.0')] = i18doc[k]
-    delete i18doc[k]
-  }
-}
-const i18ignore = require('../../src/i18ignore.json')
+let i18doc = {} as any
+let i18ignore
+
+// Initial doc
+(async () => {
+  i18ignore = (await import('../doc/i18ignore')).default as any
+  const _i18doc = (await import('../doc/i18doc')).default as any
+  i18doc = DocImpl.loadScenario({ i18doc: _i18doc } as Doc).i18doc
+})()
 
 export abstract class Doc {
-  i18doc?: any
+  i18doc?: {
+    [key: string]: string | DocType
+  }
   i18ignore?: any
   title?: string
   group: string
@@ -27,6 +30,7 @@ export class DocImpl extends Doc {
   status: any
   $headers: any
   $body: any
+  i18doc?: { [key: string]: DocType }
 
   pushToGroup(api) {
     const gIndex = DocImpl.all.findIndex(e => e.group === this.group)
@@ -72,7 +76,7 @@ export class DocImpl extends Doc {
     if (!this.tags) this.tags = []
     if (this.note && this.note instanceof Array) this.note = this.note.join('\n')
     if (typeof this.tags === 'string') this.tags = [this.tags]
-    this.i18doc = _.merge({}, i18doc, this.i18doc)
+    this.i18doc = _.defaultsDeep({}, this.i18doc, i18doc)
     this.i18ignore = _.union(i18ignore, this.i18ignore)
     this.headers = this.getDocType(this.ignoreDoc(api.headers, 'headers'), 'value', 'headers')
     this.body = this.getDocType(this.ignoreDoc(api.body, 'body'), 'name', 'body')
@@ -86,7 +90,8 @@ export class DocImpl extends Doc {
   private getDocType(obj: any, type: ('value' | 'name'), prefix: string, defaultValue?: any) {
     if (obj instanceof Array) {
       const rs = {
-        $des: this.i18doc[prefix],
+        $des: this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._des : undefined,
+        $required: this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._required : undefined,
         $type: `array`
       } as any
       if (obj[0] instanceof Array) {
@@ -98,13 +103,14 @@ export class DocImpl extends Doc {
       } else if (typeof obj[0] === 'object') {
         rs.$item = this.getDocType(obj[0], type, `${prefix}.0`)
       } else {
-        rs.$type = `array<${('' + typeof (obj[0])).toUpperCase()}>`
+        rs.$type = `array<${((this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._type : undefined) || ('' + typeof (obj[0]))).toUpperCase()}>`
       }
       return rs
     } else if (typeof obj === 'object') {
       const rs = {
-        $des: this.i18doc[prefix],
+        $des: this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._des : undefined,
         $type: 'object',
+        $required: this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._required : undefined,
         $item: {} as any
       }
       for (let k in obj) {
@@ -115,14 +121,16 @@ export class DocImpl extends Doc {
       if (prefix === '$body' || prefix === 'body') {
         return {
           '': {
-            $des: this.i18doc[prefix] || defaultValue || obj,
-            $type: typeof obj
+            $des: (this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._des : undefined) || defaultValue || obj,
+            $required: this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._required : undefined,
+            $type: (this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._type : undefined) || typeof obj
           }
         }
       }
       return {
-        $des: this.i18doc[prefix] || defaultValue || obj,
-        $type: typeof obj
+        $des: (this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._des : undefined) || defaultValue || obj,
+        $required: this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._required : undefined,
+        $type: (this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._type : undefined) || typeof obj
       }
     }
   }
@@ -131,8 +139,35 @@ export class DocImpl extends Doc {
 
 export namespace DocImpl {
   export function loadScenario(scenario: Doc) {
+    const cases = ['headers', '$headers', 'body', '$body', 'body.0', '$body.0']
     const doc = new DocImpl()
+    doc.i18doc = {}
     for (let k in scenario) {
+      if (k === 'i18doc') {
+        for (let i in scenario.i18doc) {
+          if (typeof scenario.i18doc[i] === 'string') {
+            scenario.i18doc[i] = new DocType().des(scenario.i18doc[i] as string)
+          }
+          if (i.indexOf('*') === 0) {
+            cases.forEach((c) => {
+              const icase = i.replace(/^\*/, c as string)
+              scenario.i18doc[icase] = _.defaultsDeep({}, scenario.i18doc[i], scenario.i18doc[icase])
+              if (c.indexOf('$') === 0) {
+                (scenario.i18doc[icase] as DocType)._required = false
+              }
+            })
+            delete scenario.i18doc[i]
+          } else if (i.indexOf('*') > 0) {
+            const match = i.substr(0, i.indexOf('*'))
+            for (let j in scenario.i18doc) {
+              if (j.indexOf(match) === 0) {
+                scenario.i18doc[j] = _.defaultsDeep({}, scenario.i18doc[i], scenario.i18doc[j])
+              }
+            }
+            delete scenario.i18doc[i]
+          }
+        }
+      }
       doc[k] = scenario[k]
     }
     return doc
@@ -146,4 +181,37 @@ export function DOC(title: string, group: string, tags?: string | string[], opti
     tags = []
   }
   return _.merge({ des: title, doc: { title, group, tags } }, options, meta)
+}
+
+export class DocType {
+  _des: string
+  _type: string
+  _required: boolean
+
+  type(_type: string) {
+    this._type = _type
+    return this
+  }
+
+  des(_des: string) {
+    this._des = _des
+    return this
+  }
+
+  required() {
+    this._required = true
+    return this
+  }
+}
+
+export namespace DOC {
+  export function type(type: string) {
+    return new DocType().type(type)
+  }
+  export function des(des: string) {
+    return new DocType().des(des)
+  }
+  export function required() {
+    return new DocType().required()
+  }
 }

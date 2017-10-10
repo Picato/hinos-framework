@@ -1,4 +1,4 @@
-const HOST = 'http://service.clipvnet.com'
+import { HOST } from '../common'
 
 export default {
   disabled: true,
@@ -22,10 +22,10 @@ export default {
     }, { key: '#authRequestBySecretkey' }),
     API('Template ping with token', {
       method: 'HEAD',
-      url: `${HOST}/oauth/ping`
+      url: `${HOST.OAUTH}/oauth/ping`
     }, { key: '#ping', extends: '#authRequestByToken' }),
     API('Login by admin account', {
-      url: POST(`${HOST}/oauth/Login`),
+      url: POST(`${HOST.OAUTH}/oauth/Login`),
       headers: {
         pj: $var('$$pj')
       },

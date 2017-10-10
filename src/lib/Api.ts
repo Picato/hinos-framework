@@ -67,7 +67,7 @@ export class ApiImpl extends Api {
       for (const ext of _extends) {
         const api = ApiImpl.all.find(e => e.key === ext)
         if (!api) throw new Error(`Could not found api with key "${this.extends}" to extends`)
-        _.merge(tmp, api)
+        tmp = _.defaultsDeep({}, api, tmp)
       }
       if (this.var && Object.keys(this.var).length > 0) delete tmp.var
       delete tmp.doc
@@ -199,7 +199,9 @@ export namespace Api {
       }
     }
     if (!api.method && api.url instanceof Url) api.method = api.url.method as any
-    if (api.doc) api.doc = DocImpl.loadScenario(api.doc)
+    if (api.doc) {
+      api.doc = DocImpl.loadScenario(_.defaultsDeep({}, api.doc, tc.doc))
+    }
     api.id = ApiImpl.all.length
     api.load()
     if (tc.disabled) api.disabled = true

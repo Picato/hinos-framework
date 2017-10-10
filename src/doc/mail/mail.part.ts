@@ -8,6 +8,7 @@ export default [
     body: {
       subject: 'Test mail',
       text: 'Hello world',
+      html: '<b>Hello</b> <i>world</i>',
       from: 'Tester@abc.com',
       to: ['user1@abc.com'],
       cc: ['user2@abc.com'],
@@ -16,24 +17,18 @@ export default [
     var: {
       'newmail': $var('this.$body')
     },
-    doc: {
-      note: [
-        `To send an email, you must push your email to mail server`
-      ]
-    }
+    note: [
+      `To send an email, you must push it to queue in mail service`,
+      `Mail service will auto send your email`
+    ]
   }, { extends: '#authRequestByToken' }),
-  DOC('Resend email', GROUP, TAG.ADMIN, {
-    url: PUT(`${HOST.MAIL}/mail/resend/:mailId`, $var('newmail._id')),
-    doc: {
-      note: [
-        `Push your new object to update exists log server`
-      ]
-    }
+  DOC('Resend an existed email', GROUP, TAG.ADMIN, {
+    url: PUT(`${HOST.MAIL}/mail/resend/:mailId`, $var('newmail._id'))
   }, { extends: '#authRequestByToken' }),
-  DOC('Get details mail', GROUP, TAG.ADMIN, {
+  DOC('Get email sending details', GROUP, TAG.ADMIN, {
     url: GET(`${HOST.MAIL}/mail/:mailId`, $var('newmail._id'))
   }, { extends: '#authRequestByToken' }),
-  DOC('Remove mail', GROUP, TAG.ADMIN, {
+  DOC('Remove email sending', GROUP, TAG.ADMIN, {
     url: DELETE(`${HOST.MAIL}/mail/:mailId`, $var('newmail._id'))
   }, { extends: '#authRequestByToken' })
 ]

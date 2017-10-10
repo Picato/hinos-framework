@@ -1,4 +1,5 @@
 import { Api, ApiImpl } from './Api'
+import { DocImpl, Doc } from './ApiDoc'
 
 export abstract class Testcase {
   key?: string
@@ -6,6 +7,7 @@ export abstract class Testcase {
   disabled?: boolean
   apis?: Api[]
   var?: string | { [key: string]: any } = {}
+  doc?: Doc = undefined
 }
 
 export class TestcaseImpl extends Testcase {
@@ -26,11 +28,13 @@ export namespace TestcaseImpl {
     const tc = new TestcaseImpl()
     for (let k in scenario) {
       if (k === 'apis') {
-        tc.apiIndexes = tc.apiIndexes.concat(scenario.apis.map(e => Api.loadScenario(e, this)).filter(e => e !== -1))
+        tc.apiIndexes = tc.apiIndexes.concat(scenario.apis.map(e => Api.loadScenario(e, tc)).filter(e => e !== -1))
       } else if (k === 'var' && typeof scenario.var === 'object') {
         for (let k0 in scenario.var) {
           ApiImpl.vars[k0] = scenario.var[k0]
         }
+      } else if (k === 'doc') {
+        tc.doc = DocImpl.loadScenario(scenario.doc as Doc)
       } else {
         tc[k] = scenario[k]
       }

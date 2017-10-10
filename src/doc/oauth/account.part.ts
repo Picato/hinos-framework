@@ -18,6 +18,11 @@ export default [
         phone: '093239842'
       }
     },
+    doc: {
+      i18doc: {
+        'headers.pj': DOC.type('').required
+      }
+    },
     var: {
       'user': $var('this.$body')
     }

@@ -28,12 +28,23 @@ declare interface Testcase {
   disabled?: boolean
   apis?: Api[]
   var?: string | { [key: string]: any }
+  doc?: Doc
 }
 declare namespace API {
   export let HOST: string
 }
 declare function INCLUDE(path: string): Api[]
 declare function API(des: string, options: Api, meta?: { key?: string, extends?: string | string[] }): Api
+declare interface DocType {
+  type(type: string): DocType
+  required(): DocType
+  des(des: string): DocType
+}
+declare namespace DOC {
+  export function type(type: string): DocType
+  export function required(): DocType
+  export function des(des: string): DocType
+}
 declare function DOC(title: string, group: string, options: Api, meta?: { key?: string, extends?: string | string[] }): Api
 declare function DOC(title: string, group: string, tags: string | string[], options: Api, meta?: { key?: string, extends?: string }): Api
 declare function Part(src: string): FileData
