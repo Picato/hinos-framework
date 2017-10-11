@@ -30,7 +30,7 @@ export class ScriptController {
   }
 
   @GET('/')
-  @INJECT(authoriz(`${AppConfig.name}>Script`, ['FIND']))
+  @INJECT(authoriz(`/script`, ['FIND']))
   @RESTRICT({
     query: {
       page: Number,
@@ -72,7 +72,7 @@ export class ScriptController {
   }
 
   @GET('/:_id')
-  @INJECT(authoriz(`${AppConfig.name}>Script`, ['GET']))
+  @INJECT(authoriz(`/script`, ['GET']))
   @RESTRICT({
     params: {
       _id: Mongo.uuid
@@ -84,7 +84,7 @@ export class ScriptController {
   }
 
   @POST('/')
-  @INJECT(authoriz(`${AppConfig.name}>Script`, ['INSERT']))
+  @INJECT(authoriz(`/script`, ['INSERT']))
   @BODYPARSER()
   @RESTRICT({
     body: {
@@ -104,7 +104,7 @@ export class ScriptController {
   }
 
   @PUT('/:_id')
-  @INJECT(authoriz(`${AppConfig.name}>Script`, ['UPDATE']))
+  @INJECT(authoriz(`/script`, ['UPDATE']))
   @BODYPARSER()
   @RESTRICT({
     params: {
@@ -129,7 +129,7 @@ export class ScriptController {
   }
 
   @DELETE('/:_id')
-  @INJECT(authoriz(`${AppConfig.name}>Script`, ['DELETE']))
+  @INJECT(authoriz(`/script`, ['DELETE']))
   @RESTRICT({
     params: {
       _id: Mongo.uuid
