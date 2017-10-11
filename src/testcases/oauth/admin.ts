@@ -1,5 +1,5 @@
 export default {
-  des: '[Account] Testcase for admin role',
+  title: '[Account] Testcase for admin role',
   var: {
     '$$admin': { username: 'testuser', password: 'test123' }
   },
@@ -18,12 +18,10 @@ export default {
       }
     }, { key: '#login' }),
     API('Check authorization when call api', {
-      url: HEAD('http://service.clipvnet.com/oauth/Authoriz?path=:path&actions=:actions', 'hinos-oauth-service>Me', 'GET_INFOR, UPDATE'),
-      doc: { group: 'Admin Account' }
+      url: HEAD('http://service.clipvnet.com/oauth/Authoriz?path=:path&actions=:actions', 'hinos-oauth-service>Me', 'GET_INFOR, UPDATE')
     }, { extends: '#authRequestByToken' }),
     API('Remove user after test client api', {
-      url: DELETE('http://service.clipvnet.com/oauth/account/:accountId', $var('user._id')),
-      doc: { group: 'Admin Account', title: 'Delete user account' }
+      url: DELETE('http://service.clipvnet.com/oauth/account/:accountId', $var('user._id'))
     }, { extends: '#authRequestByToken' })
   ]
 } as Testcase

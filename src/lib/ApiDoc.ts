@@ -1,5 +1,5 @@
 import * as _ from 'lodash'
-import { ApiImpl } from './Api'
+import { ApiImpl, FileData } from './Api'
 
 let i18doc = {} as any
 let i18ignore
@@ -59,6 +59,8 @@ export class DocImpl extends Doc {
         rs.push(this.ignoreDoc(obj[0], `${prefix}.0`))
       }
       return rs
+    } else if (obj instanceof FileData) {
+      return obj
     } else if (typeof obj === 'object') {
       const rs = {}
       for (let k in obj) {
@@ -72,7 +74,7 @@ export class DocImpl extends Doc {
   }
 
   install(api: ApiImpl) {
-    if (!this.title) this.title = api.des
+    if (!this.title) this.title = api.title
     if (!this.tags) this.tags = []
     if (this.note && this.note instanceof Array) this.note = this.note.join('\n')
     if (typeof this.tags === 'string') this.tags = [this.tags]
@@ -96,15 +98,27 @@ export class DocImpl extends Doc {
       } as any
       if (obj[0] instanceof Array) {
         rs.$item = this.getDocType(obj[0], type, `${prefix}.0`)
-        if (rs.$item.type.includes('array<')) {
-          rs.$type += `<${rs.$item.type}>`
+        if (rs.$item.type === 'array') {
+          rs.$cuzType = `${rs.$item.type}[]`
           delete rs.$item
         }
       } else if (typeof obj[0] === 'object') {
         rs.$item = this.getDocType(obj[0], type, `${prefix}.0`)
+        rs.$cuzType = 'object[]'
       } else {
-        rs.$type = `array<${((this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._type : undefined) || ('' + typeof (obj[0]))).toUpperCase()}>`
+        rs.$cuzType = `${((this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._type : undefined) || ('' + typeof (obj[0]))).toUpperCase()}[]`
       }
+      if (this.i18doc[prefix] !== undefined && this.i18doc[prefix]._type) rs.$cuzType = this.i18doc[prefix]._type
+      if (!rs.$cuzType) rs.$cuzType = rs.$type
+      return rs
+    } else if (obj instanceof FileData) {
+      const rs = {
+        $des: (this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._des : undefined) || defaultValue || obj,
+        $required: this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._required : undefined,
+        $type: 'File'
+      } as any
+      if (this.i18doc[prefix] !== undefined && this.i18doc[prefix]._type) rs.$cuzType = this.i18doc[prefix]._type
+      if (!rs.$cuzType) rs.$cuzType = rs.$type
       return rs
     } else if (typeof obj === 'object') {
       const rs = {
@@ -112,26 +126,33 @@ export class DocImpl extends Doc {
         $type: 'object',
         $required: this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._required : undefined,
         $item: {} as any
-      }
+      } as any
       for (let k in obj) {
         rs.$item[k] = this.getDocType(obj[k], type, `${prefix}.${k}`, type === 'name' ? k : obj[k])
       }
+      if (this.i18doc[prefix] !== undefined && this.i18doc[prefix]._type) rs.$cuzType = this.i18doc[prefix]._type
+      if (!rs.$cuzType) rs.$cuzType = rs.$type
       return rs
     } else {
+      if (obj === undefined) return {}
       if (prefix === '$body' || prefix === 'body') {
-        return {
-          '': {
-            $des: (this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._des : undefined) || defaultValue || obj,
-            $required: this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._required : undefined,
-            $type: (this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._type : undefined) || typeof obj
-          }
-        }
+        const rs = {
+          $des: (this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._des : undefined) || defaultValue || obj,
+          $required: this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._required : undefined,
+          $type: typeof obj
+        } as any
+        if (this.i18doc[prefix] !== undefined && this.i18doc[prefix]._type) rs.$cuzType = this.i18doc[prefix]._type
+        if (!rs.$cuzType) rs.$cuzType = rs.$type
+        return { '': rs }
       }
-      return {
+      const rs = {
         $des: (this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._des : undefined) || defaultValue || obj,
         $required: this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._required : undefined,
-        $type: (this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._type : undefined) || typeof obj
-      }
+        $type: typeof obj
+      } as any
+      if (this.i18doc[prefix] !== undefined && this.i18doc[prefix]._type) rs.$cuzType = this.i18doc[prefix]._type
+      if (!rs.$cuzType) rs.$cuzType = rs.$type
+      return rs
     }
   }
 
@@ -174,13 +195,14 @@ export namespace DocImpl {
   }
 }
 
-export function DOC(title: string, group: string, tags?: string | string[], options?: Api, meta?: { key?: string, extends?: string | string[] }): Api {
+export function DOC(title: string, group: string, tags?: string | string[], options?: ApiImpl & Doc, meta?: { key?: string, extends?: string | string[] }): ApiImpl {
   if (typeof tags !== 'string' && !(tags instanceof Array)) {
     meta = options as any
-    options = tags as Api
+    options = tags as ApiImpl & Doc
     tags = []
   }
-  return _.merge({ des: title, doc: { title, group, tags } }, options, meta)
+  options.doc = _.pick(options, ['i18doc', 'i18ignore', 'order', 'note'])
+  return _.defaultsDeep({}, meta, options, { title, doc: { title, group, tags } }) as ApiImpl
 }
 
 export class DocType {
@@ -198,8 +220,8 @@ export class DocType {
     return this
   }
 
-  required() {
-    this._required = true
+  required(isRequired = true) {
+    this._required = isRequired
     return this
   }
 }
@@ -211,7 +233,7 @@ export namespace DOC {
   export function des(des: string) {
     return new DocType().des(des)
   }
-  export function required() {
-    return new DocType().required()
+  export function required(isRequired?: boolean) {
+    return new DocType().required(isRequired)
   }
 }

@@ -3,7 +3,7 @@ import { DocImpl, Doc } from './ApiDoc'
 
 export abstract class Testcase {
   key?: string
-  des: string
+  title: string
   disabled?: boolean
   apis?: Api[]
   var?: string | { [key: string]: any } = {}

@@ -9,10 +9,10 @@ export default [
   '$headers.x-download-options',
   '$headers.x-content-type-options',
   '$headers.x-xss-protection',
-  '$headers.vary',
+  '$headers.vary'
 
-  '$body.project_id',
-  '$body.role_ids',
-  '$body.token',
-  '$body.trying'
+  // '$body.project_id',
+  // '$body.role_ids',
+  // '$body.token',
+  // '$body.trying'
 ]

@@ -56,7 +56,7 @@ export async function runner(config: Config) {
 
   const now = new Date()
   for (const tc of tcs) {
-    console.log(`${chalk.bgBlue.bold(` ${tc.des} `)}`)
+    console.log(`${chalk.bgBlue.bold(` ${tc.title} `)}`)
     const apis = tc.apiIndexes.map(i => ApiImpl.all[i]) as ApiImpl[]
     // tslint:disable-next-line:one-variable-per-declaration
     try {
@@ -70,12 +70,12 @@ export async function runner(config: Config) {
           api.error = e.message || e || 'Run api error'
         }
         if (!api.error) {
-          console.log(' ', c, chalk.green.bold(api.des), chalk.black.bold(api.method), chalk.black.underline.italic(api.url.requestPath), chalk.blue(`(${api.executeTime} ms)`))
+          console.log(' ', c, chalk.green.bold(api.title), chalk.black.bold(api.method), chalk.black.underline.italic(api.url.requestPath), chalk.blue(`(${api.executeTime} ms)`))
           result.summary.api.passed++
         } else {
           if (tc.status === TestcaseImpl.Status.PASSED) tc.status = TestcaseImpl.Status.FAILED
           result.summary.api.failed++
-          console.log(' ', c, chalk.red.bold(api.des), chalk.black.bold(api.method), chalk.black.underline.italic(api.url.requestPath), chalk.blue(`(${api.executeTime} ms)`))
+          console.log(' ', c, chalk.red.bold(api.title), chalk.black.bold(api.method), chalk.black.underline.italic(api.url.requestPath), chalk.blue(`(${api.executeTime} ms)`))
           console.log(' ', ce, chalk.red.italic(` > ${api.error}`))
           // throw new Error(api.error)
         }

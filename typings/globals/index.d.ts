@@ -12,7 +12,7 @@ declare interface Doc {
 }
 declare interface Api {
   key?: string
-  des?: string
+  title?: string
   method?: 'POST' | 'PUT' | 'GET' | 'HEAD' | 'DELETE' | 'PATCH'
   url?: string | Url
   headers?: { [key: string]: any }
@@ -20,10 +20,9 @@ declare interface Api {
   extends?: string | string[]
   var?: string | { [key: string]: any }
   disabled?: boolean
-  doc?: Doc
 }
 declare interface Testcase {
-  des: string
+  title: string
   key?: string
   disabled?: boolean
   apis?: Api[]
@@ -34,7 +33,7 @@ declare namespace API {
   export let HOST: string
 }
 declare function INCLUDE(path: string): Api[]
-declare function API(des: string, options: Api, meta?: { key?: string, extends?: string | string[] }): Api
+declare function API(title: string, options: Api, meta?: { key?: string, extends?: string | string[] }): Api
 declare interface DocType {
   type(type: string): DocType
   required(): DocType
@@ -42,11 +41,11 @@ declare interface DocType {
 }
 declare namespace DOC {
   export function type(type: string): DocType
-  export function required(): DocType
+  export function required(isRequired?: boolean): DocType
   export function des(des: string): DocType
 }
-declare function DOC(title: string, group: string, options: Api, meta?: { key?: string, extends?: string | string[] }): Api
-declare function DOC(title: string, group: string, tags: string | string[], options: Api, meta?: { key?: string, extends?: string }): Api
+declare function DOC(title: string, group: string, options: Api & Doc, meta?: { key?: string, extends?: string | string[] }): Api
+declare function DOC(title: string, group: string, tags: string | string[], options: Api | Doc, meta?: { key?: string, extends?: string }): Api
 declare function Part(src: string): FileData
 declare function $var(name: string): Var
 

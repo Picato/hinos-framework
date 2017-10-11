@@ -1,6 +1,6 @@
 export default {
   disabled: true,
-  des: 'Declare template apis',
+  title: 'Declare template apis',
   var: {
     $$pj: '597aaa573f91b427e66ab09d',
     $$role: '597aaa573f91b427e66ab09e'

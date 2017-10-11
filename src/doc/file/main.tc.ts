@@ -1,5 +1,5 @@
 export default {
-  des: 'APIs for file api service',
+  title: 'APIs for file api service',
   var: {
     $$host: 'http://localhost:6100'
   },

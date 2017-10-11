@@ -8,7 +8,7 @@ import * as fs from 'fs'
 
 export abstract class Api {
   key?: string
-  des?: string
+  title?: string
   method?: 'POST' | 'PUT' | 'GET' | 'HEAD' | 'DELETE' | 'PATCH'
   url?: string | Url
   headers?: { [key: string]: any } = {}
@@ -16,14 +16,13 @@ export abstract class Api {
   extends?: string | string[]
   var?: string | { [key: string]: any }
   disabled?: boolean = false
-  doc?: Doc = undefined
 }
 
 export class ApiImpl extends Api {
   static defaultHeaders = {
     'content-type': 'application/json'
   }
-  static all = [] as Api[]
+  static all = [] as ApiImpl[]
   static vars = {} as { [key: string]: any }
 
   id: number
@@ -33,6 +32,7 @@ export class ApiImpl extends Api {
   $headers: any
   $body: any
   url: Url
+  doc: Doc
 
   get _disabled() {
     return this.disabled || !this.url
@@ -60,7 +60,7 @@ export class ApiImpl extends Api {
   }
 
   load() {
-    // if (this.des === 'Upload file') debugger
+    // if (this.title === 'Upload file') debugger
     if (this.extends) {
       const _extends = (this.extends instanceof Array) ? this.extends : [this.extends]
       let tmp = {} as any
@@ -210,8 +210,8 @@ export namespace Api {
   }
 }
 
-export function API(des: string, options: Api, meta: { key?: string, extends?: string | string[] } = {}): Api {
-  return _.merge({ des }, options, meta)
+export function API(title: string, options: Api, meta: { key?: string, extends?: string | string[] } = {}): Api {
+  return _.merge({ title }, options, meta)
 }
 
 export function Part(src: string): FileData {

@@ -3,10 +3,22 @@ import { TAG, HOST } from '../common'
 const GROUP = 'LOG'
 
 export default {
-  des: 'APIs for log api service',
+  title: 'APIs for log api service',
+  doc: {
+    i18doc: {
+      '*.title': DOC.type('Dynamic<Any>').des('Title'),
+      '*.status': DOC.type('Dynamic<Any>').des('Status'),
+      '*.event_type': DOC.type('Dynamic<Any>').des('Event type'),
+      '*._id': 'Log ID'
+    }
+  },
   apis: [
     '#login',
     DOC('Add new log', GROUP, TAG.ADMIN, {
+      note: [
+        `Push your object to log server`,
+        `Top level key fields in object must be not same keywords "account_id", "project_id", "created_at", "updated_at", "_id"`
+      ],
       url: POST(`${HOST.LOG}/log`),
       body: {
         title: 'Add new log',
@@ -15,33 +27,23 @@ export default {
       },
       var: {
         'newlog': $var('this.$body')
-      },
-      doc: {
-        note: [
-          `Push your object to log server`,
-          `Top level key fields in object must be not same keywords "account_id", "project_id", "created_at", "updated_at", "_id"`
-        ]
       }
     }, { extends: '#authRequestByToken' }),
     DOC('Update exists log', GROUP, TAG.ADMIN, {
+      note: [
+        `Push your new object to update exists log server`
+      ],
       url: PUT(`${HOST.LOG}/log/:logId`, $var('newlog._id')),
       body: {
         status: 1
-      },
-      doc: {
-        note: [
-          `Push your new object to update exists log server`
-        ]
       }
     }, { extends: '#authRequestByToken' }),
     DOC('Get list logs in my project', GROUP, TAG.ADMIN, {
-      url: GET(`${HOST.LOG}/log?mine=:mine`, 'false'),
-      doc: {
-        note: [
-          `Manual query by add "where", "sort", "fields" in querystring`,
-          `  Eg: ?where={status: 1}&sort={updated_at: -1}&fields={title: 1}`
-        ]
-      }
+      note: [
+        `Manual query by add "where", "sort", "fields" in querystring`,
+        `<pre>?where={status: 1}&sort={updated_at: -1}&fields={title: 1}</pre>`
+      ],
+      url: GET(`${HOST.LOG}/log?mine=:mine`, 'false')
     }, { extends: '#authRequestByToken' }),
     DOC('Get details log', GROUP, TAG.ADMIN, {
       url: GET(`${HOST.LOG}/log/:logId`, $var('newlog._id'))
