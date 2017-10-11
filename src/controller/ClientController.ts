@@ -12,7 +12,7 @@ import { authoriz } from '../service/Authoriz'
 export class ClientController {
 
   @POST('/Send/:configId')
-  @INJECT(authoriz(`${AppConfig.name}>Mail`, ['SEND']))
+  @INJECT(authoriz(`/mail`, ['SEND']))
   @BODYPARSER()
   @RESTRICT({
     params: {
@@ -33,6 +33,7 @@ export class ClientController {
     body.account_id = state.auth.accountId
     body.config_id = params.configId
     const rs = await MailService.insert(body) as Mail
+    delete rs.project_id
     return rs
   }
 

@@ -12,7 +12,7 @@ import { authoriz } from '../service/Authoriz'
 export class ConfigController {
 
   @GET('/Config')
-  @INJECT(authoriz(`${AppConfig.name}>Config`, ['FIND']))
+  @INJECT(authoriz(`/mail/config`, ['FIND']))
   @RESTRICT({
     query: {
       page: Number,
@@ -25,6 +25,7 @@ export class ConfigController {
     }
     const rs = await MailConfigService.find({
       $where: where,
+      $fields: { project_id: 0 },
       $page: query.page,
       $recordsPerPage: query.recordsPerPage
     })
@@ -32,7 +33,7 @@ export class ConfigController {
   }
 
   @GET('/Config/:_id')
-  @INJECT(authoriz(`${AppConfig.name}>Config`, ['GET']))
+  @INJECT(authoriz(`/mail/config`, ['GET']))
   @RESTRICT({
     params: {
       _id: Mongo.uuid
@@ -47,7 +48,7 @@ export class ConfigController {
   }
 
   @POST('/Config')
-  @INJECT(authoriz(`${AppConfig.name}>Config`, ['INSERT']))
+  @INJECT(authoriz(`/mail/config`, ['INSERT']))
   @BODYPARSER()
   @RESTRICT({
     body: {
@@ -59,11 +60,12 @@ export class ConfigController {
     body.project_id = state.auth.projectId
     body.account_id = state.auth.accountId
     const rs = await MailConfigService.insert(body) as MailConfig
+    delete rs.project_id
     return rs
   }
 
   @PUT('/Config/:_id')
-  @INJECT(authoriz(`${AppConfig.name}>Config`, ['UPDATE']))
+  @INJECT(authoriz(`/mail/config`, ['UPDATE']))
   @BODYPARSER()
   @RESTRICT({
     params: {
@@ -84,7 +86,7 @@ export class ConfigController {
   }
 
   @DELETE('/Config/:_id')
-  @INJECT(authoriz(`${AppConfig.name}>Config`, ['DELETE']))
+  @INJECT(authoriz(`/mail/config`, ['DELETE']))
   @RESTRICT({
     params: {
       _id: Mongo.uuid

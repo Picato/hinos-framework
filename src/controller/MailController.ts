@@ -31,7 +31,7 @@ export class MailController {
   }
 
   @PUT('/Resend/:_id')
-  @INJECT(authoriz(`${AppConfig.name}>Mail`, ['RESEND']))
+  @INJECT(authoriz(`/mail`, ['RESEND']))
   @RESTRICT({
     params: {
       _id: Mongo.uuid
@@ -48,7 +48,7 @@ export class MailController {
   }
 
   @GET('/')
-  @INJECT(authoriz(`${AppConfig.name}>Mail`, ['FIND']))
+  @INJECT(authoriz(`/mail`, ['FIND']))
   @RESTRICT({
     query: {
       page: Number,
@@ -66,13 +66,13 @@ export class MailController {
       $sort: {
         updated_at: -1
       },
-      $fields: { text: 0, html: 0 }
+      $fields: { text: 0, html: 0, project_id: 0 }
     })
     return rs
   }
 
   @GET('/:_id')
-  @INJECT(authoriz(`${AppConfig.name}>Mail`, ['GET']))
+  @INJECT(authoriz(`/mail`, ['GET']))
   @RESTRICT({
     params: {
       _id: Mongo.uuid
@@ -87,7 +87,7 @@ export class MailController {
   }
 
   @DELETE('/:_id')
-  @INJECT(authoriz(`${AppConfig.name}>Mail`, ['DELETE']))
+  @INJECT(authoriz(`/mail`, ['DELETE']))
   @RESTRICT({
     params: {
       _id: Mongo.uuid

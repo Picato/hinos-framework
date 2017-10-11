@@ -29,7 +29,7 @@ export class MailConfigService {
   }
 
   static async get(_id: any) {
-    const rs = await MailConfigService.mongo.get<MailConfig>(MailConfig, _id)
+    const rs = await MailConfigService.mongo.get<MailConfig>(MailConfig, _id, { project_id: 0 })
     return rs
   }
 
