@@ -14,7 +14,7 @@ import { authoriz } from '../service/Authoriz'
 export class AccountController {
 
   @GET('/Account')
-  @INJECT(authoriz(`${AppConfig.name}>Account`, ['FIND']))
+  @INJECT(authoriz(`/oauth/account`, ['FIND']))
   @RESTRICT({
     query: {
       page: Number,
@@ -27,7 +27,7 @@ export class AccountController {
   static async find({ query, state }) {
     let where: any = Mongo.autocast(query.where || {})
     let sort: any = query.sort || {}
-    let fields: any = query.fields || {}
+    let fields: any = query.fields || { token: 0, password: 0, project_id: 0, trying: 0, secret_key: 0 }
 
     _.merge(where, { project_id: state.auth.projectId })
 
@@ -38,17 +38,20 @@ export class AccountController {
       $sort: sort,
       $fields: fields
     })
+    if (!query.fields) return rs
     return rs.map(e => {
+      delete e.password
       delete e.token
       delete e.password
       delete e.project_id
       delete e.trying
+      delete e.secret_key
       return e
     })
   }
 
   @GET('/Account/:_id')
-  @INJECT(authoriz(`${AppConfig.name}>Account`, ['GET']))
+  @INJECT(authoriz(`/oauth/account`, ['GET']))
   @RESTRICT({
     params: {
       _id: Mongo.uuid
@@ -63,7 +66,7 @@ export class AccountController {
   }
 
   @POST('/Account')
-  @INJECT(authoriz(`${AppConfig.name}>Account`, ['INSERT']))
+  @INJECT(authoriz(`/oauth/account`, ['INSERT']))
   @BODYPARSER()
   @RESTRICT({
     body: {
@@ -72,8 +75,7 @@ export class AccountController {
       status: Number,
       recover_by: String,
       role_ids: Array,
-      more: Object,
-      secret_key: String
+      more: Object
     }
   })
   static async add({ body, state }) {
@@ -84,7 +86,7 @@ export class AccountController {
   }
 
   @PUT('/Account/:_id')
-  @INJECT(authoriz(`${AppConfig.name}>Account`, ['UPDATE']))
+  @INJECT(authoriz(`/oauth/account`, ['UPDATE']))
   @BODYPARSER()
   @RESTRICT({
     params: {
@@ -94,7 +96,6 @@ export class AccountController {
       password: md5,
       status: Number,
       recover_by: String,
-      secret_key: String,
       role_ids: Array,
       more: Object
     }
@@ -109,7 +110,7 @@ export class AccountController {
   }
 
   @DELETE('/Account/:_id')
-  @INJECT(authoriz(`${AppConfig.name}>Account`, ['DELETE']))
+  @INJECT(authoriz(`/oauth/account`, ['DELETE']))
   @RESTRICT({
     params: {
       _id: Mongo.uuid

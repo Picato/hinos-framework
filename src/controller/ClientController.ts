@@ -107,7 +107,7 @@ export default class AccountController {
       token: vl => vl.split('?')[0]
     }
   })
-  @INJECT(authoriz(`${AppConfig.name}>Me`, ['LOGOUT']))
+  @INJECT(authoriz(`/oauth/client`, ['LOGOUT']))
   static async logout({ state }) {
     await AccountService.logout(state.auth)
   }
@@ -118,7 +118,7 @@ export default class AccountController {
       token: vl => vl.split('?')[0]
     }
   })
-  @INJECT(authoriz(`${AppConfig.name}>Me`, ['PING']))
+  @INJECT(authoriz(`/oauth/client`, ['PING']))
   static async ping({ state }) {
     await AccountService.ping(state.auth)
   }
@@ -145,34 +145,34 @@ export default class AccountController {
   }
 
   @PUT('/Secretkey')
-  @INJECT(authoriz(`${AppConfig.name}>Me`, ['GEN_SECRETKEY']))
+  @INJECT(authoriz(`/oauth/client`, ['GEN_SECRETKEY']))
   static async genSecretKey({ state }) {
     const secretKey = await AccountService.genSecretKey(state.auth)
     return secretKey
   }
 
   @DELETE('/Secretkey')
-  @INJECT(authoriz(`${AppConfig.name}>Me`, ['GEN_SECRETKEY']))
+  @INJECT(authoriz(`/oauth/client`, ['GEN_SECRETKEY']))
   static async clearSecretKey({ state }) {
     await AccountService.clearSecretKey(state.auth)
   }
 
   @GET('/Secretkey')
-  @INJECT(authoriz(`${AppConfig.name}>Me`, ['GET_SECRETKEY']))
+  @INJECT(authoriz(`/oauth/client`, ['GET_SECRETKEY']))
   static async getSecretKey({ state }) {
     const secretKey = await AccountService.getSecretKey(state.auth)
     return secretKey
   }
 
   @GET('/Me')
-  @INJECT(authoriz(`${AppConfig.name}>Me`, ['GET_INFOR']))
+  @INJECT(authoriz(`/oauth/client`, ['GET_INFOR']))
   static async getMe({ state }) {
     const me = await AccountService.getMe(state.auth)
     return me
   }
 
   @PUT('/Me')
-  @INJECT(authoriz(`${AppConfig.name}>Me`, ['UPDATE']))
+  @INJECT(authoriz(`/oauth/client`, ['UPDATE']))
   @BODYPARSER()
   @RESTRICT({
     body: {
@@ -185,12 +185,10 @@ export default class AccountController {
     body._id = state.auth.accountId
     if (body.more) body.more = Mongo.autocast(body.more)
     await AccountService.update(body)
-    const me = await AccountService.getMe(state)
-    return me
   }
 
   @GET('/MyRoles')
-  @INJECT(authoriz(`${AppConfig.name}>MyRole`, ['GET_ROLES']))
+  @INJECT(authoriz(`/oauth/client`, ['GET_ROLES']))
   @RESTRICT({
     query: {
       type: String

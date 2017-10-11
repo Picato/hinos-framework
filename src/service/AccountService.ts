@@ -178,6 +178,11 @@ export class AccountService {
   })
   static async register(body, _plugins) {
     const acc = await AccountService.insert(body)
+    delete acc.role_ids
+    delete acc.project_id
+    delete acc.trying
+    delete acc.token
+    delete acc.password
     return acc
   }
 
@@ -294,7 +299,7 @@ export class AccountService {
   }
 
   static async get(_id: any) {
-    const rs = await AccountService.mongo.get<Account>(Account, _id)
+    const rs = await AccountService.mongo.get<Account>(Account, _id, { token: 0, password: 0, project_id: 0, trying: 0, secret_key: 0 })
     return rs
   }
 
@@ -324,6 +329,10 @@ export class AccountService {
     // Check username must be not existed
     if (existed) throw HttpError.BAD_REQUEST(`Username ${body.username} was existed`)
     const rs = await AccountService.mongo.insert<Account>(Account, body) as Account
+    delete rs.trying
+    delete rs.token
+    delete rs.project_id
+    delete rs.role_ids
     return rs
   }
 
@@ -332,7 +341,6 @@ export class AccountService {
     Checker.option(body, 'password', String)
     Checker.option(body, 'status', Number)
     Checker.option(body, 'recover_by', String)
-    Checker.option(body, 'secret_key', String)
     Checker.option(body, 'role_ids', Array, () => {
       body.role_ids = Mongo.uuid(body.role_ids)
     })

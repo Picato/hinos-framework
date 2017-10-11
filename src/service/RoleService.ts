@@ -49,10 +49,10 @@ export class RoleService {
     await RoleService.insert({
       name: 'User',
       api: [
-        { path: '>Me$', actions: '.*' },
-        { path: '>Mail$', actions: 'SEND|GET|RESEND' },
-        { path: '>Log$', actions: 'FIND|GET|INSERT|UPDATE' },
-        { path: '>Files$', actions: 'UPLOAD|STORE|DELETE' }
+        { path: '/oauth/client$', actions: '.*' },
+        { path: '/mail$', actions: 'SEND|GET|RESEND' },
+        { path: '/log$', actions: 'FIND|GET|INSERT|UPDATE' },
+        { path: '/files$', actions: 'UPLOAD|STORE|DELETE' }
       ],
       web: [],
       mob: [],
@@ -67,7 +67,7 @@ export class RoleService {
   }
 
   static async get(_id: any) {
-    const rs = await RoleService.mongo.get<Role>(Role, _id)
+    const rs = await RoleService.mongo.get<Role>(Role, _id, { project_id: 0 })
     return rs
   }
 
@@ -86,6 +86,7 @@ export class RoleService {
     const rs = await RoleService.mongo.insert<Role>(Role, body)
     // Reload cache
     await RoleService.reloadCachedRole(body.project_id)
+    delete rs.project_id
     return rs
   }
 

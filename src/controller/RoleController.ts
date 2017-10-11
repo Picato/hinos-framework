@@ -13,7 +13,7 @@ import { authoriz } from '../service/Authoriz'
 export class RoleController {
 
   @GET('/Role')
-  @INJECT(authoriz(`${AppConfig.name}>Role`, ['FIND']))
+  @INJECT(authoriz(`/oauth/role`, ['FIND']))
   @RESTRICT({
     query: {
       page: Number,
@@ -41,7 +41,7 @@ export class RoleController {
   }
 
   @GET('/Role/:_id')
-  @INJECT(authoriz(`${AppConfig.name}>Role`, ['GET']))
+  @INJECT(authoriz(`/oauth/role`, ['GET']))
   @RESTRICT({
     params: {
       _id: Mongo.uuid
@@ -56,7 +56,7 @@ export class RoleController {
   }
 
   @POST('/Role')
-  @INJECT(authoriz(`${AppConfig.name}>Role`, ['INSERT']))
+  @INJECT(authoriz(`/oauth/role`, ['INSERT']))
   @BODYPARSER()
   @RESTRICT({
     body: {
@@ -74,7 +74,7 @@ export class RoleController {
   }
 
   @PUT('/Role/:_id')
-  @INJECT(authoriz(`${AppConfig.name}>Role`, ['UPDATE']))
+  @INJECT(authoriz(`/oauth/role`, ['UPDATE']))
   @BODYPARSER()
   @RESTRICT({
     params: {
@@ -98,7 +98,7 @@ export class RoleController {
   }
 
   @DELETE('/Role/:_id')
-  @INJECT(authoriz(`${AppConfig.name}>Role`, ['DELETE']))
+  @INJECT(authoriz(`/oauth/role`, ['DELETE']))
   @RESTRICT({
     params: {
       _id: Mongo.uuid
