@@ -13,7 +13,7 @@ import { authoriz } from '../service/Authoriz'
 export class ClientController {
 
   @GET('/')
-  @INJECT(authoriz(`${AppConfig.name}>Log`, ['FIND']))
+  @INJECT(authoriz(`/log`, ['FIND']))
   @RESTRICT({
     query: {
       mine: Boolean,
@@ -46,7 +46,7 @@ export class ClientController {
   }
 
   @GET('/:_id')
-  @INJECT(authoriz(`${AppConfig.name}>Log`, ['GET']))
+  @INJECT(authoriz(`/log`, ['GET']))
   @RESTRICT({
     params: {
       _id: Mongo.uuid
@@ -57,22 +57,25 @@ export class ClientController {
       _id: params._id,
       project_id: state.auth.projectId
     })
+    if (rs) delete rs.project_id
     return rs
   }
 
   @POST('/')
-  @INJECT(authoriz(`${AppConfig.name}>Log`, ['INSERT']))
+  @INJECT(authoriz(`/log`, ['INSERT']))
   @BODYPARSER()
   static async add({ body, state }) {
     body = Mongo.autocast(body)
     body.project_id = state.auth.projectId
     body.account_id = state.auth.accountId
     const rs = await LogService.insert(body) as Log
+    delete rs.project_id
+    delete rs.account_id
     return rs
   }
 
   @PUT('/:_id')
-  @INJECT(authoriz(`${AppConfig.name}>Log`, ['UPDATE']))
+  @INJECT(authoriz(`/log`, ['UPDATE']))
   @BODYPARSER()
   @RESTRICT({
     params: {
