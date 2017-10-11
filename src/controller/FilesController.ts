@@ -11,7 +11,7 @@ import { authoriz } from '../service/Authoriz'
 export class FilesController {
 
   @GET('/')
-  @INJECT(authoriz(`${AppConfig.name}>Files`, ['FIND']))
+  @INJECT(authoriz(`/files`, ['FIND']))
   @RESTRICT({
     query: {
       page: Number,
