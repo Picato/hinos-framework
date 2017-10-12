@@ -7,9 +7,9 @@ import * as fs from 'fs'
 
 export class GUIController {
 
-  @GET('/GUI')
+  @GET('/doc')
   static async getGUI() {
-    return fs.createReadStream('./assets/GUI.zip')
+    return fs.createReadStream('./assets/doc.html')
   }
 
 }
