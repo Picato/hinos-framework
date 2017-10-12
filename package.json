@@ -16,6 +16,7 @@
   "config": {
     "externalConfig": "./appconfig.cfg#api",
     "url": "http://localhost:1009",
+    "path": "",
     "mongo": {
       "url": "mongodb://localhost:27017/test",
       "releaseTimeout": 50000
