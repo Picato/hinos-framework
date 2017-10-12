@@ -14,7 +14,8 @@ Server.use(serve({
 }))
 Server.use(cors())
 Server.use(route(path.join(__dirname, 'controller'), {
-  ignorecase: true
+  ignorecase: true,
+  root: AppConfig.path
 }))
 
 Server.listen(AppConfig.port, () => {
