@@ -12,7 +12,8 @@ require(`./env.${Server.env}`).default(Server)
 Mongo(AppConfig.mongo).debug(!Server.isProduction)
 
 Server.use(serve({
-  '/files/upload': path.join(__dirname, '..', 'assets', 'upload')
+  [`${AppConfig.path}/upload`]: path.join(__dirname, '..', 'assets', 'upload'),
+  [`${AppConfig.path}/assets`]: path.join(__dirname, '..', 'assets')
 }))
 Server.use(cors())
 Server.use(route(path.join(__dirname, 'controller'), {
