@@ -4,8 +4,8 @@ export const TAG = {
 }
 
 export const HOST = {
-  OAUTH: 'http://localhost:6111',
-  FILE: 'http://localhost:6112',
-  MAIL: 'http://localhost:6113',
-  LOG: 'http://localhost:6114'
+  OAUTH: 'http://service.clipvnet.com',
+  FILE: 'http://service.clipvnet.com',
+  MAIL: 'http://service.clipvnet.com',
+  LOG: 'http://service.clipvnet.com'
 }

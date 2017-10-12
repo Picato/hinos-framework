@@ -19,10 +19,13 @@ import * as chalk from 'chalk'
 (global as any).PATCH = PATCH;
 
 (async () => {
+  let isOk = true
   const startTime = new Date().getTime()
   for (let config of Config) {
-    await runner(config)
+    const rs = await runner(config)
+    isOk = isOk && rs.status > 0
   }
-  console.log(`${chalk.bgYellow.black.bold(` EXECUTED TIME: ${new Date().getTime() - startTime} ms `)}`)
+  if (isOk) console.log(`${chalk.bgYellow.black.bold(` EXECUTED TIME: ${new Date().getTime() - startTime} ms `)}`)
+  else console.log(`${chalk.bgYellow.red.bold(` EXECUTED TIME: ${new Date().getTime() - startTime} ms `)}`)
   console.log('')
 })()

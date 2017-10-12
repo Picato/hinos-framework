@@ -33,7 +33,8 @@ export async function runner(config: Config) {
     tcs: [] as TestcaseImpl[],
     apis: [] as ApiImpl[],
     doc: [],
-    vars: {} as any
+    vars: {} as any,
+    status: 1 // 1: Passed, -1: Failed
   }
 
   TestcaseImpl.all = []
@@ -87,6 +88,7 @@ export async function runner(config: Config) {
     else result.summary.testcase.failed++
     console.log('')
     result.tcs.push(tc)
+    if (result.status !== -1 && tc.status === TestcaseImpl.Status.FAILED) result.status = -1
   }
   const executeTime = new Date().getTime() - now.getTime()
   result.vars = ApiImpl.vars
@@ -97,7 +99,7 @@ export async function runner(config: Config) {
   const fin = path.join('src', 'result.html')
   const fout = path.resolve(config.output)
   let cnt = fs.readFileSync(fin).toString()
-  cnt = cnt.replace(/\/\*DATA\*\//, JSON.stringify(result))
+  cnt = cnt.replace(/\/\*DATA\*\//, JSON.stringify(result)).replace(/\/\*TITLE\*\//, result.title)
   fs.writeFileSync(fout, cnt)
 
   console.log('')
@@ -113,4 +115,6 @@ export async function runner(config: Config) {
   console.log('')
   console.log(chalk.black('-----------------------------------------------------------------------------------'))
   console.log('')
+
+  return result
 }
