@@ -13,7 +13,7 @@ export class GatewayController {
 
   @GET('/Gateway/Service')
   @HASHER()
-  @INJECT(authoriz(`/gateway/service`, ['FIND']))
+  @INJECT(authoriz(`${AppConfig.path}`, ['FIND']))
   @RESTRICT({
     query: {
       page: Number,
@@ -34,7 +34,7 @@ export class GatewayController {
 
   @PUT('/Gateway/Service')
   @HASHER()
-  @INJECT(authoriz(`/gateway/service`, ['UPDATE']))
+  @INJECT(authoriz(`${AppConfig.path}`, ['UPDATE']))
   @BODYPARSER()
   @RESTRICT({
     body: {
@@ -53,7 +53,7 @@ export class GatewayController {
 
   @DELETE('/Gateway/Service/:_id')
   @HASHER()
-  @INJECT(authoriz(`/gateway/service`, ['DELETE']))
+  @INJECT(authoriz(`${AppConfig.path}`, ['DELETE']))
   @RESTRICT({
     params: {
       _id: Mongo.uuid

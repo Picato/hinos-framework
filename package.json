@@ -16,6 +16,7 @@
   "config": {
     "externalConfig": "../config.cfg#apiGateway",
     "url": "http://localhost:6110",
+    "path": "/gateway",
     "services": {
       "oauth": "http://localhost:6111"
     },
