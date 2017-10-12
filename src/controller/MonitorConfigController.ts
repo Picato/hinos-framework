@@ -12,7 +12,7 @@ import { authoriz } from '../service/Authoriz'
 export class MonitorConfigController {
 
   @GET('/MonitorConfig')
-  @INJECT(authoriz(`${AppConfig.path}/config`, ['CONFIG']))
+  @INJECT(authoriz(`${AppConfig.path}/config`, ['GET']))
   static async getConfig({ state }) {
     return await MonitorConfigService.get(state.auth.projectId)
   }
@@ -32,7 +32,7 @@ export class MonitorConfigController {
   }
 
   @GET('/MailConfig')
-  @INJECT(authoriz(`${AppConfig.path}/config`, ['CONFIG']))
+  @INJECT(authoriz(`${AppConfig.path}/config`, ['GET_MAIL_CONFIG']))
   static async getMailConfig({ state }) {
     return await MonitorConfigService.getMailConfig(state.auth)
   }

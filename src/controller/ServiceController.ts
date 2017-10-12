@@ -54,7 +54,7 @@ export class ServiceController {
   }
 
   @PUT('/Service/:_id')
-  @INJECT(authoriz(`${AppConfig.path}/service`, ['INSERT']))
+  @INJECT(authoriz(`${AppConfig.path}/service`, ['UPDATE']))
   @BODYPARSER()
   @RESTRICT({
     params: {
