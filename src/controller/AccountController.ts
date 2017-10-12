@@ -14,7 +14,7 @@ import { authoriz } from '../service/Authoriz'
 export class AccountController {
 
   @GET('/Account')
-  @INJECT(authoriz(`/oauth/account`, ['FIND']))
+  @INJECT(authoriz(`${AppConfig.path}/Account`, ['FIND']))
   @RESTRICT({
     query: {
       page: Number,
@@ -51,7 +51,7 @@ export class AccountController {
   }
 
   @GET('/Account/:_id')
-  @INJECT(authoriz(`/oauth/account`, ['GET']))
+  @INJECT(authoriz(`${AppConfig.path}/Account`, ['GET']))
   @RESTRICT({
     params: {
       _id: Mongo.uuid
@@ -66,7 +66,7 @@ export class AccountController {
   }
 
   @POST('/Account')
-  @INJECT(authoriz(`/oauth/account`, ['INSERT']))
+  @INJECT(authoriz(`${AppConfig.path}/Account`, ['INSERT']))
   @BODYPARSER()
   @RESTRICT({
     body: {
@@ -86,7 +86,7 @@ export class AccountController {
   }
 
   @PUT('/Account/:_id')
-  @INJECT(authoriz(`/oauth/account`, ['UPDATE']))
+  @INJECT(authoriz(`${AppConfig.path}/Account`, ['UPDATE']))
   @BODYPARSER()
   @RESTRICT({
     params: {
@@ -110,7 +110,7 @@ export class AccountController {
   }
 
   @DELETE('/Account/:_id')
-  @INJECT(authoriz(`/oauth/account`, ['DELETE']))
+  @INJECT(authoriz(`${AppConfig.path}/Account`, ['DELETE']))
   @RESTRICT({
     params: {
       _id: Mongo.uuid

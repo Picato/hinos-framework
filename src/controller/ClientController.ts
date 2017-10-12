@@ -107,7 +107,7 @@ export default class AccountController {
       token: vl => vl.split('?')[0]
     }
   })
-  @INJECT(authoriz(`/oauth/client`, ['LOGOUT']))
+  @INJECT(authoriz(`${AppConfig.path}/Account`, ['LOGOUT']))
   static async logout({ state }) {
     await AccountService.logout(state.auth)
   }
@@ -118,7 +118,7 @@ export default class AccountController {
       token: vl => vl.split('?')[0]
     }
   })
-  @INJECT(authoriz(`/oauth/client`, ['PING']))
+  @INJECT(authoriz(`${AppConfig.path}/Account`, ['PING']))
   static async ping({ state }) {
     await AccountService.ping(state.auth)
   }
@@ -145,34 +145,34 @@ export default class AccountController {
   }
 
   @PUT('/Secretkey')
-  @INJECT(authoriz(`/oauth/client`, ['GEN_SECRETKEY']))
+  @INJECT(authoriz(`${AppConfig.path}/Account`, ['GEN_SECRETKEY']))
   static async genSecretKey({ state }) {
     const secretKey = await AccountService.genSecretKey(state.auth)
     return secretKey
   }
 
   @DELETE('/Secretkey')
-  @INJECT(authoriz(`/oauth/client`, ['GEN_SECRETKEY']))
+  @INJECT(authoriz(`${AppConfig.path}/Account`, ['REMOVE_SECRETKEY']))
   static async clearSecretKey({ state }) {
     await AccountService.clearSecretKey(state.auth)
   }
 
   @GET('/Secretkey')
-  @INJECT(authoriz(`/oauth/client`, ['GET_SECRETKEY']))
+  @INJECT(authoriz(`${AppConfig.path}/Account`, ['GET_SECRETKEY']))
   static async getSecretKey({ state }) {
     const secretKey = await AccountService.getSecretKey(state.auth)
     return secretKey
   }
 
   @GET('/Me')
-  @INJECT(authoriz(`/oauth/client`, ['GET_INFOR']))
+  @INJECT(authoriz(`${AppConfig.path}/Account`, ['GET_ME']))
   static async getMe({ state }) {
     const me = await AccountService.getMe(state.auth)
     return me
   }
 
   @PUT('/Me')
-  @INJECT(authoriz(`/oauth/client`, ['UPDATE']))
+  @INJECT(authoriz(`${AppConfig.path}/Account`, ['UPDATE_ME']))
   @BODYPARSER()
   @RESTRICT({
     body: {
@@ -188,7 +188,7 @@ export default class AccountController {
   }
 
   @GET('/MyRoles')
-  @INJECT(authoriz(`/oauth/client`, ['GET_ROLES']))
+  @INJECT(authoriz(`${AppConfig.path}/Account`, ['GET_MYROLES']))
   @RESTRICT({
     query: {
       type: String
