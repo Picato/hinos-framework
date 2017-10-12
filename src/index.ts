@@ -1,6 +1,7 @@
 import * as path from 'path'
 import { Server } from 'hinos'
 import { route } from 'hinos-route'
+import { serve } from 'hinos-serve'
 import { Mongo } from 'hinos-mongo'
 import { cors } from 'hinos-cors'
 import './config'
@@ -9,6 +10,9 @@ require(`./env.${Server.env}`).default(Server)
 
 Mongo(AppConfig.mongo).debug(!Server.isProduction)
 
+Server.use(serve({
+  [`${AppConfig.path}/assets`]: path.join(__dirname, '..', 'assets')
+}))
 Server.use(cors())
 Server.use(route(path.join(__dirname, 'controller'), {
   ignorecase: true,
