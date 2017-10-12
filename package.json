@@ -15,6 +15,7 @@
   "config": {
     "externalConfig": "../config.cfg#files",
     "url": "http://localhost:6112",
+    "path": "/files",
     "services": {
       "oauth": "http://localhost:6111"
     },

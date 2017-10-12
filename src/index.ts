@@ -17,9 +17,8 @@ Server.use(serve({
 Server.use(cors())
 Server.use(route(path.join(__dirname, 'controller'), {
   ignorecase: true,
-  root: '/files'
+  root: AppConfig.path
 }))
-
 Server.listen(AppConfig.port, () => {
   FilesService.syncToRemoveTempFiles()
   console.info(`

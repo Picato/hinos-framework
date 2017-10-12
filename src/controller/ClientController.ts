@@ -18,7 +18,7 @@ import HttpError from '../common/HttpError'
 export class ClientController {
 
   @POST('/Upload/:configId')
-  @INJECT(authoriz(`/files`, ['UPLOAD']))
+  @INJECT(authoriz(`${AppConfig.path}`, ['UPLOAD']))
   @RESTRICT({
     params: {
       configId: Mongo.uuid
@@ -108,7 +108,7 @@ export class ClientController {
   }
 
   @PUT('/Store')
-  @INJECT(authoriz(`/files`, ['STORE']))
+  @INJECT(authoriz(`${AppConfig.path}`, ['STORE']))
   @BODYPARSER()
   @RESTRICT({
     body: {
@@ -141,7 +141,7 @@ export class ClientController {
   }
 
   @PUT('/Remove')
-  @INJECT(authoriz(`/files`, ['DELETE']))
+  @INJECT(authoriz(`${AppConfig.path}`, ['DELETE']))
   @BODYPARSER()
   @RESTRICT({
     body: {
