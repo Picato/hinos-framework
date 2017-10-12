@@ -12,7 +12,7 @@ import { authoriz } from '../service/Authoriz'
 export class ConfigController {
 
   @GET('/Config')
-  @INJECT(authoriz(`/mail/config`, ['FIND']))
+  @INJECT(authoriz(`${AppConfig.path}/Config`, ['FIND']))
   @RESTRICT({
     query: {
       page: Number,
@@ -33,7 +33,7 @@ export class ConfigController {
   }
 
   @GET('/Config/:_id')
-  @INJECT(authoriz(`/mail/config`, ['GET']))
+  @INJECT(authoriz(`${AppConfig.path}/Config`, ['GET']))
   @RESTRICT({
     params: {
       _id: Mongo.uuid
@@ -48,7 +48,7 @@ export class ConfigController {
   }
 
   @POST('/Config')
-  @INJECT(authoriz(`/mail/config`, ['INSERT']))
+  @INJECT(authoriz(`${AppConfig.path}/Config`, ['INSERT']))
   @BODYPARSER()
   @RESTRICT({
     body: {
@@ -65,7 +65,7 @@ export class ConfigController {
   }
 
   @PUT('/Config/:_id')
-  @INJECT(authoriz(`/mail/config`, ['UPDATE']))
+  @INJECT(authoriz(`${AppConfig.path}/Config`, ['UPDATE']))
   @BODYPARSER()
   @RESTRICT({
     params: {
@@ -86,7 +86,7 @@ export class ConfigController {
   }
 
   @DELETE('/Config/:_id')
-  @INJECT(authoriz(`/mail/config`, ['DELETE']))
+  @INJECT(authoriz(`${AppConfig.path}/Config`, ['DELETE']))
   @RESTRICT({
     params: {
       _id: Mongo.uuid

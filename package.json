@@ -15,6 +15,7 @@
   "config": {
     "externalConfig": "../config.cfg#mail",
     "url": "http://localhost:6113",
+    "path": "/mail",
     "services": {
       "oauth": "http://localhost:6111"
     },

@@ -12,7 +12,7 @@ import { authoriz } from '../service/Authoriz'
 export class MailController {
 
   @POST('/Test')
-  @INJECT(authoriz(`${AppConfig.name}>Config`, ['Test']))
+  @INJECT(authoriz(`${AppConfig.path}`, ['Test']))
   @BODYPARSER()
   @RESTRICT({
     body: {
@@ -31,7 +31,7 @@ export class MailController {
   }
 
   @PUT('/Resend/:_id')
-  @INJECT(authoriz(`/mail`, ['RESEND']))
+  @INJECT(authoriz(`${AppConfig.path}`, ['RESEND']))
   @RESTRICT({
     params: {
       _id: Mongo.uuid
@@ -48,7 +48,7 @@ export class MailController {
   }
 
   @GET('/')
-  @INJECT(authoriz(`/mail`, ['FIND']))
+  @INJECT(authoriz(`${AppConfig.path}`, ['FIND']))
   @RESTRICT({
     query: {
       page: Number,
@@ -72,7 +72,7 @@ export class MailController {
   }
 
   @GET('/:_id')
-  @INJECT(authoriz(`/mail`, ['GET']))
+  @INJECT(authoriz(`${AppConfig.path}`, ['GET']))
   @RESTRICT({
     params: {
       _id: Mongo.uuid
@@ -87,7 +87,7 @@ export class MailController {
   }
 
   @DELETE('/:_id')
-  @INJECT(authoriz(`/mail`, ['DELETE']))
+  @INJECT(authoriz(`${AppConfig.path}`, ['DELETE']))
   @RESTRICT({
     params: {
       _id: Mongo.uuid
