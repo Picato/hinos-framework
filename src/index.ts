@@ -12,7 +12,7 @@ Mongo(AppConfig.mongo).debug(!Server.isProduction)
 Server.use(cors())
 Server.use(route(path.join(__dirname, 'controller'), {
   ignorecase: true,
-  root: '/log'
+  root: AppConfig.path
 }))
 
 Server.listen(AppConfig.port, () => {
