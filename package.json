@@ -52,6 +52,7 @@
     "hinos-redis": "^1.0.7",
     "hinos-requesthasher": "^1.1.7",
     "hinos-route": "^1.1.8",
+    "hinos-serve": "^1.1.1",
     "hinos-validation": "^1.1.2",
     "lodash": "^4.17.4"
   },

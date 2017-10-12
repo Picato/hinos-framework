@@ -1,5 +1,6 @@
 import * as path from 'path'
 import { Server } from 'hinos'
+import { serve } from 'hinos-serve'
 import { route } from 'hinos-route'
 import { Mongo } from 'hinos-mongo'
 import { Redis } from 'hinos-redis'
@@ -12,11 +13,14 @@ require(`./env.${Server.env}`).default(Server)
 Mongo(AppConfig.mongo).debug(!Server.isProduction)
 Redis(AppConfig.redis).debug(!Server.isProduction)
 
+Server.use(serve({
+  [`${AppConfig.path}/assets`]: path.join(__dirname, '..', 'assets')
+}))
 Server.use(cors({
   exposeHeaders: ['token', 'project_id', 'account_id']
 }))
 Server.use(route(path.join(__dirname, 'controller'), {
-  root: '/oauth',
+  root: AppConfig.path,
   ignorecase: true
 }))
 
