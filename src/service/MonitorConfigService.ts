@@ -67,7 +67,7 @@ export class MonitorConfigService {
 
   static async get(projectId: Uuid) {
     let config = await MonitorConfigService.mongo.get<MonitorConfig>(MonitorConfig, { project_id: projectId })
-    return config
+    return config || {}
   }
 
   static async find() {
