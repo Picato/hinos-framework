@@ -13,10 +13,7 @@ Server.use(serve({
   '/images': path.join(__dirname, '..', 'assets', 'images')
 }))
 Server.use(cors())
-Server.use(route(path.join(__dirname, 'controller'), {
-  ignorecase: true,
-  root: AppConfig.path
-}))
+Server.use(route(path.join(__dirname, 'controller'), { ignorecase: true, root: AppConfig.path }))
 
 Server.listen(AppConfig.port, () => {
   console.info(`
