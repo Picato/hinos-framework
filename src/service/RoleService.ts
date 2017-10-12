@@ -49,13 +49,22 @@ export class RoleService {
     await RoleService.insert({
       name: 'User',
       api: [
-        { path: '/oauth/client$', actions: '.*' },
-        { path: '/mail$', actions: 'SEND|GET|RESEND' },
-        { path: '/log$', actions: 'FIND|GET|INSERT|UPDATE' },
-        { path: '/files$', actions: 'UPLOAD|STORE|DELETE' }
+        { path: '/gateway', actions: 'FIND, UPDATE, DELETE' },
+        { path: '/monitor/service', actions: 'SESSION, FIND, INSERT, UPDATE, DELETE' },
+        { path: '/monitor/config', actions: 'GET, CONFIG, GET_MAIL_CONFIG' },
+        { path: '/monitor/log', actions: 'FIND' },
+        { path: '/script', actions: 'FIND, GET, INSERT, UPDATE, DELETE' },
+        { path: '/files/Config', actions: 'FIND, INSERT, UPDATE, DELETE' },
+        { path: '/files', actions: 'UPLOAD, STORE, DELETE, FIND' },
+        { path: '/log', actions: 'FIND, GET, INSERT, UPDATE, DELETE' },
+        { path: '/mail/Config', actions: 'FIND, GET, INSERT, UPDATE, DELETE' },
+        { path: '/mail', actions: 'SEND, Test, RESEND, FIND, GET, DELETE' },
+        { path: '/oauth/Role', actions: 'FIND, GET, INSERT, UPDATE, DELETE' },
+        { path: '/oauth/Project', actions: 'FIND, UPDATE_MINE' },
+        { path: '/oauth/Account', actions: 'FIND, GET, INSERT, UPDATE, DELETE, LOGOUT, PING, GEN_SECRETKEY, REMOVE_SECRETKEY, GET_SECRETKEY, GET_ME, UPDATE_ME, GET_MYROLES' }
       ],
-      web: [],
-      mob: [],
+      web: [{ path: '.*', actions: '.*' }],
+      mob: [{ path: '.*', actions: '.*' }],
       project_id: projectId
     })
     return rs
@@ -135,7 +144,10 @@ export class RoleService {
       return roles.length
     }
     const roles = await RoleService.find({
-      project_id: projectId
+      $where: {
+        project_id: projectId
+      },
+      $recordsPerPage: -1
     })
     await RoleService.redis.set(`$roles:${projectId}`, roles)
     return roles.length

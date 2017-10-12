@@ -53,7 +53,8 @@ export class ProjectService {
         $where: {
           status: Project.Status.ACTIVED
         },
-        $fields: { plugins: 1 }
+        $fields: { plugins: 1 },
+        $recordsPerPage: -1
       })
       for (const cached of caches) {
         await ProjectService.reloadCachedPlugins(cached._id, cached.plugins)
