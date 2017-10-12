@@ -12,13 +12,13 @@ import { authoriz } from '../service/Authoriz'
 export class MonitorConfigController {
 
   @GET('/MonitorConfig')
-  @INJECT(authoriz(`/monitor/config`, ['CONFIG']))
+  @INJECT(authoriz(`${AppConfig.path}/config`, ['CONFIG']))
   static async getConfig({ state }) {
     return await MonitorConfigService.get(state.auth.projectId)
   }
 
   @POST('/MonitorConfig')
-  @INJECT(authoriz(`/monitor/config`, ['CONFIG']))
+  @INJECT(authoriz(`${AppConfig.path}/config`, ['CONFIG']))
   @BODYPARSER()
   @RESTRICT({
     body: {
@@ -32,7 +32,7 @@ export class MonitorConfigController {
   }
 
   @GET('/MailConfig')
-  @INJECT(authoriz(`/monitor/config`, ['CONFIG']))
+  @INJECT(authoriz(`${AppConfig.path}/config`, ['CONFIG']))
   static async getMailConfig({ state }) {
     return await MonitorConfigService.getMailConfig(state.auth)
   }
