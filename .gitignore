@@ -1,6 +1,5 @@
 node_modules/
 .build/
 .spec/
-assets/
-!assets/GUI.zip
+assets/*/
 package-lock.json
