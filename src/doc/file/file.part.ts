@@ -2,17 +2,7 @@ import { TAG, HOST } from '../common'
 
 const GROUP = 'FILE'
 const i18doc = {
-  '*._id': 'File ID',
-  '*.name': 'File config name',
-  '*.config': 'Uploading file configuration information',
-  '*.config.maxSize': 'Limit uploading file size',
-  '*.config.maxFile': 'Num of files can upload',
-  '*.config.ext': 'File extension allow upload. <code>Eg. <b>jpe?g|png|gif</b> (or use <b>.*</b> for all files)</code>',
-  '*.config.zip': 'Auto zip file in uploading progress <code>Only use <b>zip</b> OR <b>resize</b></code>',
-  '*.config.resize': 'Config to auto resize images after upload <code>Only use <b>resize</b> OR <b>zip</b></code>',
-  '*.config.resize.0.w': 'Image width after resize. <code>Atleast must have <b>w</b> or <b>h</b></code>',
-  '*.config.resize.0.h': 'Image height after resize. <code>Atleast must have <b>w</b> or <b>h</b></code>',
-  '*.config.resize.0.ext': `Prefix image name after resize. <code>Eg. <b>ext</b> = 'thumb'. File name is <b>test.jpg</b>. File after resize is <b>test.thumb.jpg</b></code>`
+  '*._id': 'File ID'
 }
 
 export default [
@@ -28,7 +18,7 @@ export default [
       `?<b>fileName=filename.txt</b>: Rename file`,
       `</pre>`
     ],
-    url: POST(`${HOST.FILE}/files/upload/:fileConfigId`, $var('newfileconfig._id')),
+    url: POST(`${HOST.FILE}/files/upload/:fileConfigId*`, $var('newfileconfig._id')),
     headers: {
       'content-type': 'multipart/form-data'
     },

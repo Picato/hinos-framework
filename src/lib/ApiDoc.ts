@@ -94,7 +94,8 @@ export class DocImpl extends Doc {
       const rs = {
         $des: this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._des : undefined,
         $required: this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._required : undefined,
-        $type: `array`
+        $type: `array`,
+        $or: this.i18doc[prefix] !== undefined && this.i18doc[prefix]._or
       } as any
       if (obj[0] instanceof Array) {
         rs.$item = this.getDocType(obj[0], type, `${prefix}.0`)
@@ -115,7 +116,8 @@ export class DocImpl extends Doc {
       const rs = {
         $des: (this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._des : undefined) || defaultValue || obj,
         $required: this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._required : undefined,
-        $type: 'File'
+        $type: 'File',
+        $or: this.i18doc[prefix] !== undefined && this.i18doc[prefix]._or
       } as any
       if (this.i18doc[prefix] !== undefined && this.i18doc[prefix]._type) rs.$cuzType = this.i18doc[prefix]._type
       if (!rs.$cuzType) rs.$cuzType = rs.$type
@@ -125,7 +127,8 @@ export class DocImpl extends Doc {
         $des: this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._des : undefined,
         $type: 'object',
         $required: this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._required : undefined,
-        $item: {} as any
+        $item: {} as any,
+        $or: this.i18doc[prefix] !== undefined && this.i18doc[prefix]._or
       } as any
       for (let k in obj) {
         rs.$item[k] = this.getDocType(obj[k], type, `${prefix}.${k}`, type === 'name' ? k : obj[k])
@@ -139,7 +142,8 @@ export class DocImpl extends Doc {
         const rs = {
           $des: (this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._des : undefined) || defaultValue || obj,
           $required: this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._required : undefined,
-          $type: typeof obj
+          $type: typeof obj,
+          $or: this.i18doc[prefix] !== undefined && this.i18doc[prefix]._or
         } as any
         if (this.i18doc[prefix] !== undefined && this.i18doc[prefix]._type) rs.$cuzType = this.i18doc[prefix]._type
         if (!rs.$cuzType) rs.$cuzType = rs.$type
@@ -148,7 +152,8 @@ export class DocImpl extends Doc {
       const rs = {
         $des: (this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._des : undefined) || defaultValue || obj,
         $required: this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._required : undefined,
-        $type: typeof obj
+        $type: typeof obj,
+        $or: this.i18doc[prefix] !== undefined && this.i18doc[prefix]._or
       } as any
       if (this.i18doc[prefix] !== undefined && this.i18doc[prefix]._type) rs.$cuzType = this.i18doc[prefix]._type
       if (!rs.$cuzType) rs.$cuzType = rs.$type
@@ -209,6 +214,7 @@ export class DocType {
   _des: string
   _type: string
   _required: boolean
+  _or?: boolean
 
   type(_type: string) {
     this._type = _type
@@ -224,6 +230,11 @@ export class DocType {
     this._required = isRequired
     return this
   }
+
+  or(startOrEnd: boolean = null) {
+    this._or = startOrEnd
+    return this
+  }
 }
 
 export namespace DOC {
@@ -235,5 +246,8 @@ export namespace DOC {
   }
   export function required(isRequired?: boolean) {
     return new DocType().required(isRequired)
+  }
+  export function or(startOrEnd?: boolean) {
+    return new DocType().or(startOrEnd)
   }
 }

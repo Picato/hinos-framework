@@ -57,7 +57,7 @@ export default [
     i18doc: Object.assign({}, i18doc, {
       'body.config.*': DOC.required()
     }),
-    url: PUT(`${HOST.MAIL}/mail/config/:mailConfigId`, $var('newmailconfig._id')),
+    url: PUT(`${HOST.MAIL}/mail/config/:mailConfigId*`, $var('newmailconfig._id')),
     body: {
       name: 'Test Account Updated',
       config: {
@@ -79,12 +79,12 @@ export default [
   }, { extends: '#authRequestByToken' }),
   DOC('Get details mail config', GROUP, TAG.ADMIN, {
     i18doc,
-    url: GET(`${HOST.MAIL}/mail/config/:mailConfigId`, $var('newmailconfig._id'))
+    url: GET(`${HOST.MAIL}/mail/config/:mailConfigId*`, $var('newmailconfig._id'))
   }, { extends: '#authRequestByToken' }),
 
   ...INCLUDE('doc/mail/mail.part'),
 
   DOC('Remove mail config', GROUP, TAG.ADMIN, {
-    url: DELETE(`${HOST.MAIL}/mail/config/:mailConfigId`, $var('newmailconfig._id'))
+    url: DELETE(`${HOST.MAIL}/mail/config/:mailConfigId*`, $var('newmailconfig._id'))
   }, { extends: '#authRequestByToken' })
 ]

@@ -122,7 +122,7 @@ export default [
   }, { extends: '#authRequestByToken' }),
   DOC('Update exists account', GROUP, TAG.ADMIN, {
     i18doc,
-    url: PUT(`${HOST.OAUTH}/oauth/account/:accountId`, $var('newuser._id')),
+    url: PUT(`${HOST.OAUTH}/oauth/account/:accountId*`, $var('newuser._id')),
     body: {
       'password': 'test123',
       'status': 1,
@@ -143,7 +143,7 @@ export default [
   }, { extends: '#authRequestByToken' }),
   DOC('Get user details', GROUP, TAG.ADMIN, {
     i18doc,
-    url: GET(`${HOST.OAUTH}/oauth/account/:accountId`, $var('newuser._id')),
+    url: GET(`${HOST.OAUTH}/oauth/account/:accountId*`, $var('newuser._id')),
     var: {
       newuser: $var('this.$body')
     }
@@ -153,7 +153,7 @@ export default [
   ...INCLUDE('doc/oauth/project.part'),
 
   DOC('Delete exists account', GROUP, TAG.ADMIN, {
-    url: DELETE(`${HOST.OAUTH}/oauth/account/:accountId`, $var('newuser._id'))
+    url: DELETE(`${HOST.OAUTH}/oauth/account/:accountId*`, $var('newuser._id'))
   }, { extends: '#authRequestByToken' }),
 
   API('Remove user after test client api', {

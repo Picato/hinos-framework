@@ -38,11 +38,13 @@ declare interface DocType {
   type(type: string): DocType
   required(): DocType
   des(des: string): DocType
+  or(startOrEnd?: boolean): DocType
 }
 declare namespace DOC {
   export function type(type: string): DocType
   export function required(isRequired?: boolean): DocType
   export function des(des: string): DocType
+  export function or(startOrEnd?: boolean): DocType
 }
 declare function DOC(title: string, group: string, options: Api & Doc, meta?: { key?: string, extends?: string | string[] }): Api
 declare function DOC(title: string, group: string, tags: string | string[], options: Api | Doc, meta?: { key?: string, extends?: string }): Api

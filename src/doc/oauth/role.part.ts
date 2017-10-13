@@ -27,7 +27,7 @@ export default [
       `<b>mob</b>: Filter permission for mobile`,
       `</pre>`
     ],
-    url: GET(`${HOST.OAUTH}/oauth/MyRoles?type=:deviceType`, 'api'),
+    url: GET(`${HOST.OAUTH}/oauth/MyRoles?type=:deviceType*`, 'api'),
     var: {
       'roles': $var('this.$body')
     }
@@ -36,7 +36,7 @@ export default [
     i18doc: Object.assign({}, i18doc, {
       '*.account_id': 'Account ID'
     }),
-    url: HEAD(`${HOST.OAUTH}/oauth/Authoriz?path=:path&actions=:actions`, 'hinos-oauth-service>Me', 'GET_INFOR, UPDATE')
+    url: HEAD(`${HOST.OAUTH}/oauth/Authoriz?path=:path*&actions=:actions*`, 'hinos-oauth-service>Me', 'GET_INFOR, UPDATE')
   }, { extends: '#authRequestByToken' }),
   '#adminLogin',
   DOC('Add new role', GROUP, TAG.ADMIN, {
@@ -71,7 +71,7 @@ export default [
   }, { extends: '#authRequestByToken' }),
   DOC('Update exists role', GROUP, TAG.ADMIN, {
     i18doc,
-    url: PUT(`${HOST.OAUTH}/oauth/role/:roleId`, $var('newrole._id')),
+    url: PUT(`${HOST.OAUTH}/oauth/role/:roleId*`, $var('newrole._id')),
     body: {
       name: 'newrole1',
       api: [
@@ -98,6 +98,6 @@ export default [
   }, { extends: '#authRequestByToken' }),
   DOC('Get role details', GROUP, TAG.ADMIN, {
     i18doc,
-    url: GET(`${HOST.OAUTH}/oauth/role/:roleId`, $var('newrole._id'))
+    url: GET(`${HOST.OAUTH}/oauth/role/:roleId*`, $var('newrole._id'))
   }, { extends: '#authRequestByToken' })
 ]

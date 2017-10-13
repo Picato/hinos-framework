@@ -6,8 +6,8 @@ const i18doc = {
   '*.config_id': 'Mail config ID',
   '*.status': 'Email sending status. <code><b>PENDING</b>: 0, <b>PASSED</b>: 1, <b>FAILED</b>: -3, <b>ERROR</b>: [-1, -2]</code>',
   '*.subject': DOC.required().des('Email subject'),
-  '*.text': DOC.des('Email text content (just use text or html)'),
-  '*.html': DOC.des('Email html content (just use html or text)'),
+  '*.text': DOC.required().or().des('Email text content (just use text or html)'),
+  '*.html': DOC.or().des('Email html content (just use html or text)'),
   '*.from': DOC.required().des('Email from'),
   '*.to': DOC.required().des('Send to (emails)'),
   '*.cc': DOC.des('CC to (emails)'),
@@ -21,7 +21,7 @@ export default [
       `To send an email, you must push it to queue in mail service`,
       `Mail service will auto send your email`
     ],
-    url: POST(`${HOST.MAIL}/mail/send/:mailConfigId`, $var('newmailconfig._id')),
+    url: POST(`${HOST.MAIL}/mail/send/:mailConfigId*`, $var('newmailconfig._id')),
     body: {
       subject: 'Test mail',
       text: 'Hello world',
@@ -37,7 +37,7 @@ export default [
   }, { extends: '#authRequestByToken' }),
   DOC('Resend an existed email', GROUP, TAG.ADMIN, {
     i18doc,
-    url: PUT(`${HOST.MAIL}/mail/resend/:mailId`, $var('newmail._id'))
+    url: PUT(`${HOST.MAIL}/mail/resend/:mailId*`, $var('newmail._id'))
   }, { extends: '#authRequestByToken' }),
   DOC('Get list emails', GROUP, TAG.ADMIN, {
     i18doc,
@@ -45,10 +45,10 @@ export default [
   }, { extends: '#authRequestByToken' }),
   DOC('Get an email sending details', GROUP, TAG.ADMIN, {
     i18doc,
-    url: GET(`${HOST.MAIL}/mail/:mailId`, $var('newmail._id'))
+    url: GET(`${HOST.MAIL}/mail/:mailId*`, $var('newmail._id'))
   }, { extends: '#authRequestByToken' }),
   DOC('Remove an email sending', GROUP, TAG.ADMIN, {
     i18doc,
-    url: DELETE(`${HOST.MAIL}/mail/:mailId`, $var('newmail._id'))
+    url: DELETE(`${HOST.MAIL}/mail/:mailId*`, $var('newmail._id'))
   }, { extends: '#authRequestByToken' })
 ]
