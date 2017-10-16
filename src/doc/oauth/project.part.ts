@@ -21,7 +21,7 @@ export default [
   }, { extends: '#authRequestByToken' }),
   DOC('Update project', GROUP, TAG.ADMIN, {
     i18doc: Object.assign({}, i18doc, {
-      '*.plugins.*': DOC.required()
+      'body.plugins.*': DOC.required()
     }),
     url: PUT(`${HOST.OAUTH}/oauth/project`),
     body: {
@@ -32,9 +32,7 @@ export default [
           single_mode: false,
           session_expired: 2700,
           is_verify: false,
-          app: [
-            'facebook'
-          ]
+          app: []
         }
       }
     }

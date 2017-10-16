@@ -95,7 +95,7 @@ export class DocImpl extends Doc {
         $des: this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._des : undefined,
         $required: this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._required : undefined,
         $type: `array`,
-        $or: this.i18doc[prefix] !== undefined && this.i18doc[prefix]._or
+        $group: this.i18doc[prefix] === undefined ? undefined : this.i18doc[prefix]._group
       } as any
       if (obj[0] instanceof Array) {
         rs.$item = this.getDocType(obj[0], type, `${prefix}.0`)
@@ -117,7 +117,7 @@ export class DocImpl extends Doc {
         $des: (this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._des : undefined) || defaultValue || obj,
         $required: this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._required : undefined,
         $type: 'File',
-        $or: this.i18doc[prefix] !== undefined && this.i18doc[prefix]._or
+        $group: this.i18doc[prefix] === undefined ? undefined : this.i18doc[prefix]._group
       } as any
       if (this.i18doc[prefix] !== undefined && this.i18doc[prefix]._type) rs.$cuzType = this.i18doc[prefix]._type
       if (!rs.$cuzType) rs.$cuzType = rs.$type
@@ -128,7 +128,7 @@ export class DocImpl extends Doc {
         $type: 'object',
         $required: this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._required : undefined,
         $item: {} as any,
-        $or: this.i18doc[prefix] !== undefined && this.i18doc[prefix]._or
+        $group: this.i18doc[prefix] === undefined ? undefined : this.i18doc[prefix]._group
       } as any
       for (let k in obj) {
         rs.$item[k] = this.getDocType(obj[k], type, `${prefix}.${k}`, type === 'name' ? k : obj[k])
@@ -143,7 +143,7 @@ export class DocImpl extends Doc {
           $des: (this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._des : undefined) || defaultValue || obj,
           $required: this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._required : undefined,
           $type: typeof obj,
-          $or: this.i18doc[prefix] !== undefined && this.i18doc[prefix]._or
+          $group: this.i18doc[prefix] === undefined ? undefined : this.i18doc[prefix]._group
         } as any
         if (this.i18doc[prefix] !== undefined && this.i18doc[prefix]._type) rs.$cuzType = this.i18doc[prefix]._type
         if (!rs.$cuzType) rs.$cuzType = rs.$type
@@ -153,7 +153,7 @@ export class DocImpl extends Doc {
         $des: (this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._des : undefined) || defaultValue || obj,
         $required: this.i18doc[prefix] !== undefined ? this.i18doc[prefix]._required : undefined,
         $type: typeof obj,
-        $or: this.i18doc[prefix] !== undefined && this.i18doc[prefix]._or
+        $group: this.i18doc[prefix] === undefined ? undefined : this.i18doc[prefix]._group
       } as any
       if (this.i18doc[prefix] !== undefined && this.i18doc[prefix]._type) rs.$cuzType = this.i18doc[prefix]._type
       if (!rs.$cuzType) rs.$cuzType = rs.$type
@@ -214,7 +214,13 @@ export class DocType {
   _des: string
   _type: string
   _required: boolean
-  _or?: boolean
+  _group: {
+    isFirst?: boolean,
+    label?: string,
+    style?: string
+  } = {
+    style: ''
+  }
 
   type(_type: string) {
     this._type = _type
@@ -231,8 +237,22 @@ export class DocType {
     return this
   }
 
-  or(startOrEnd: boolean = null) {
-    this._or = startOrEnd
+  groupStart(label?: string, style?: string) {
+    if (label) this._group.label = label
+    if (style) this._group.style = style
+    this._group.isFirst = true
+    return this
+  }
+  groupEnd(label?: string, style?: string) {
+    if (label) this._group.label = label
+    if (style) this._group.style = style
+    this._group.isFirst = false
+    return this
+  }
+  groupItem(label?: string, style?: string) {
+    if (label) this._group.label = label
+    if (style) this._group.style = style
+    this._group.isFirst = null
     return this
   }
 }
@@ -247,7 +267,13 @@ export namespace DOC {
   export function required(isRequired?: boolean) {
     return new DocType().required(isRequired)
   }
-  export function or(startOrEnd?: boolean) {
-    return new DocType().or(startOrEnd)
+  export function groupStart(label?: string, style?: string) {
+    return new DocType().groupStart(label, style)
+  }
+  export function groupEnd(label?: string, style?: string) {
+    return new DocType().groupEnd(label, style)
+  }
+  export function groupItem(label?: string, style?: string) {
+    return new DocType().groupItem(label, style)
   }
 }

@@ -12,7 +12,10 @@ const i18doc = {
   '*.api.0.path': 'Match path',
   '*.api.0.actions': 'Match actions',
   '*.mob.0.path': 'Match path',
-  '*.mob.0.actions': 'Match actions'
+  '*.mob.0.actions': 'Match actions',
+  'body.api.0.*': DOC.required(),
+  'body.web.0.*': DOC.required(),
+  'body.mob.0.*': DOC.required()
 }
 
 export default [

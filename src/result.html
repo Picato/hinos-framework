@@ -18,41 +18,114 @@
       padding: .25em .5em .25em;
       background-color: white;
     }
-    .body.json-doc-item > li.or1 {
-      /* border-left: 2px dotted rgb(202, 146, 49); */
-      margin-left: -2px;
-      padding-left: 2px;
-    }
-    .body.json-doc-item > li.or-first{
+    .url-doc-header > .columns:first-child {
       
     }
-    .body.json-doc-item > li.or-last{
-      /* margin-bottom: 8px; */
+    .json-doc li.item {
+      padding: 2px 0px;
+    }    
+    .body.json-doc-item > li.or.or-first:before {
+      content: "";
+      display: block;
+      position: absolute;
+      z-index: 1;
+      left: -18px;
+      top: 18px;
+      bottom: 0;
+      border: none;
+      border-left: 1px dashed #ccc;
     }
+    .body.json-doc-item > li.or.or-first:after {
+      content: "";
+      display: block;
+      width: 18px;
+      position: absolute;
+      z-index: 1;
+      left: -18px;
+      top: 18px;
+      border: none;
+      border-top: 1px dashed #ccc;
+    }
+    .body.json-doc-item > li.or1:before,
+    .body.json-doc-item > li.or:before {
+      content: "";
+      display: block;
+      position: absolute;
+      z-index: 1;
+      left: -18px;
+      top: 0px;
+      bottom: 0;
+      border-left: 1px dashed #ccc;
+    }
+    .body.json-doc-item > li.or:after {
+      content: "";
+      display: block;
+      width: 18px;
+      position: absolute;
+      z-index: 1;
+      left: -18px;
+      top: 18px;
+      border-top: 1px dashed #ccc;
+    }
+    .body.json-doc-item > li.or.or-last:before{
+      content: "";
+      display: block;
+      position: absolute;
+      z-index: 1;
+      left: -18px;
+      top: 0px;
+      bottom: 9px;
+      border: none;
+      border-left: 1px dashed #ccc;
+    }
+    .body.json-doc-item > li.or.or-last:after {
+      content: "";
+      display: block;
+      width: 18px;
+      position: absolute;
+      z-index: 1;
+      left: -18px;
+      bottom: 9px;
+      border: none;
+      border-bottom: 1px dashed #ccc;
+    }
+    .body.json-doc-item > li.or1,    
     .body.json-doc-item > li.or {
       position: relative;
       /* border-left: 2px solid rgb(202, 146, 49); */
       margin-left: -2px;
       padding-left: 2px;
     }
+    .json-doc .or > label.label {
+      background-color: orange;
+      box-shadow: none;
+      border: solid 1px #e09100;
+      border-radius: 0px;
+      padding: 0px 4px;
+      font-size: 10px;
+      top: -7px;
+      left: -39px;
+    }
     .json-doc .or > label {
-      background-color: #ffbc47;
+      background-color: #dedede;
       color: white;
       font-size: 9px;
-      padding: 0px 6px;
+      padding: 0px 4px;
       font-weight: bold;
       position: absolute;
-      left: -16px;
+      left: -30px;
       top: -4px;
-      border: dotted 2px white;
-      border-radius: 100%;
-      line-height: 9px;
-      text-shadow: 0px 0px 1px #946411;
+      z-index: 1;
+      border: solid 1px #c3c3c3;
+      text-shadow: 0px 0px 1px #777777;
+      box-shadow: 1px 1px 0px #909090;
+      border-radius: 2px;
     }
     .json-doc .or.required > strong {
       position: absolute;
       color: red !important;
-      left: -10px;
+      left: -6px;
+      z-index: 2;
     }
     strong.required {
       color: red;
@@ -176,7 +249,7 @@
       position: relative;
       background-color: #fff;
       color: #838383;
-      border: dashed 1px #239180;
+      border: inset 1px #ffffff;
     }
 
     .json-doc table,
@@ -209,9 +282,9 @@
     }
 
     .url-doc {
+      border: outset 1px #fff;
       background-color: white;
       padding: 8px 24px;
-      border: dashed 1px #239180;
       min-width: 1000px;
     }
 
@@ -260,7 +333,7 @@
     }
     .note > pre {
       background-color: #ffffe2;
-      border: dashed 1px #a7a70d;
+      border: inset 1px #fff;
       border-top: none;
       white-space: pre-line;
     }
@@ -411,9 +484,9 @@
             </template>
           </li>
           <template v-else v-for="(vl, k) in data">
-            <li :class="{'required': vl.$required, 'or-first': vl.$or === true, 'or-last': (!vl.$item || vl.isHide) && vl.$or === false, 'or': vl.$or !== undefined}">
-              <label v-if="vl.$or === null || vl.$or === false">OR</label>
-              <strong class="required" v-if="vl.$required && vl.$or === true" title="This field is required">*</strong>              
+            <li class="item" :class="{'required': vl.$required, 'or-first': vl.$group && vl.$group.isFirst === true, 'or-last': vl.$group && vl.$group.isFirst === false, 'or': vl.$group && vl.$group.isFirst !== undefined}">
+              <label v-if="vl.$group && vl.$group.label" :class="vl.$group.style">{{vl.$group.label}}</label>
+              <strong class="required" v-if="vl.$required" title="This field is required">*</strong>              
               <b class="key" v-if="!vl.$item">{{k}}</b>
               <template v-else>
                 <b v-show="!vl.isHide" class="pointer key" @click="toggleDocLine(data, k)">{{k}}</b>
@@ -422,7 +495,7 @@
               <i class="type">{{vl.$cuzType}}</i>
               <span class="des" v-html="vl.$des || k"></span>
             </li>
-            <li v-if="vl.$item" :class="{'or1': vl.$or !== undefined, 'or-last': vl.$or === false}" v-show="!vl.isHide">
+            <li v-if="vl.$item" :class="{'item or1': vl.$group && vl.$group.isFirst !== undefined}" v-show="!vl.isHide">
               <json-doc v-if="vl.$item.$type === 'array'" :data="vl" class="json-doc-item json-doc-item-array1"></json-doc>
               <json-doc v-else                          :data="vl" class="json-doc-item json-doc-item-object1"></json-doc>
             </li>        
@@ -456,7 +529,7 @@
             <i class="fa fa-check" v-else></i>
             &nbsp;<span>{{copyText || 'Example'}}</span>
           </a>
-          <li :class="vl.$required ? 'required' : ''">          
+          <li class="item" :class="vl.$required ? 'required' : ''">          
             <strong v-if="vl.$required" title="This field is required">*</strong>
             <b class="key">{{k}}</b>
             <i class="type">{{vl.$cuzType}}</i> 
@@ -523,24 +596,26 @@
               </tr>
               <tr v-show="api.isShow" class="no-style">
                 <td colspan="3" style="padding: 20px 40px">
-                  <div class="columns url-doc">
-                    <div class="column is-paddingless">
-                      <div class="pointer tag method is-medium" style="width: 100%; justify-content: initial;" :class="api.method" @click="copy(api.url.url, i, j)">
-                        <b>{{api.method}}</b>&nbsp;&nbsp;<i v-html="formatUrl(api.url.url)"></i>
-                        <span class="tag clipboard button is-dark">
-                          <i class="fa fa-clipboard" v-if="api.copyText === undefined"></i>
-                          <i class="fa fa-check" v-else></i>
-                          &nbsp;<span>{{api.copyText || 'Copy link'}}</span>
-                        </span>  
+                  <div class="url-doc-header">
+                    <div class="columns url-doc">
+                      <div class="column is-paddingless">
+                        <div class="pointer tag method is-medium" style="width: 100%; justify-content: initial;" :class="api.method" @click="copy(api.url.url, i, j)">
+                          <b>{{api.method}}</b>&nbsp;&nbsp;<i v-html="formatUrl(api.url.url)"></i>
+                          <span class="tag clipboard button is-dark">
+                            <i class="fa fa-clipboard" v-if="api.copyText === undefined"></i>
+                            <i class="fa fa-check" v-else></i>
+                            &nbsp;<span>{{api.copyText || 'Copy link'}}</span>
+                          </span>  
+                        </div>
+                      </div>
+                      <div class="column is-1 has-text-right is-paddingless">
+                        <b class="tag has-text-success is-medium status"><i class="fa fa-circle"></i>&nbsp;{{api.status}}</b>
                       </div>
                     </div>
-                    <div class="column is-1 has-text-right is-paddingless">
-                      <b class="tag has-text-success is-medium status"><i class="fa fa-circle"></i>&nbsp;{{api.status}}</b>
-                    </div>
-                  </div>
-                  <div class="columns" v-if="api.doc.note">
-                    <div class="note">
-                      <pre v-html="api.doc.note"></pre>                      
+                    <div class="columns" v-if="api.doc.note">
+                      <div class="note">
+                        <pre v-html="api.doc.note"></pre>                      
+                      </div>
                     </div>
                   </div>
                   <div class="columns">

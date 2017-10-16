@@ -5,11 +5,11 @@ const i18doc = {
   '*._id': 'File config ID',
   '*.name': 'File config name',
   '*.config': 'Uploading file configuration information',
-  '*.config.maxSize': DOC.required().or(true).des('Limit uploading file size'),
-  '*.config.maxFile': DOC.or().des('Num of files can upload'),
-  '*.config.ext': DOC.or(false).des('File extension allow upload. <code>Eg. <b>jpe?g|png|gif</b> (or use <b>.*</b> for all files)</code>'),
-  '*.config.zip': DOC.required().or(true).des('Auto zip file in uploading progress <code>Only use <b>zip</b> OR <b>resize</b></code>'),
-  '*.config.resize': DOC.or(false).des('Config to auto resize images after upload <code>Only use <b>resize</b> OR <b>zip</b></code>'),
+  '*.config.maxSize': DOC.required().des('Limit uploading file size'),
+  '*.config.maxFile': DOC.des('Num of files can upload'),
+  '*.config.ext': DOC.des('File extension allow upload. <code>Eg. <b>jpe?g|png|gif</b> (or use <b>.*</b> for all files)</code>'),
+  '*.config.resize': DOC.groupStart().des('Config to auto resize images after upload <code>Only use <b>resize</b> OR <b>zip</b></code>'),
+  '*.config.zip': DOC.groupEnd('OR').des('Auto zip file in uploading progress <code>Only use <b>zip</b> OR <b>resize</b></code>'),  
   '*.config.resize.0.w': 'Image width after resize. <code>Atleast must have <b>w</b> or <b>h</b></code>',
   '*.config.resize.0.h': 'Image height after resize. <code>Atleast must have <b>w</b> or <b>h</b></code>',
   '*.config.resize.0.ext': `Prefix image name after resize. <code>Eg. <b>ext</b> = 'thumb'. File name is <b>test.jpg</b>. File after resize is <b>test.thumb.jpg</b></code>`
@@ -34,10 +34,10 @@ export default [
         'maxSize': 2046,
         'maxFile': 2,
         'ext': '.*',
-        'zip': false,
         'resize': [
           { 'w': 100, 'h': 100, 'ext': 'thumb' }
-        ]
+        ],
+        'zip': false
       },
       'name': 'testProj'
     },

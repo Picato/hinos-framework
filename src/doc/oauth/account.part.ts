@@ -5,7 +5,8 @@ const i18doc = {
   '*._id': 'Account ID',
   '*.role_ids': 'User role IDs',
   '*.project_id': 'Project ID',
-  '*.status': 'Account status. <code><b>ACTIVED</b>: 1, <b>INACTIVED</b>: 0, <b>LOCKED</b>: -1</code>'
+  '*.status': 'Account status. <code><b>ACTIVED</b>: 1, <b>INACTIVED</b>: 0, <b>LOCKED</b>: -1</code>',
+  '*.app': 'Login via social network. <code><b>facebook</b>: Login via facebook. <b>google</b>: Login via google+</code>'
 }
 
 export default [
@@ -38,12 +39,21 @@ export default [
   DOC('Login', GROUP, TAG.GUEST, {
     i18doc: Object.assign({}, i18doc, {
       'headers.pj': DOC.required(),
-      'body.username': DOC.required(),
-      'body.password': DOC.required()
+      'body.username': DOC.groupStart().required(),
+      'body.password': DOC.groupEnd().required(),
+      'body.app': DOC.groupStart('OR').required(),
+      'body.token': DOC.groupEnd().required().des('Facebook or google+ token')
     }),
+    note: [
+      `We have 2 ways to login`,
+      `1. Login by account in system. You need to fill username, password fields`,
+      `2. Login via social network (Eg. facebook, google+...). You need to fill app and token (facebook token or google+ token)`
+    ],
     body: {
       username: $var('user.username'),
-      password: $var('$$user.password')
+      password: $var('$$user.password'),
+      app: 'facebook',
+      token: 'Facebook token'
     },
     var: {
       'token': $var('this.$headers.token')
