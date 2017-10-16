@@ -26,7 +26,8 @@ export class FileConfigController {
     const rs = await FileConfigService.find({
       $where: where,
       $page: query.page,
-      $recordsPerPage: query.recordsPerPage
+      $recordsPerPage: query.recordsPerPage,
+      $fields: { project_id: 0 }
     })
     return rs
   }

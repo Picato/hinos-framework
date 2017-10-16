@@ -57,6 +57,8 @@ export class FileConfigService {
   })
   static async insert(body: FileConfig) {
     const rs = await FileConfigService.mongo.insert<FileConfig>(FileConfig, body)
+    delete rs.account_id
+    delete rs.project_id
     return rs
   }
 
