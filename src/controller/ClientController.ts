@@ -34,7 +34,7 @@ export default class AccountController {
     const plugins = await ProjectService.getCachedPlugins(body.projectId)
     if (!plugins || !plugins.oauth) throw HttpError.INTERNAL('Project config got problem')
     const oauth = plugins.oauth
-    if (body.app) {
+    if (oauth.app && oauth.app.length > 0 && body.app) {
       // Login via social network
       if (oauth.app && oauth.app.includes(body.app)) {
         if ('facebook' === body.app) {

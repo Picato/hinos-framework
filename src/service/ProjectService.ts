@@ -11,7 +11,7 @@ import { AccountService } from './AccountService'
 
 export type Plugin = {
   oauth?: {
-    app?: string
+    app?: string[]
     is_verify?: boolean
     session_expired?: number
     single_mode?: boolean
