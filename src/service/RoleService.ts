@@ -45,23 +45,23 @@ export class RoleService {
       native: true,
       project_id: projectId
     })
-    // Add User role
+    // Add Common role
     await RoleService.insert({
-      name: 'User',
+      name: 'Common',
       api: [
-        { path: '/gateway', actions: 'FIND, UPDATE, DELETE' },
-        { path: '/monitor/service', actions: 'SESSION, FIND, INSERT, UPDATE, DELETE' },
-        { path: '/monitor/config', actions: 'GET, CONFIG, GET_MAIL_CONFIG' },
+        { path: '/gateway', actions: 'FIND|UPDATE|DELETE' },
+        { path: '/monitor/service', actions: 'SESSION|FIND|INSERT|UPDATE|DELETE' },
+        { path: '/monitor/config', actions: 'GET|CONFIG|GET_MAIL_CONFIG' },
         { path: '/monitor/log', actions: 'FIND' },
-        { path: '/script', actions: 'FIND, GET, INSERT, UPDATE, DELETE' },
-        { path: '/files/Config', actions: 'FIND, INSERT, UPDATE, DELETE' },
-        { path: '/files', actions: 'UPLOAD, STORE, DELETE, FIND' },
-        { path: '/log', actions: 'FIND, GET, INSERT, UPDATE, DELETE' },
-        { path: '/mail/Config', actions: 'FIND, GET, INSERT, UPDATE, DELETE' },
-        { path: '/mail', actions: 'SEND, Test, RESEND, FIND, GET, DELETE' },
-        { path: '/oauth/Role', actions: 'FIND, GET, INSERT, UPDATE, DELETE' },
-        { path: '/oauth/Project', actions: 'FIND, UPDATE_MINE' },
-        { path: '/oauth/Account', actions: 'FIND, GET, INSERT, UPDATE, DELETE, LOGOUT, PING, GEN_SECRETKEY, REMOVE_SECRETKEY, GET_SECRETKEY, GET_ME, UPDATE_ME, GET_MYROLES' }
+        { path: '/script', actions: 'FIND|GET|INSERT|UPDATE|DELETE' },
+        { path: '/files/Config', actions: 'FIND|INSERT|UPDATE|DELETE' },
+        { path: '/files', actions: 'UPLOAD|STORE|DELETE|FIND' },
+        { path: '/log', actions: 'FIND|GET|INSERT|UPDATE|DELETE' },
+        { path: '/mail/Config', actions: 'FIND|GET|INSERT|UPDATE|DELETE' },
+        { path: '/mail', actions: 'SEND|Test|RESEND|FIND|GET|DELETE' },
+        { path: '/oauth/Role', actions: 'FIND|GET|INSERT|UPDATE|DELETE' },
+        { path: '/oauth/Project', actions: 'GET|UPDATE_MINE' },
+        { path: '/oauth/Account', actions: 'FIND|GET|INSERT|UPDATE|DELETE|LOGOUT|PING|GEN_SECRETKEY|REMOVE_SECRETKEY|GET_SECRETKEY|GET_ME|UPDATE_ME|GET_MYROLES' }
       ],
       web: [{ path: '.*', actions: '.*' }],
       mob: [{ path: '.*', actions: '.*' }],

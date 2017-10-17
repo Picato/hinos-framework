@@ -86,7 +86,7 @@ export class ProjectController {
   /////////////////////////////////////////////////////////////
 
   @GET('/Project')
-  @INJECT(authoriz(`${AppConfig.path}/Project`, ['FIND']))
+  @INJECT(authoriz(`${AppConfig.path}/Project`, ['GET']))
   static async getMyProject({ state }) {
     const prj = await ProjectService.get(state.auth.projectId, {
       status: 0, owner: 0

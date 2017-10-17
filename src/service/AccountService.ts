@@ -197,7 +197,8 @@ export class AccountService {
     if (token === AppConfig.app.suid) return undefined
     const cached = await AccountService.authen(token)
     const roles = await RoleService.getCachedRole(cached.project_id)
-    const accRole = roles.filter(e => cached.role_ids.map(e => e.toString()).indexOf(e._id.toString() !== -1))
+    const accRoleInCached = cached.role_ids.map(r => r.toString())
+    const accRole = roles.filter(e => accRoleInCached.includes(e._id.toString()))
     for (const role of accRole) {
       for (const r of role.api) {
         if (new RegExp(`^${r.path}$`, 'gi').test(path) && _.some(actions, (a) => {
