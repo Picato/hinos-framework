@@ -12,6 +12,12 @@ export interface Action {
   actions: string
 }
 
+interface ApiAction extends Action {
+  role_id: string,
+  isPathRegex: boolean,
+  isActionRegex: boolean
+}
+
 @Collection('Role')
 /* tslint:disable */
 export class Role {
@@ -147,16 +153,31 @@ export class RoleService {
     if (isRemoved) {
       const roles = await RoleService.redis.get(`$roles:${projectId}`)
       await RoleService.redis.del(`$roles:${projectId}`)
+      await RoleService.redis.del(`$roles.api:${projectId}`)
       return roles.length
     }
     const roles = await RoleService.find({
       $where: {
         project_id: projectId
       },
-      $recordsPerPage: -1
+      $recordsPerPage: 0
     })
     await RoleService.redis.set(`$roles:${projectId}`, roles)
+    await RoleService.redis.set(`$roles.api:${projectId}`, roles.reduce((sum, n) => {
+      return sum.concat(n.api.map((e: ApiAction) => {
+        e.role_id = n._id.toString()
+        e.path = e.path.toLowerCase()
+        e.actions = (e.actions as any) instanceof Array ? (e.actions as any).join('|').toUpperCase() : e.actions.toUpperCase()
+        e.isPathRegex = !/^[\/\w\s]+$/.test(e.path)
+        e.isActionRegex = !/^[\/\w\s]+$/.test(e.actions)
+        return e
+      }))
+    }, []))
     return roles.length
+  }
+
+  static async getCachedApiRole(projectId: Uuid) {
+    return await RoleService.redis.get(`$roles.api:${projectId}`) as ApiAction[]
   }
 
   static async getCachedRole(projectId: Uuid) {

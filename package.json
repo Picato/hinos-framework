@@ -49,7 +49,7 @@
     "hinos-cors": "^1.0.1",
     "hinos-helmet": "^1.0.0",
     "hinos-mongo": "^1.1.4",
-    "hinos-redis": "^1.0.7",
+    "hinos-redis": "^1.0.10",
     "hinos-requesthasher": "^1.1.7",
     "hinos-route": "^1.1.8",
     "hinos-validation": "^1.1.2",

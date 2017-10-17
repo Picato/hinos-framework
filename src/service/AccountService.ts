@@ -1,4 +1,3 @@
-import * as _ from 'lodash'
 import { VALIDATE, Checker } from 'hinos-validation'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import { Redis, REDIS } from 'hinos-redis'
@@ -186,25 +185,23 @@ export class AccountService {
     return acc
   }
 
-  static async authen(token) {
+  static async authoriz({ token = undefined as string, path = undefined as string, actions = [] as string[] }) {
     if (!token) throw HttpError.AUTHEN()
+
+    if (token === AppConfig.app.suid) return undefined // Super admin ?
+
     let cached = await AccountService.getCachedToken(token)
     if (!cached) throw HttpError.EXPIRED()
-    return AccountCached.cast(cached)
-  }
 
-  static async authoriz({ token = undefined as string, path = undefined as string, actions = [] }) {
-    if (token === AppConfig.app.suid) return undefined
-    const cached = await AccountService.authen(token)
-    const roles = await RoleService.getCachedRole(cached.project_id)
-    const accRoleInCached = cached.role_ids.map(r => r.toString())
-    const accRole = roles.filter(e => accRoleInCached.includes(e._id.toString()))
-    for (const role of accRole) {
-      for (const r of role.api) {
-        if (new RegExp(`^${r.path}$`, 'gi').test(path) && _.some(actions, (a) => {
-          return new RegExp(`^${r.actions}$`, 'gi').test(a)
-        })) {
-          return cached
+    const roles = await RoleService.getCachedApiRole(cached.project_id)
+    const accRole = roles.filter(e => cached.role_ids.includes(e.role_id))
+    let act
+    for (const r of accRole) {
+      if ((!r.isPathRegex && r.path === path.toLowerCase()) || (r.isPathRegex && new RegExp(`^${r.path}$`, 'gi').test(path))) {
+        act = r.isActionRegex ? new RegExp(`^${r.actions}$`, 'gi') : null
+        for (let a of actions) {
+          if (act && act.test(a)) return cached
+          else if (!act && r.actions === a.toUpperCase()) return cached
         }
       }
     }
@@ -257,6 +254,12 @@ export class AccountService {
         await AccountService.setCachedToken(tk)
       }
       acc.token = []
+    } else {
+      for (let i = acc.token.length - 1; i >= 0; i--) {
+        if (!AccountService.getCachedToken(acc.token[i])) {
+          acc.token.splice(i, 1)
+        }
+      }
     }
     const token = AccountService.generateToken()
     acc.token.push(token)
@@ -340,7 +343,9 @@ export class AccountService {
   @VALIDATE((body: Account) => {
     Checker.required(body, '_id', Uuid)
     Checker.option(body, 'password', String)
-    Checker.option(body, 'status', Number)
+    Checker.option(body, 'status', Number, () => {
+      if (body.status === Account.Status.INACTIVED) body.token = []
+    })
     Checker.option(body, 'recover_by', String)
     Checker.option(body, 'role_ids', Array, () => {
       body.role_ids = Mongo.uuid(body.role_ids)
@@ -362,8 +367,18 @@ export class AccountService {
     }
     // Clear cached if user is inactived
     if (old.status !== body.status && body.status === Account.Status.INACTIVED) {
+      if (old.secret_key) await AccountService.setCachedToken(old.secret_key)
       for (const tk of old.token) {
         await AccountService.setCachedToken(tk)
+      }
+    } else {
+      // Reload scret key to cached when reactived
+      if (old.status !== body.status && body.status === Account.Status.ACTIVED && old.secret_key) {
+        await AccountService.setCachedToken(old.secret_key, {
+          account_id: body._id,
+          role_ids: body.role_ids,
+          project_id: body.project_id
+        } as AccountCached)
       }
     }
   }
