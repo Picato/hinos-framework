@@ -34,7 +34,7 @@ export default [
       'newfile1': $var('this.$body')
     }
   }, { extends: ['#uploadFile', '#authRequestByToken'] }),
-  DOC('Store file(s) after uploading to make sure it wont be removed after period time', GROUP, TAG.ADMIN, {
+  DOC('Store or replace file(s) after uploading to make sure it wont be removed after period time', GROUP, TAG.ADMIN, {
     i18doc: {
       'body.oldFiles': DOC.type('string | string[]').des('Old link file which you got after call api file uploading'),
       'body.files': DOC.required().type('string | string[]').des('New link file which you got after call api file uploading')

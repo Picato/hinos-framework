@@ -102,5 +102,8 @@ export default [
   DOC('Get role details', GROUP, TAG.ADMIN, {
     i18doc,
     url: GET(`${HOST.OAUTH}/oauth/role/:roleId*`, $var('newrole._id'))
+  }, { extends: '#authRequestByToken' }),
+  DOC('Remove a role', GROUP, TAG.ADMIN, {
+    url: DELETE(`${HOST.OAUTH}/oauth/role/:roleId*`, $var('newrole._id'))
   }, { extends: '#authRequestByToken' })
 ]

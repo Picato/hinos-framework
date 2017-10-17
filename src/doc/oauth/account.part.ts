@@ -162,7 +162,7 @@ export default [
   ...INCLUDE('doc/oauth/role.part'),
   ...INCLUDE('doc/oauth/project.part'),
 
-  DOC('Delete exists account', GROUP, TAG.ADMIN, {
+  DOC('Delete an exists account', GROUP, TAG.ADMIN, {
     url: DELETE(`${HOST.OAUTH}/oauth/account/:accountId*`, $var('newuser._id'))
   }, { extends: '#authRequestByToken' }),
 
