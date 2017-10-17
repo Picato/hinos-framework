@@ -1,8 +1,9 @@
-import { GET, POST, PUT, DELETE, HEAD, INJECT } from 'hinos-route'
-import { BODYPARSER } from 'hinos-bodyparser'
-import { MATCHER } from 'hinos-requestmatcher'
+import { GET, POST, PUT, DELETE, INJECT } from 'hinos-route'>>>normal
+import { BODYPARSER } from 'hinos-bodyparser'<<<normal >>>file
+import { FILEPARSER } from 'hinos-bodyparser/file'<<<file
+import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { Mongo } from 'hinos-mongo'
-import { ${Tbl}, ${Tbl}Service } from '../service/${Tbl}Service'>>>auth
+import { ${Tbl}Service } from '../service/${Tbl}Service'>>>auth
 import { authoriz } from '../service/Authoriz'<<<auth
 
 /************************************************
@@ -12,8 +13,8 @@ import { authoriz } from '../service/Authoriz'<<<auth
 export class ${Tbl}Controller {
 
 	@GET('/${tbl}') >>>auth
-	@INJECT(authoriz(`${AppConfig.name}>${tbl}`, ['FIND'])) <<<auth
-	@MATCHER({
+	@INJECT(authoriz(`${AppConfig.path}/${tbl}`, ['FIND'])) <<<auth
+	@RESTRICT({
     query: {
       page: Number,
       recordsPerPage: Number
@@ -30,8 +31,8 @@ export class ${Tbl}Controller {
 	}
 
 	@GET('/${tbl}/:_id') >>>auth
-	@INJECT(authoriz(`${AppConfig.name}>${tbl}`, ['GET']))<<<auth
-	@MATCHER({
+	@INJECT(authoriz(`${AppConfig.path}/${tbl}`, ['GET']))<<<auth
+	@RESTRICT({
 		params: {
 			_id: Mongo.uuid
 		}
@@ -42,9 +43,10 @@ export class ${Tbl}Controller {
 	}
 
 	@POST('/${tbl}')>>>auth
-	@INJECT(authoriz(`${AppConfig.name}>${tbl}`, ['INSERT']))<<<auth
-	@BODYPARSER(>>>file${file-opts}<<<file)
-	@MATCHER({
+	@INJECT(authoriz(`${AppConfig.path}/${tbl}`, ['INSERT']))<<<auth >>>normal
+	@BODYPARSER()<<<normal >>>file
+	@FILEPARSER(${file-opts})<<<file
+	@RESTRICT({
 		body: {
 			${$bodyIn}
 		}
@@ -55,9 +57,10 @@ export class ${Tbl}Controller {
 	}
 
 	@PUT('/${tbl}/:_id')>>>auth
-	@INJECT(authoriz(`${AppConfig.name}>${tbl}`, ['UPDATE']))<<<auth
-	@BODYPARSER(>>>file${file-opts}<<<file)
-	@MATCHER({
+	@INJECT(authoriz(`${AppConfig.path}/${tbl}`, ['UPDATE']))<<<auth >>>normal
+	@BODYPARSER()<<<normal >>>file
+	@FILEPARSER(${file-opts})<<<file
+	@RESTRICT({
 		params: {
 			_id: Mongo.uuid
 		},
@@ -71,8 +74,8 @@ export class ${Tbl}Controller {
 	}
 
 	@DELETE('/${tbl}/:_id') >>>auth
-	@INJECT(authoriz(`${AppConfig.name}>${tbl}`, ['DELETE']))<<<auth
-	@MATCHER({
+	@INJECT(authoriz(`${AppConfig.path}/${tbl}`, ['DELETE']))<<<auth
+	@RESTRICT({
 		params: {
 			_id: Mongo.uuid
 		}

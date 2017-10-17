@@ -26,7 +26,7 @@ export default class SpendingsController {
   }
 
   @PUT('/Sync/:email')
-  @INJECT(authoriz(`${AppConfig.name}>Common`, ['SYNC']))
+  @INJECT(authoriz(`${AppConfig.path}/Common`, ['SYNC']))
   @BODYPARSER()
   @MATCHER({
     query: {
@@ -65,7 +65,7 @@ export default class SpendingsController {
   }
 
   @GET('/StatisticByMonth')
-  @INJECT(authoriz(`${AppConfig.name}>Spendings`, ['STATISTIC_BY_MONTH']))
+  @INJECT(authoriz(`${AppConfig.path}/Spendings`, ['STATISTIC_BY_MONTH']))
   @MATCHER({
     query: {
       startDate: Date,
@@ -89,7 +89,7 @@ export default class SpendingsController {
   }
 
   @GET('/StatisticByTypeSpending')
-  @INJECT(authoriz(`${AppConfig.name}>Spendings`, ['STATISTIC_BY_TYPE_SPENDING']))
+  @INJECT(authoriz(`${AppConfig.path}/Spendings`, ['STATISTIC_BY_TYPE_SPENDING']))
   @MATCHER({
     query: {
       type: Number,
@@ -115,14 +115,14 @@ export default class SpendingsController {
   }
 
   @GET('/Spendings/Suggestion')
-  @INJECT(authoriz(`${AppConfig.name}>Spendings`, ['SUGGESTION']))
+  @INJECT(authoriz(`${AppConfig.path}/Spendings`, ['SUGGESTION']))
   static async getSuggestion({ state }) {
     const rs = await SpendingsService.getSuggestion(state.auth)
     return rs
   }
 
   @GET('/Spendings/Bookmark')
-  @INJECT(authoriz(`${AppConfig.name}>Spendings`, ['BOOKMARK']))
+  @INJECT(authoriz(`${AppConfig.path}/Spendings`, ['BOOKMARK']))
   static async getBookmark({
 		state
 	}) {
@@ -139,7 +139,7 @@ export default class SpendingsController {
   }
 
   @GET('/Spendings')
-  @INJECT(authoriz(`${AppConfig.name}>Spendings`, ['FIND']))
+  @INJECT(authoriz(`${AppConfig.path}/Spendings`, ['FIND']))
   @MATCHER({
     query: {
       startDate: Date,
@@ -166,21 +166,8 @@ export default class SpendingsController {
     return rs
   }
 
-  // @GET('/Spendings/:_id', {
-  // 	$params: {
-  // 		_id: Mongo.uuid
-  // 	}
-  // })
-  // @INJECT(authoriz(`${AppConfig.name}>Spendings`, ['GET']))
-  // static async get({
-  // 	params, state
-  // }) {
-  // 	const rs: Spendings = await SpendingsService.get(params._id, state.auth)
-  // 	return rs
-  // }
-
   @POST('/Spendings')
-  @INJECT(authoriz(`${AppConfig.name}>Spendings`, ['INSERT']))
+  @INJECT(authoriz(`${AppConfig.path}/Spendings`, ['INSERT']))
   @BODYPARSER()
   @MATCHER({
     body: {
@@ -200,7 +187,7 @@ export default class SpendingsController {
   }
 
   @PUT('/Spendings/:_id')
-  @INJECT(authoriz(`${AppConfig.name}>Spendings`, ['UPDATE']))
+  @INJECT(authoriz(`${AppConfig.path}/Spendings`, ['UPDATE']))
   @BODYPARSER()
   @MATCHER({
     params: {
@@ -223,7 +210,7 @@ export default class SpendingsController {
   }
 
   @DELETE('/Spendings/Bookmark/:_id')
-  @INJECT(authoriz(`${AppConfig.name}>Spendings`, ['UNBOOKMARK']))
+  @INJECT(authoriz(`${AppConfig.path}/Spendings`, ['UNBOOKMARK']))
   @MATCHER({
     params: {
       _id: Mongo.uuid
@@ -234,7 +221,7 @@ export default class SpendingsController {
   }
 
   @DELETE('/Spendings/:_id')
-  @INJECT(authoriz(`${AppConfig.name}>Spendings`, ['DELETE']))
+  @INJECT(authoriz(`${AppConfig.path}/Spendings`, ['DELETE']))
   @MATCHER({
     params: {
       _id: Mongo.uuid

@@ -1,21 +1,26 @@
 import { Context } from 'hinos'
-import HttpError from '../common/HttpError'
-import { Http } from 'hinos-common/Http'
 import { Mongo } from 'hinos-mongo'
+import axios from 'axios'
+import HttpError from '../common/HttpError'
 
 export function authoriz(path: string, actions: string[]) {
   return async ({ ctx, headers }: Context, next: Function) => {
-    const res: Http.Response = await Http.head(`${AppConfig.services.oauth}/Oauth/Authoriz?path=${path}&actions=${actions.join(',')}`, {
-      headers: {
-        token: headers.token
+    try {
+      const res = await axios.head(`${AppConfig.services.oauth}/oauth/Authoriz?path=${path}&actions=${actions.join(',')}`, {
+        headers: {
+          token: headers.token
+        }
+      })
+      ctx.state.auth = {
+        token: headers.token,
+        projectId: Mongo.uuid(res.headers.project_id),
+        accountId: Mongo.uuid(res.headers.account_id)
       }
-    })
-    if (res.statusCode !== 204) throw HttpError.INTERNAL(res.error || res.body)
-    ctx.state.auth = {
-      token: headers.token,
-      projectId: Mongo.uuid(res.headers.project_id),
-      accountId: Mongo.uuid(res.headers.account_id)
+      await next()
+    } catch (e) {
+      if (e instanceof HttpError) throw e
+      if (e.response) throw HttpError.CUSTOMIZE(e.response.status, e.response.data)
+      throw e
     }
-    await next()
   }
 }

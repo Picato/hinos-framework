@@ -18,7 +18,7 @@ class ArrayType extends Type<any> {
       fieldType.fieldName = fieldName
       beanType.push(`${fieldName}?: ${fieldType.beanType}`)
     })
-    this.beanType = `${this.beanType}<{${beanType.join('\n')}}>`
+    this.beanType = `${this.beanType}<{${beanType.length > 0 ? beanType.join('\n') : 'any'}}>`
     return this
   }
 
