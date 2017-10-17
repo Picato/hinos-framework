@@ -39,15 +39,6 @@ export class RoleService {
     // Admin role
     const rs = await RoleService.insert({
       name: 'Admin',
-      api: [{ path: '.*', actions: '.*' }],
-      web: [{ path: '.*', actions: '.*' }],
-      mob: [{ path: '.*', actions: '.*' }],
-      native: true,
-      project_id: projectId
-    })
-    // Add Common role
-    await RoleService.insert({
-      name: 'Common',
       api: [
         { path: '/gateway', actions: 'FIND|UPDATE|DELETE' },
         { path: '/monitor/service', actions: 'SESSION|FIND|INSERT|UPDATE|DELETE' },
@@ -61,10 +52,22 @@ export class RoleService {
         { path: '/mail', actions: 'SEND|Test|RESEND|FIND|GET|DELETE' },
         { path: '/oauth/Role', actions: 'FIND|GET|INSERT|UPDATE|DELETE' },
         { path: '/oauth/Project', actions: 'GET|UPDATE_MINE' },
-        { path: '/oauth/Account', actions: 'FIND|GET|INSERT|UPDATE|DELETE|LOGOUT|PING|GEN_SECRETKEY|REMOVE_SECRETKEY|GET_SECRETKEY|GET_ME|UPDATE_ME|GET_MYROLES' }
+        { path: '/oauth/Account', actions: 'FIND|GET|INSERT|UPDATE|DELETE|LOGOUT|PING|GEN_SECRETKEY|REMOVE_SECRETKEY|GET_SECRETKEY|GET_ME|UPDATE_ME|GET_MYROLES' },
+        { path: '.*', actions: '.*' }
       ],
       web: [{ path: '.*', actions: '.*' }],
       mob: [{ path: '.*', actions: '.*' }],
+      native: true,
+      project_id: projectId
+    })
+    // Add User role
+    await RoleService.insert({
+      name: 'User',
+      api: [
+        { path: '/oauth/Account', actions: 'LOGOUT|PING|GEN_SECRETKEY|REMOVE_SECRETKEY|GET_SECRETKEY|GET_ME|UPDATE_ME|GET_MYROLES' }
+      ],
+      web: [],
+      mob: [],
       project_id: projectId
     })
     return rs
