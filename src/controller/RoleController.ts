@@ -12,6 +12,12 @@ import { authoriz } from '../service/Authoriz'
 
 export class RoleController {
 
+  @GET('/Role/Default')
+  @INJECT(authoriz(`${AppConfig.path}/Role`, ['GET_DEFAULT']))
+  static async getDefautRole() {
+    return RoleService.COMMON_ROLE
+  }
+
   @GET('/Role')
   @INJECT(authoriz(`${AppConfig.path}/Role`, ['FIND']))
   @RESTRICT({
