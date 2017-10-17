@@ -13,9 +13,7 @@ export interface Action {
 }
 
 interface ApiAction extends Action {
-  role_id: string,
-  isPathRegex: boolean,
-  isActionRegex: boolean
+  role_id: string
 }
 
 @Collection('Role')
@@ -166,10 +164,6 @@ export class RoleService {
     await RoleService.redis.set(`$roles.api:${projectId}`, roles.reduce((sum, n) => {
       return sum.concat(n.api.map((e: ApiAction) => {
         e.role_id = n._id.toString()
-        e.path = e.path.toLowerCase()
-        e.actions = (e.actions as any) instanceof Array ? (e.actions as any).join('|').toUpperCase() : e.actions.toUpperCase()
-        e.isPathRegex = !/^[\/\w\s]+$/.test(e.path)
-        e.isActionRegex = !/^[\/\w\s]+$/.test(e.actions)
         return e
       }))
     }, []))

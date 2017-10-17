@@ -185,7 +185,7 @@ export class AccountService {
     return acc
   }
 
-  static async authoriz({ token = undefined as string, path = undefined as string, actions = [] as string[] }) {
+  static async authoriz({ token = undefined as string, path = undefined as string, actions = [] }) {
     if (!token) throw HttpError.AUTHEN()
 
     if (token === AppConfig.app.suid) return undefined // Super admin ?
@@ -197,11 +197,10 @@ export class AccountService {
     const accRole = roles.filter(e => cached.role_ids.includes(e.role_id))
     let act
     for (const r of accRole) {
-      if ((!r.isPathRegex && r.path === path.toLowerCase()) || (r.isPathRegex && new RegExp(`^${r.path}$`, 'gi').test(path))) {
-        act = r.isActionRegex ? new RegExp(`^${r.actions}$`, 'gi') : null
+      if (new RegExp(`^${r.path}$`, 'gi').test(path)) {
+        act = new RegExp(`^${r.actions}$`, 'gi')
         for (let a of actions) {
-          if (act && act.test(a)) return cached
-          else if (!act && r.actions === a.toUpperCase()) return cached
+          if (act.test(a)) return cached
         }
       }
     }
