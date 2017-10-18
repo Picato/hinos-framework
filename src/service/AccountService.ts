@@ -200,7 +200,7 @@ export class AccountService {
       if ((!r.isPathRegex && r.path === path) || (r.isPathRegex && new RegExp(`^${r.path}$`, 'g').test(path))) {
         if (r.isActionRegex) act = new RegExp(`^${r.actions}$`, 'g')
         for (let a of actions) {
-          if ((r.isActionRegex && act.test(a)) || (!r.isActionRegex && act === a)) return cached
+          if ((r.isActionRegex && act.test(a)) || (!r.isActionRegex && r.actions === a)) return cached
         }
       }
     }
