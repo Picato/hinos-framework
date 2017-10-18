@@ -1,5 +1,5 @@
 import { GET, POST, PUT, DELETE, INJECT } from 'hinos-route'
-import { MATCHER } from 'hinos-requestmatcher'
+import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { BODYPARSER } from 'hinos-bodyparser'
 import { Mongo } from 'hinos-mongo'
 import { TypeSpendingsService } from '../service/TypeSpendingsService'
@@ -13,7 +13,7 @@ export default class TypeSpendingsController {
 
   @GET('/TypeSpendings')
   @INJECT(authoriz(`${AppConfig.path}/TypeSpendings`, ['FIND']))
-  @MATCHER({
+  @RESTRICT({
     query: {
       type: Number
     }
@@ -34,7 +34,7 @@ export default class TypeSpendingsController {
 
   @GET('/TypeSpendings/:_id')
   @INJECT(authoriz(`${AppConfig.path}/TypeSpendings`, ['GET']))
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     }
@@ -47,7 +47,7 @@ export default class TypeSpendingsController {
   @POST('/TypeSpendings')
   @INJECT(authoriz(`${AppConfig.path}/TypeSpendings`, ['INSERT']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     body: {
       name: String,
       icon: String,
@@ -64,7 +64,7 @@ export default class TypeSpendingsController {
   @PUT('/TypeSpendings/:_id')
   @INJECT(authoriz(`${AppConfig.path}/TypeSpendings`, ['UPDATE']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     },
@@ -83,7 +83,7 @@ export default class TypeSpendingsController {
 
   @DELETE('/TypeSpendings/:_id')
   @INJECT(authoriz(`${AppConfig.path}/TypeSpendings`, ['DELETE']))
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     }

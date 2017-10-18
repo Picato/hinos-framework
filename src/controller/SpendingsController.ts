@@ -1,6 +1,6 @@
 import { GET, POST, PUT, DELETE, INJECT, HEAD } from 'hinos-route'
-import { MATCHER } from 'hinos-requestmatcher'
 import { BODYPARSER } from 'hinos-bodyparser'
+import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { Mongo } from 'hinos-mongo'
 import { Spendings, SpendingsService } from '../service/SpendingsService'
 import { authoriz } from '../service/Authoriz'
@@ -28,7 +28,7 @@ export default class SpendingsController {
   @PUT('/Sync/:email')
   @INJECT(authoriz(`${AppConfig.path}/Common`, ['SYNC']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     query: {
       changeToNewServer: Boolean
     },
@@ -66,7 +66,7 @@ export default class SpendingsController {
 
   @GET('/StatisticByMonth')
   @INJECT(authoriz(`${AppConfig.path}/Spendings`, ['STATISTIC_BY_MONTH']))
-  @MATCHER({
+  @RESTRICT({
     query: {
       startDate: Date,
       endDate: Date
@@ -90,7 +90,7 @@ export default class SpendingsController {
 
   @GET('/StatisticByTypeSpending')
   @INJECT(authoriz(`${AppConfig.path}/Spendings`, ['STATISTIC_BY_TYPE_SPENDING']))
-  @MATCHER({
+  @RESTRICT({
     query: {
       type: Number,
       startDate: Date,
@@ -140,7 +140,7 @@ export default class SpendingsController {
 
   @GET('/Spendings')
   @INJECT(authoriz(`${AppConfig.path}/Spendings`, ['FIND']))
-  @MATCHER({
+  @RESTRICT({
     query: {
       startDate: Date,
       endDate: Date,
@@ -169,7 +169,7 @@ export default class SpendingsController {
   @POST('/Spendings')
   @INJECT(authoriz(`${AppConfig.path}/Spendings`, ['INSERT']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     body: {
       money: Number,
       input_date: Date,
@@ -189,7 +189,7 @@ export default class SpendingsController {
   @PUT('/Spendings/:_id')
   @INJECT(authoriz(`${AppConfig.path}/Spendings`, ['UPDATE']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     },
@@ -211,7 +211,7 @@ export default class SpendingsController {
 
   @DELETE('/Spendings/Bookmark/:_id')
   @INJECT(authoriz(`${AppConfig.path}/Spendings`, ['UNBOOKMARK']))
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     }
@@ -222,7 +222,7 @@ export default class SpendingsController {
 
   @DELETE('/Spendings/:_id')
   @INJECT(authoriz(`${AppConfig.path}/Spendings`, ['DELETE']))
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     }

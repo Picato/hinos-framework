@@ -44,7 +44,6 @@
     "hinos-mongo": "^1.0.7",
     "hinos-requestmatcher": "^1.0.5",
     "hinos-route": "^1.1.3",
-    "hinos-validation": "^1.1.1",
     "lodash": "^4.17.4"
   },
   "author": "doanthuanthanh88@gmail.com",

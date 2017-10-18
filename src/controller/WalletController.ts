@@ -1,5 +1,5 @@
 import { GET, POST, PUT, DELETE, INJECT } from 'hinos-route'
-import { MATCHER } from 'hinos-requestmatcher'
+import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { BODYPARSER } from 'hinos-bodyparser'
 import { Mongo } from 'hinos-mongo'
 import { Wallet, WalletService } from '../service/WalletService'
@@ -14,7 +14,7 @@ export default class WalletController {
   @PUT('/Wallet/Transfer')
   @INJECT(authoriz(`${AppConfig.path}/Wallet`, ['UPDATE']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     body: {
       des: String,
       from: Mongo.uuid,
@@ -30,7 +30,7 @@ export default class WalletController {
 
   @GET('/Wallet')
   @INJECT(authoriz(`${AppConfig.path}/Wallet`, ['FIND']))
-  @MATCHER({
+  @RESTRICT({
     query: {
       type: Number
     }
@@ -52,7 +52,7 @@ export default class WalletController {
   @POST('/Wallet')
   @INJECT(authoriz(`${AppConfig.path}/Wallet`, ['INSERT']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     body: {
       icon: String,
       name: String,
@@ -73,7 +73,7 @@ export default class WalletController {
   @PUT('/Wallet/reset/:_id')
   @INJECT(authoriz(`${AppConfig.path}/Wallet`, ['UPDATE']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     },
@@ -89,7 +89,7 @@ export default class WalletController {
   @PUT('/Wallet/:_id')
   @INJECT(authoriz(`${AppConfig.path}/Wallet`, ['UPDATE']))
   @BODYPARSER()
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     },
@@ -112,7 +112,7 @@ export default class WalletController {
 
   @DELETE('/Wallet/:_id')
   @INJECT(authoriz(`${AppConfig.path}/Wallet`, ['DELETE']))
-  @MATCHER({
+  @RESTRICT({
     params: {
       _id: Mongo.uuid
     }
