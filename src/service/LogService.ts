@@ -13,7 +13,7 @@ export class Log {
   project_id?: Uuid
   account_id?: Uuid
   // type?: number
-  // title?: string
+  title?: string
   // status?: number
   created_at?: Date
   updated_at?: Date
@@ -38,6 +38,7 @@ export class LogService {
     body._id = Mongo.uuid() as Uuid
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
+    Checker.required(body, 'title', String)
     body.created_at = new Date()
     body.updated_at = new Date()
   })
