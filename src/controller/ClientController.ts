@@ -195,15 +195,6 @@ export default class AccountController {
     }
   })
   static async getMyRole({ query, state }) {
-    if (!query.type) return HttpError.BAD_REQUEST('Type is required')
-    const roles = await AccountService.getRoles(state.auth)
-    if (!roles || roles.length === 0) throw HttpError.NOT_FOUND()
-    const myroles = await RoleService.getMyRole(roles, state.auth)
-    let list = []
-    for (let r of myroles) {
-      const rs = r[query.type]
-      if (rs) list = list.concat(rs)
-    }
-    return list
+    return await RoleService.getMyRole(query.type, state.auth)
   }
 }

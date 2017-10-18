@@ -2,6 +2,7 @@ import { VALIDATE, Checker } from 'hinos-validation'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import { REDIS, Redis } from 'hinos-redis'
 import HttpError from '../common/HttpError'
+import { AccountService } from './AccountService'
 
 /************************************************
  ** RoleService || 4/10/2017, 10:19:24 AM **
@@ -13,6 +14,8 @@ export interface Action {
 }
 
 interface ApiAction extends Action {
+  isPathRegex: boolean
+  isActionRegex: boolean
   role_id: string
 }
 
@@ -139,10 +142,12 @@ export class RoleService {
     await RoleService.reloadCachedRole(key.project_id)
   }
 
-  static async getMyRole(roleIds: Uuid[], { projectId }) {
-    const myRoles = roleIds.map(e => e.toString())
+  static async getMyRole(type: string, { accountId, projectId }) {
+    if (!type) return HttpError.BAD_REQUEST('Role type is required')
     const roles = await RoleService.getCachedRole(projectId)
-    return roles.filter(e => myRoles.includes(e._id.toString()))
+    let myRoles = (await AccountService.getRoles({ accountId })).map(e => e.toString())
+    myRoles = roles.filter(e => myRoles.includes(e._id.toString()))
+    return myRoles.reduce((sum, n) => sum.concat(n[type]), [])
   }
 
   ////////////// Cached
@@ -163,7 +168,10 @@ export class RoleService {
     await RoleService.redis.set(`$roles:${projectId}`, roles)
     await RoleService.redis.set(`$roles.api:${projectId}`, roles.reduce((sum, n) => {
       return sum.concat(n.api.map((e: ApiAction) => {
+        if ((e.actions as any) instanceof Array) e.actions = (e.actions as any).join('|')
         e.role_id = n._id.toString()
+        e.isPathRegex = !/^[\w\s\/]+$/.test(e.path)
+        e.isActionRegex = !/^[\w\s\/]+$/.test(e.actions)
         return e
       }))
     }, []))

@@ -197,10 +197,10 @@ export class AccountService {
     const accRole = roles.filter(e => cached.role_ids.includes(e.role_id))
     let act
     for (const r of accRole) {
-      if (new RegExp(`^${r.path}$`, 'gi').test(path)) {
-        act = new RegExp(`^${r.actions}$`, 'gi')
+      if ((!r.isPathRegex && r.path === path) || (r.isPathRegex && new RegExp(`^${r.path}$`, 'g').test(path))) {
+        if (r.isActionRegex) act = new RegExp(`^${r.actions}$`, 'g')
         for (let a of actions) {
-          if (act.test(a)) return cached
+          if ((r.isActionRegex && act.test(a)) || (!r.isActionRegex && act === a)) return cached
         }
       }
     }
