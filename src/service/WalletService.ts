@@ -199,7 +199,7 @@ export class WalletService {
       msgs.push(`### WALLET: RESET INIT MONEY ###`)
       msgs.push(` - ${wallet.name} >>> ${type > 0 ? '+' : type < 0 ? '-' : '='}${SpendingsService.formatNumber(wallet.money)})`)
       await LogService.push({
-        type: 'reset-wallet',
+        title: 'Reset init wallet money',
         data: msgs
       }, auth)
 

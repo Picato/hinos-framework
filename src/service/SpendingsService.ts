@@ -269,7 +269,7 @@ export class SpendingsService {
       }
       if (body.des && body.des.length > 0) msgs.push(`#Note: ${body.des}`)
       await LogService.push({
-        type: 1,
+        title: 'Add item',
         data: msgs
       }, auth)
       return body
@@ -324,7 +324,7 @@ export class SpendingsService {
         msgs.push(` - $Old: ${oldWallet.name} >>> ${oldTypeSpending.name} = ${oldItem.type > 0 ? '+' : oldItem.type < 0 ? '-' : ''}${SpendingsService.formatNumber(oldItem.money)} (${oldItem.input_date.getDate()}/${oldItem.input_date.getMonth() + 1}/${oldItem.input_date.getFullYear()})`)
         if (body.des && body.des.length > 0) msgs.push(`#Note: ${body.des}`)
         await LogService.push({
-          type: 'update-spending',
+          title: 'Update item',
           data: msgs
         }, auth)
       } else if (oldItem.money !== body.money) {
@@ -390,7 +390,7 @@ export class SpendingsService {
       msgs.push(`### REMOVE ITEM ###`)
       msgs.push(` - ${wallet.name} >>> ${typeSpending.name} = ${oldItem.type > 0 ? '+' : oldItem.type < 0 ? '-' : ''}${SpendingsService.formatNumber(oldItem.money)} (${oldItem.input_date.getDate()}/${oldItem.input_date.getMonth() + 1}/${oldItem.input_date.getFullYear()})`)
       await LogService.push({
-        type: 'delete-spending',
+        title: 'Delete item',
         data: msgs
       }, auth)
       return _id
