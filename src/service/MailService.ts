@@ -1,4 +1,3 @@
-import * as _ from 'lodash'
 import { VALIDATE, Checker } from 'hinos-validation'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
@@ -67,12 +66,7 @@ export class MailService {
       for (const e of listEmail) {
         try {
           const config = await MailConfigService.get(e.config_id)
-          let mail = _.cloneDeep(e)
-          _.merge(mail, {
-            cc: e.cc.join(', '),
-            to: e.to.join(', ')
-          })
-          await MailService.sendMail(_.pick(mail, ['attachments', 'cc', 'from', 'html', 'subject', 'to', 'text']), config.config)
+          await MailService.sendMail(e, config.config)
           e.status = Mail.Status.PASSED
           e.error = undefined
         } catch (err) {
@@ -86,7 +80,7 @@ export class MailService {
   }
 
   static async test(mail: Mail, config) {
-    await MailService.sendMail(_.pick(mail, ['attachments', 'cc', 'from', 'html', 'subject', 'to', 'text']), config)
+    await MailService.sendMail(mail, config)
   }
 
   static async find(fil = {}) {
@@ -133,22 +127,22 @@ export class MailService {
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
   }
 
-  @VALIDATE((body: Mail) => {
-    Checker.required(body, '_id', Uuid)
-    Checker.option(body, 'config_id', Uuid)
-    Checker.option(body, 'subject', String)
-    Checker.option(body, 'text', String)
-    Checker.option(body, 'html', String)
-    Checker.option(body, 'from', String)
-    Checker.option(body, 'to', Array)
-    Checker.option(body, 'cc', Array)
-    Checker.option(body, 'attachments', Array)
-    body.updated_at = new Date()
-  })
-  static async update(body: Mail) {
-    const rs = await MailService.mongo.update(Mail, body)
-    if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
-  }
+  // @VALIDATE((body: Mail) => {
+  //   Checker.required(body, '_id', Uuid)
+  //   Checker.option(body, 'config_id', Uuid)
+  //   Checker.option(body, 'subject', String)
+  //   Checker.option(body, 'text', String)
+  //   Checker.option(body, 'html', String)
+  //   Checker.option(body, 'from', String)
+  //   Checker.option(body, 'to', Array)
+  //   Checker.option(body, 'cc', Array)
+  //   Checker.option(body, 'attachments', Array)
+  //   body.updated_at = new Date()
+  // })
+  // static async update(body: Mail) {
+  //   const rs = await MailService.mongo.update(Mail, body)
+  //   if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
+  // }
 
   @VALIDATE((_id: Object) => {
     Checker.required(_id, [, '_id'], Object)
