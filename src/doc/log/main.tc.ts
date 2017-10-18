@@ -6,7 +6,7 @@ export default {
   title: 'APIs for log api service',
   doc: {
     i18doc: {
-      '*.title': DOC.type('Dynamic<Any>').des('Title'),
+      '*.title': DOC.required().des('Title'),
       '*.status': DOC.type('Dynamic<Any>').des('Status'),
       '*.event_type': DOC.type('Dynamic<Any>').des('Event type'),
       '*._id': 'Log ID'
