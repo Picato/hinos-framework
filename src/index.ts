@@ -2,18 +2,18 @@ import * as path from 'path'
 import { Server } from 'hinos'
 import { route } from 'hinos-route'
 import { Mongo } from 'hinos-mongo'
-import { serve } from 'hinos-serve'
 import { cors } from 'hinos-cors'
 import './config'
 
 require(`./env.${Server.env}`).default(Server)
 
-Mongo(AppConfig.mongo)
-Server.use(serve({
-  '/images': path.join(__dirname, '..', 'assets', 'images')
-}))
+Mongo(AppConfig.mongo).debug(!Server.isProduction)
+
 Server.use(cors())
-Server.use(route(path.join(__dirname, 'controller'), { ignorecase: true, root: AppConfig.path }))
+Server.use(route(path.join(__dirname, 'controller'), {
+  ignorecase: true,
+  root: AppConfig.path
+}))
 
 Server.listen(AppConfig.port, () => {
   console.info(`
