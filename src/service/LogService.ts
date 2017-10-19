@@ -12,7 +12,7 @@ export class Log {
   _id?: Uuid
   project_id?: Uuid
   account_id?: Uuid
-  // type?: number
+  type?: any
   title?: string
   // status?: number
   created_at?: Date
@@ -39,6 +39,9 @@ export class LogService {
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
     Checker.required(body, 'title', String)
+    Checker.required(body, 'type', Object)
+    Checker.required(body.type, 'name', String)
+    Checker.required(body.type, 'code', Number)
     body.created_at = new Date()
     body.updated_at = new Date()
   })
@@ -51,6 +54,8 @@ export class LogService {
     Checker.required(body, '_id', Object)
     Checker.required(body, 'account_id', Uuid)
     body.updated_at = new Date()
+    delete body.title
+    delete body.type
   })
   static async update(body: Log) {
     const rs = await LogService.mongo.update(Log, body)
