@@ -270,6 +270,7 @@ export class SpendingsService {
       if (body.des && body.des.length > 0) msgs.push(`#Note: ${body.des}`)
       await LogService.push({
         title: 'Add item',
+        type: 'SPENDING',
         data: msgs
       }, auth)
       return body
@@ -325,6 +326,7 @@ export class SpendingsService {
         if (body.des && body.des.length > 0) msgs.push(`#Note: ${body.des}`)
         await LogService.push({
           title: 'Update item',
+          type: 'SPENDING',
           data: msgs
         }, auth)
       } else if (oldItem.money !== body.money) {
@@ -391,6 +393,7 @@ export class SpendingsService {
       msgs.push(` - ${wallet.name} >>> ${typeSpending.name} = ${oldItem.type > 0 ? '+' : oldItem.type < 0 ? '-' : ''}${SpendingsService.formatNumber(oldItem.money)} (${oldItem.input_date.getDate()}/${oldItem.input_date.getMonth() + 1}/${oldItem.input_date.getFullYear()})`)
       await LogService.push({
         title: 'Delete item',
+        type: 'SPENDING',
         data: msgs
       }, auth)
       return _id
