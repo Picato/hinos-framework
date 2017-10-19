@@ -39,9 +39,13 @@ export class LogService {
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
     Checker.required(body, 'title', String)
-    Checker.required(body, 'type', Object)
-    Checker.required(body.type, 'name', String)
-    Checker.required(body.type, 'code', Number)
+    if (typeof body.type === 'string') {
+      Checker.required(body, 'type', String)
+    } else {
+      Checker.required(body, 'type', Object)
+      Checker.required(body.type, 'name', String)
+      Checker.required(body.type, 'code', Number)
+    }
     body.created_at = new Date()
     body.updated_at = new Date()
   })
