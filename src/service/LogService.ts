@@ -39,8 +39,8 @@ export class LogService {
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
     Checker.required(body, 'title', String)
-    if (typeof body.type === 'string') {
-      Checker.required(body, 'type', String)
+    if (typeof body.type !== 'object') {
+      Checker.required(body, 'type', undefined)
     } else {
       Checker.required(body, 'type', Object)
       Checker.required(body.type, 'name', String)
