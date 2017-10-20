@@ -8,6 +8,7 @@ export default {
     i18doc: {
       '*.title': DOC.required().des('Title'),
       '*.status': DOC.type('Dynamic<Any>').des('Status'),
+      '*.type': DOC.type('<name, code>|string').des('Log type'),
       '*.event_type': DOC.type('Dynamic<Any>').des('Event type'),
       '*._id': 'Log ID'
     }
@@ -17,11 +18,18 @@ export default {
     DOC('Add new log', GROUP, TAG.ADMIN, {
       note: [
         `Push your object to log server`,
-        `Top level key fields in object must be not same keywords "account_id", "project_id", "created_at", "updated_at", "_id"`
+        `Top level key fields in object must be not same keywords "account_id", "project_id", "created_at", "updated_at", "_id", "title", "type"`,
+        `<b>type</b> field can be not object or object`,
+        `- <b>Object</b>: it's {name: String, code: Number}`,
+        `- <b>Not Object</b>: it's String, Number, Boolean`
       ],
       url: POST(`${HOST.LOG}/log`),
       body: {
         title: 'Add new log',
+        type: {
+          name: 'TEST_LOG',
+          code: 1
+        },
         status: 0,
         event_type: 'ADD_LOG'
       },

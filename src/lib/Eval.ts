@@ -21,12 +21,12 @@ export class Url {
 
   constructor(public url: string, ..._vars: (Var | string)[]) {
     this.vars = _vars
+    this.requestPath = URL.parse(url).path
     this.setRequestUrl(url)
   }
 
   setRequestUrl(url) {
     this.requestUrl = url
-    this.requestPath = URL.parse(url).path
   }
 }
 

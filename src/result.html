@@ -271,6 +271,10 @@
     .url-doc .pointer i {
       font-weight: normal;
     }
+    .url-doc .pointer .status {
+      position: absolute;
+      right: 0px;
+    }
 
     .url-doc .pointer:hover i {
       text-decoration: underline;      
@@ -288,7 +292,14 @@
       min-width: 1000px;
     }
 
-    .url-doc .clipboard,
+    .url-doc .clipboard {
+      visibility: hidden;
+      height: auto;
+      margin-left: 30px;
+      color: black;
+      font-size: 11px;
+      text-shadow: 0px 0px 1px #fff;
+    }
     .json-doc .clipboard {
       position: absolute;
       visibility: hidden;
@@ -302,8 +313,6 @@
     }
 
     .url-doc .clipboard {
-      right: 0px;
-      top: 0px;
       border-radius: 2px;
     }
 
@@ -599,17 +608,15 @@
                   <div class="url-doc-header">
                     <div class="columns url-doc">
                       <div class="column is-paddingless">
-                        <div class="pointer tag method is-medium" style="width: 100%; justify-content: initial;" :class="api.method" @click="copy(api.url.url, i, j)">
-                          <b>{{api.method}}</b>&nbsp;&nbsp;<i v-html="formatUrl(api.url.url)"></i>
-                          <span class="tag clipboard button is-dark">
+                        <div class="pointer tag method is-medium" :class="api.method" @click="copy(api.url.url, i, j)">
+                          <b>{{api.method}}</b>&nbsp;&nbsp;<i v-html="formatUrl(api.url.requestPath)"></i>
+                          <b class="tag is-medium is-primary status"><i class="fa fa-circle"></i>&nbsp;{{api.status}}</b>
+                          <span class="clipboard">
                             <i class="fa fa-clipboard" v-if="api.copyText === undefined"></i>
                             <i class="fa fa-check" v-else></i>
                             &nbsp;<span>{{api.copyText || 'Copy link'}}</span>
                           </span>  
                         </div>
-                      </div>
-                      <div class="column is-1 has-text-right is-paddingless">
-                        <b class="tag has-text-success is-medium status"><i class="fa fa-circle"></i>&nbsp;{{api.status}}</b>
                       </div>
                     </div>
                     <div class="columns" v-if="api.doc.note">
