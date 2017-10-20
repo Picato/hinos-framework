@@ -33,6 +33,7 @@ export class TableService {
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
     Checker.required(body, 'name', String)
+    if (!/^[a-zA-Z][a-zA-Z0-9_]+$/.test(body.name)) throw HttpError.BAD_REQUEST('Table name must be alphabetic')
     body.created_at = new Date()
     body.updated_at = new Date()
   })
