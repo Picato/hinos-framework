@@ -56,7 +56,7 @@ export class DynamicService {
     body.updated_at = new Date()
   })
   static async update(table: string, body: Dynamic) {
-    const rs = await DynamicService.mongo.update(DynamicService.getTableDynamic(body.project_id, table), body)
+    const rs = await DynamicService.mongo.update(DynamicService.getTableDynamic(body.project_id, table), body, { replace: true })
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
   }
 
