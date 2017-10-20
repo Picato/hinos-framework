@@ -29,18 +29,6 @@ export class TableController {
     return rs
   }
 
-  @GET('/Table/:_id')
-  @INJECT(authoriz(`${AppConfig.path}/Table`, ['GET']))
-  @RESTRICT({
-    params: {
-      _id: Mongo.uuid
-    }
-  })
-  static async get({ params }) {
-    const rs = await TableService.get(params._id)
-    return rs
-  }
-
   @POST('/Table')
   @INJECT(authoriz(`${AppConfig.path}/Table`, ['INSERT']))
   @BODYPARSER()

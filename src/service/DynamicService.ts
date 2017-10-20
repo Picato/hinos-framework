@@ -31,7 +31,7 @@ export class DynamicService {
   }
 
   static async get(table: string, projectId: Uuid, _id: any) {
-    const rs = await DynamicService.mongo.get<Dynamic>(DynamicService.getTableDynamic(projectId, table), _id)
+    const rs = await DynamicService.mongo.get<Dynamic>(DynamicService.getTableDynamic(projectId, table), _id, { project_id: 0 })
     return rs
   }
 
@@ -50,20 +50,19 @@ export class DynamicService {
 
   @VALIDATE((table: string, body: Dynamic) => {
     Checker.required(table, [, 'table'], String)
-    Checker.required(body, '_id', Object)
+    Checker.required(body, '_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
+    Checker.required(body, 'project_id', Uuid)
     body.updated_at = new Date()
-    delete body.title
-    delete body.type
   })
   static async update(table: string, body: Dynamic) {
-    const rs = await DynamicService.mongo.update(DynamicService.getTableDynamic(body._id.project_id, table), body)
+    const rs = await DynamicService.mongo.update(DynamicService.getTableDynamic(body.project_id, table), body)
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
   }
 
   @VALIDATE((table: string, _id: any) => {
     Checker.required(table, [, 'table'], String)
-    Checker.required(_id, [, '_id'], Object)
+    Checker.required(_id, [, '_id'], Uuid)
   })
   static async delete(table: string, _id: any) {
     const rs = await DynamicService.mongo.delete(DynamicService.getTableDynamic(_id.project_id, table), _id)
