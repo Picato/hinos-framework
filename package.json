@@ -48,7 +48,7 @@
     "hinos-bodyparser": "^2.1.1",
     "hinos-cors": "^1.0.1",
     "hinos-helmet": "^1.0.0",
-    "hinos-mongo": "^1.1.4",
+    "hinos-mongo": "^1.1.7",
     "hinos-redis": "^1.0.10",
     "hinos-requesthasher": "^1.1.7",
     "hinos-route": "^1.1.10",
@@ -60,9 +60,9 @@
   "devDependencies": {
     "@types/axios": "^0.14.0",
     "@types/chai": "^3.5.2",
-    "@types/lodash": "^4.14.77",
+    "@types/lodash": "^4.14.78",
     "@types/mocha": "^2.2.43",
-    "@types/node": "^7.0.43",
+    "@types/node": "^7.0.46",
     "mocha": "^3.5.3",
     "rimraf": "^2.6.2"
   }
