@@ -24,7 +24,8 @@ export class TableController {
     const rs = await TableService.find({
       $where: where,
       $page: query.page,
-      $recordsPerPage: query.recordsPerPage
+      $recordsPerPage: query.recordsPerPage,
+      $fields: { project_id: 0 }
     })
     return rs
   }
@@ -41,6 +42,8 @@ export class TableController {
     body.account_id = state.auth.accountId
     body.project_id = state.auth.projectId
     const rs = await TableService.insert(body)
+    delete body.account_id
+    delete body.project_id
     return rs
   }
 
