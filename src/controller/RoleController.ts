@@ -5,6 +5,7 @@ import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { Mongo } from 'hinos-mongo'
 import { Role, RoleService } from '../service/RoleService'
 import { authoriz } from '../service/Authoriz'
+import HttpError from '../common/HttpError'
 
 /************************************************
  ** RoleController || 4/10/2017, 10:19:24 AM **
@@ -14,8 +15,14 @@ export class RoleController {
 
   @GET('/Role/Default')
   @INJECT(authoriz(`${AppConfig.path}/Role`, ['GET_DEFAULT']))
-  static async getDefautRole() {
-    return RoleService.COMMON_ROLE
+  @RESTRICT({
+    query: {
+      type: String
+    }
+  })
+  static async getDefautRole({ query }) {
+    if (!query.type) throw HttpError.NOT_FOUND
+    return RoleService.COMMON_ROLE[query.type]
   }
 
   @GET('/Role')

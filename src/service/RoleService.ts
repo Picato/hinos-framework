@@ -36,21 +36,37 @@ export class Role {
 /* tslint:enable */
 
 export class RoleService {
-  static COMMON_ROLE = [
-    { path: '/gateway', actions: 'FIND|UPDATE|DELETE' },
-    { path: '/monitor/service', actions: 'SESSION|FIND|INSERT|UPDATE|DELETE' },
-    { path: '/monitor/config', actions: 'GET|CONFIG|GET_MAIL_CONFIG' },
-    { path: '/monitor/log', actions: 'FIND' },
-    { path: '/script', actions: 'FIND|GET|INSERT|UPDATE|DELETE' },
-    { path: '/files/Config', actions: 'FIND|INSERT|UPDATE|DELETE' },
-    { path: '/files', actions: 'UPLOAD|STORE|DELETE|FIND' },
-    { path: '/log', actions: 'FIND|GET|INSERT|UPDATE|DELETE' },
-    { path: '/mail/Config', actions: 'FIND|GET|INSERT|UPDATE|DELETE' },
-    { path: '/mail', actions: 'SEND|Test|RESEND|FIND|GET|DELETE' },
-    { path: '/oauth/Role', actions: 'FIND|GET|INSERT|UPDATE|DELETE' },
-    { path: '/oauth/Project', actions: 'GET|UPDATE_MINE' },
-    { path: '/oauth/Account', actions: 'FIND|GET|INSERT|UPDATE|DELETE|LOGOUT|PING|GEN_SECRETKEY|REMOVE_SECRETKEY|GET_SECRETKEY|GET_ME|UPDATE_ME|GET_MYROLES' }
-  ]
+  static COMMON_ROLE = {
+    api: [
+      { path: '/gateway', actions: 'FIND|UPDATE|DELETE' },
+      { path: '/monitor/service', actions: 'SESSION|FIND|INSERT|UPDATE|DELETE' },
+      { path: '/monitor/config', actions: 'GET|CONFIG|GET_MAIL_CONFIG' },
+      { path: '/monitor/log', actions: 'FIND' },
+      { path: '/script', actions: 'FIND|GET|INSERT|UPDATE|DELETE' },
+      { path: '/files/Config', actions: 'FIND|INSERT|UPDATE|DELETE' },
+      { path: '/files', actions: 'UPLOAD|STORE|DELETE|FIND' },
+      { path: '/log', actions: 'FIND|GET|INSERT|UPDATE|DELETE' },
+      { path: '/mail/Config', actions: 'FIND|GET|INSERT|UPDATE|DELETE' },
+      { path: '/mail', actions: 'SEND|Test|RESEND|FIND|GET|DELETE' },
+      { path: '/oauth/Role', actions: 'FIND|GET|INSERT|UPDATE|DELETE' },
+      { path: '/oauth/Project', actions: 'GET|UPDATE_MINE' },
+      { path: '/oauth/Account', actions: 'FIND|GET|INSERT|UPDATE|DELETE|LOGOUT|PING|GEN_SECRETKEY|REMOVE_SECRETKEY|GET_SECRETKEY|GET_ME|UPDATE_ME|GET_MYROLES' }
+    ],
+    web: [
+      { path: '/FileConfig', actions: 'ADD|EDIT|DELETE|UPLOAD' },
+      { path: '/Files', actions: 'DOWNLOAD|DELETE|STORE' },
+      { path: '/MailConfig', actions: 'ADD|EDIT|DELETE' },
+      { path: '/Mail', actions: 'RESEND|DETAIL|DELETE' },
+      { path: '/Project', actions: 'UPDATE' },
+      { path: '/Account', actions: 'ADD|EDIT|DELETE' },
+      { path: '/Role', actions: 'ADD|EDIT|DELETE' },
+      { path: '/Log', actions: 'DETAIL|DELETE' },
+      { path: '/Dynamic', actions: 'ADD|EDIT|DELETE|COPY|ADD_TABLE|DELETE_TABLE' },
+      { path: '/Script', actions: 'ADD|EDIT|DELETE|COPY' },
+      { path: '/Monitor', actions: 'ADD|EDIT|DELETE|UPDATE_CONFIG' },
+      { path: '/Gateway', actions: 'ADD|DELETE' }
+    ]
+  }
 
   @MONGO()
   private static mongo: Mongo
@@ -143,7 +159,7 @@ export class RoleService {
   }
 
   static async getMyRole(type: string, { accountId, projectId }) {
-    if (!type) return HttpError.BAD_REQUEST('Role type is required')
+    if (!type) throw HttpError.BAD_REQUEST('Role type is required')
     const roles = await RoleService.getCachedRole(projectId)
     let myRoles = (await AccountService.getRoles({ accountId })).map(e => e.toString())
     myRoles = roles.filter(e => myRoles.includes(e._id.toString()))
