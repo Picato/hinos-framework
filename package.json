@@ -35,15 +35,15 @@
     }
   },
   "dependencies": {
-    "archiver": "^2.0.3",
+    "archiver": "^2.1.0",
     "axios": "^0.16.2",
     "hinos": "^1.1.5",
     "hinos-bodyparser": "^2.1.1",
     "hinos-cors": "^1.0.1",
     "hinos-helmet": "^1.0.0",
-    "hinos-mongo": "^1.1.4",
+    "hinos-mongo": "^1.1.7",
     "hinos-requesthasher": "^1.1.7",
-    "hinos-route": "^1.1.8",
+    "hinos-route": "^1.1.10",
     "hinos-validation": "^1.1.2",
     "lodash": "^4.17.4"
   },
@@ -52,7 +52,7 @@
   "devDependencies": {
     "@types/axios": "^0.14.0",
     "@types/chai": "^3.5.2",
-    "@types/node": "^7.0.43",
+    "@types/node": "^7.0.46",
     "axios": "^0.16.2",
     "chai": "^3.5.0",
     "mocha": "^3.5.3",
