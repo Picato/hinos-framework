@@ -19,8 +19,9 @@ export class TableController {
       recordsPerPage: Number
     }
   })
-  static async find({ query }) {
-    let where = {}
+  static async find({ query, state }) {
+    let where = {} as any
+    where.project_id = state.auth.projectId
     const rs = await TableService.find({
       $where: where,
       $page: query.page,
