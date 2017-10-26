@@ -187,13 +187,15 @@ export class MailService {
           await MailService.sendMail(e, config.config)
           e.status = Mail.Status.PASSED
           e.error = undefined
+          const idx = MailService.tempMails.findIndex(_e => _e._id.toString() === e._id.toString())
+          MailService.tempMails.splice(idx, 1)
         } catch (err) {
           e.status--
           e.error = err
-        }
-        if ([Mail.Status.PASSED, Mail.Status.FAILED].includes(e.status)) {
+          e.send_at = new Date(new Date().getTime() + AppConfig.app.retrySending)
           const idx = MailService.tempMails.findIndex(_e => _e._id.toString() === e._id.toString())
-          MailService.tempMails.splice(idx, 1)
+          MailService.tempMails[idx].send_at = e.send_at.getTime()
+          MailService.tempMails[idx].status--
         }
         await MailService.mongo.update(Mail, e)
       }
