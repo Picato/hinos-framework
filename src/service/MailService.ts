@@ -1,3 +1,4 @@
+import * as _ from 'lodash'
 import { VALIDATE, Checker } from 'hinos-validation'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
@@ -33,6 +34,7 @@ export class Mail {
   cc?: string[]
   attachments?: Attachments[]
   error?: any
+  send_at?: Date
   created_at?: Date
   updated_at?: Date
 }
@@ -51,32 +53,25 @@ export class MailService {
   @MONGO()
   private static mongo: Mongo
 
-  static async schedule() {
-    const listEmail = await MailService.mongo.find<Mail>(Mail, {
+  private static tempMails = [] as any
+
+  static async loadIntoCached() {
+    const mails = await MailService.mongo.find<Mail>(Mail, {
       $where: {
         status: {
-          $in: Mail.Status.ERROR.concat(Mail.Status.PENDING)
+          $in: [...Mail.Status.ERROR, Mail.Status.PENDING]
         }
       },
+      $recordsPerPage: 0,
       $sort: {
         updated_at: 1
       }
     })
-    if (listEmail.length > 0) {
-      for (const e of listEmail) {
-        try {
-          const config = await MailConfigService.get(e.config_id)
-          await MailService.sendMail(e, config.config)
-          e.status = Mail.Status.PASSED
-          e.error = undefined
-        } catch (err) {
-          e.status--
-          e.error = err
-        }
-        await MailService.mongo.update(Mail, e)
-      }
-    }
-    setTimeout(MailService.schedule, AppConfig.app.scanTimeout)
+    MailService.tempMails = MailService.tempMails = mails.map(e => {
+      e.send_at = e.send_at.getTime() as any
+      return e
+    })
+    MailService.schedule()
   }
 
   static async test(mail: Mail, config) {
@@ -110,10 +105,14 @@ export class MailService {
     Checker.option(body, 'attachments', Array, [])
     body.status = Mail.Status.PENDING
     body.created_at = new Date()
-    body.updated_at = new Date()
+    body.updated_at = body.created_at
+    body.send_at = body.updated_at
   })
   static async insert(body: Mail) {
     const rs = await MailService.mongo.insert<Mail>(Mail, body)
+    MailService.tempMails.push(_.merge({}, rs, {
+      send_at: rs.send_at.getTime()
+    }))
     return rs
   }
 
@@ -121,10 +120,16 @@ export class MailService {
     Checker.required(body, '_id', Object)
     body.status = Mail.Status.PENDING
     body.updated_at = new Date()
+    body.send_at = body.updated_at
   })
   static async resend(body: Mail) {
-    const rs = await MailService.mongo.update(Mail, body)
-    if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
+    const rs = await MailService.mongo.update<Mail>(Mail, body, { return: true })
+    if (!rs) throw HttpError.NOT_FOUND('Could not found item to update')
+    const idx = MailService.tempMails.findIndex(e => e._id.toString() === body._id.toString())
+    MailService.tempMails.splice(idx, 1)
+    rs.status = body.status
+    rs.send_at = body.send_at.getTime() as any
+    MailService.tempMails.push(rs)
   }
 
   // @VALIDATE((body: Mail) => {
@@ -144,12 +149,14 @@ export class MailService {
   //   if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
   // }
 
-  @VALIDATE((_id: Object) => {
+  @VALIDATE((_id: any) => {
     Checker.required(_id, [, '_id'], Object)
   })
-  static async delete(_id: Object) {
+  static async delete(_id: any) {
     const rs = await MailService.mongo.delete(Mail, _id)
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to delete')
+    const idx = MailService.tempMails.findIndex(e => e._id.toString() === _id._id.toString())
+    MailService.tempMails.splice(idx, 1)
   }
 
   private static async sendMail(mailOptions: Mail, config: MailConfig) {
@@ -168,6 +175,30 @@ export class MailService {
         reject(HttpError.INTERNAL(e))
       }
     })
+  }
+
+  private static async schedule() {
+    const now = new Date().getTime()
+    const listEmail = MailService.tempMails.filter(e => e.send_at <= now)
+    if (listEmail.length > 0) {
+      for (const e of listEmail) {
+        try {
+          const config = await MailConfigService.get(e.config_id)
+          await MailService.sendMail(e, config.config)
+          e.status = Mail.Status.PASSED
+          e.error = undefined
+        } catch (err) {
+          e.status--
+          e.error = err
+        }
+        if ([Mail.Status.PASSED, Mail.Status.FAILED].includes(e.status)) {
+          const idx = MailService.tempMails.findIndex(_e => _e._id.toString() === e._id.toString())
+          MailService.tempMails.splice(idx, 1)
+        }
+        await MailService.mongo.update(Mail, e)
+      }
+    }
+    setTimeout(MailService.schedule, AppConfig.app.scanTimeout)
   }
 
 }

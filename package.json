@@ -21,10 +21,10 @@
     },
     "mongo": {
       "url": "mongodb://localhost:27017/mail",
-      "releaseTimeout": 50000
+      "releaseTimeout": 5000
     },
     "app": {
-      "scanTimeout": 15000
+      "scanTimeout": 5000
     },
     "encrypt": {
       "pwd": ")^!!!(**",

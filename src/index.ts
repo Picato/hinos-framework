@@ -17,7 +17,7 @@ Server.use(route(path.join(__dirname, 'controller'), {
 }))
 
 Server.listen(AppConfig.port, () => {
-  MailService.schedule()
+  MailService.loadIntoCached()
   console.info(`
     _     _
   | |__ (_)_ __   ___  ___  ${AppConfig.name}
