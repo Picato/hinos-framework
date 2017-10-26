@@ -42,6 +42,7 @@ export class FilesService {
       $where: {
         status: Files.Status.TEMP
       },
+      $recordsPerPage: 0,
       $fields: {
         _id: 1, files: 1, project_id: 1, expired_at: 1
       }
