@@ -19,7 +19,6 @@ interface IAppConfig {
     oauth: string
   },
   app: {
-    periodToDelete: number
     scanTimeout: number
   }
 }

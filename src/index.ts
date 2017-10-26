@@ -20,7 +20,7 @@ Server.use(route(path.join(__dirname, 'controller'), {
   root: AppConfig.path
 }))
 Server.listen(AppConfig.port, () => {
-  FilesService.syncToRemoveTempFiles()
+  FilesService.loadIntoCached()  
   console.info(`
     _     _
   | |__ (_)_ __   ___  ___  ${AppConfig.name}

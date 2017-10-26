@@ -24,8 +24,7 @@
       "releaseTimeout": 50000
     },
     "app": {
-      "periodToDelete": 3600000,
-      "scanTimeout": 1800000
+      "scanTimeout": 1000
     },
     "encrypt": {
       "pwd": ")^!!!(**",

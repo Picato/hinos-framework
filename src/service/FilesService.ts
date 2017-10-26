@@ -18,6 +18,7 @@ export class Files {
   status?: number
   sizes?: ImageResize[]
   files?: string | string[]
+  expired_at?: Date
   created_at?: Date
   updated_at?: Date
 }
@@ -34,26 +35,41 @@ export class FilesService {
   @MONGO()
   private static mongo: Mongo
 
-  static async syncToRemoveTempFiles() {
-    const timeToDelete = new Date(new Date().getTime() - AppConfig.app.periodToDelete)
+  private static tempFiles = [] as any
+
+  static async loadIntoCached() {
     const rs = await FilesService.mongo.find<Files>(Files, {
       $where: {
-        status: Files.Status.TEMP,
-        updated_at: {
-          $lte: timeToDelete
-        }
+        status: Files.Status.TEMP
       },
       $fields: {
-        files: 1, project_id: 1
+        _id: 1, files: 1, project_id: 1, expired_at: 1
       }
     })
-    for (let f of rs) {
-      await FilesService.delete({
-        files: f.files,
-        project_id: f.project_id
-      })
+    const files = rs.map(e => {
+      e.expired_at = e.expired_at ? e.expired_at.getTime() as any : new Date().getTime()
+      return e
+    })
+    FilesService.tempFiles = FilesService.tempFiles.concat(files)
+    FilesService.syncToRemoveTempFiles()
+  }
+
+  static async syncToRemoveTempFiles() {
+    const now = new Date().getTime()
+    const rs = FilesService.tempFiles
+    if (rs.length > 0) {
+      for (let f of rs.filter(e => e.expired_at < now)) {
+        try {
+          await FilesService.delete({
+            files: f.files,
+            project_id: f.project_id
+          })
+        } catch (e) {
+          console.error(e)
+        }
+      }
     }
-    setTimeout(FilesService.syncToRemoveTempFiles, AppConfig.app.scanTimeout)
+    setTimeout(FilesService.syncToRemoveTempFiles, 1000)
   }
 
   static async find(fil = {}) {
@@ -61,7 +77,7 @@ export class FilesService {
     return rs
   }
 
-  @VALIDATE((body: Files) => {
+  @VALIDATE((body: Files, config) => {
     body._id = Mongo.uuid() as Uuid
     Checker.required(body, 'config_id', Uuid)
     Checker.required(body, 'project_id', Uuid)
@@ -71,10 +87,19 @@ export class FilesService {
     Checker.option(body, 'sizes', Array)
     body.created_at = new Date()
     body.updated_at = new Date()
+    body.expired_at = new Date(body.updated_at.getTime() + (config.expiredTime * 1000))
   })
-  static async insert(body: Files) {
+  static async insert(body: Files, _config) {
     try {
       const rs = await FilesService.mongo.insert<Files>(Files, body)
+      if (rs.status === Files.Status.TEMP) {
+        FilesService.tempFiles.push({
+          _id: rs._id,
+          project_id: rs.project_id,
+          expired_at: rs.expired_at,
+          files: rs.files
+        })
+      }
       return rs
     } catch (e) {
       Utils.deleteUploadFiles(body.files, body.sizes)
@@ -86,11 +111,14 @@ export class FilesService {
     Checker.required(body._id, 'files', Object)
     Checker.required(body._id, 'project_id', Uuid)
     Checker.required(body._id, 'account_id', Uuid)
+    body.status = Files.Status.SAVED
     body.updated_at = new Date()
   })
   static async store(body: Files) {
-    const rs = await FilesService.mongo.update(Files, body)
-    if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to store')
+    const old = await FilesService.mongo.update<Files>(Files, body, { return: true })
+    if (!old) throw HttpError.NOT_FOUND('Could not found item to store')
+    const idx = FilesService.tempFiles.findIndex(e => e._id.toString() === old._id.toString())
+    FilesService.tempFiles.splice(idx, 1)
   }
 
   @VALIDATE((key: Object) => {
@@ -101,6 +129,8 @@ export class FilesService {
       return: true
     })
     if (!item) throw HttpError.NOT_FOUND('Could not found item to delete')
+    const idx = FilesService.tempFiles.findIndex(e => e._id.toString() === item._id.toString())
+    FilesService.tempFiles.splice(idx, 1)
     Utils.deleteUploadFiles(item.files, item.sizes)
   }
 }

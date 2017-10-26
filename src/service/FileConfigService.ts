@@ -14,6 +14,7 @@ export class FileConfig {
   account_id?: Uuid
   name: string
   config?: {
+    expiredTime: number
     maxFile: number
     maxSize: number
     ext: string,
@@ -50,6 +51,7 @@ export class FileConfigService {
     Checker.option(body, 'config', Object, {
       maxSize: 2046,
       maxFile: 1,
+      expiredTime: 5*60,
       ext: '.*'
     })
     body.created_at = new Date()

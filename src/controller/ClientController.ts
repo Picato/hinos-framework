@@ -99,10 +99,10 @@ export class ClientController {
     if (body.files instanceof Array) {
       for (const f of files) {
         body.files = f
-        await FilesService.insert(body)
+        await FilesService.insert(body, state.config)
       }
     } else {
-      await FilesService.insert(body)
+      await FilesService.insert(body, state.config)
     }
     return files
   }
@@ -124,8 +124,7 @@ export class ClientController {
         },
         account_id: state.auth.accountId,
         project_id: state.auth.projectId
-      },
-      status: Files.Status.SAVED
+      }
     })
     if (body.oldFiles) {
       for (const file of body.oldFiles) {
@@ -134,7 +133,7 @@ export class ClientController {
             files: file,
             project_id: state.auth.projectId
           })
-        // tslint:disable-next-line:no-empty
+          // tslint:disable-next-line:no-empty
         } catch (e) { }
       }
     }
