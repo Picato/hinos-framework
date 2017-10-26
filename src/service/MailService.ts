@@ -179,7 +179,7 @@ export class MailService {
 
   private static async schedule() {
     const now = new Date().getTime()
-    const listEmail = MailService.tempMails.filter(e => e.send_at <= now)
+    const listEmail = MailService.tempMails.filter(e => !e.send_at || e.send_at <= now)
     if (listEmail.length > 0) {
       for (const e of listEmail) {
         try {
