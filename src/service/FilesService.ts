@@ -1,3 +1,4 @@
+import * as _ from 'lodash'
 import { VALIDATE, Checker } from 'hinos-validation'
 import { ImageResize } from 'hinos-bodyparser/file'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
@@ -27,24 +28,22 @@ export class Files {
 
 /* tslint:disable */
 export class FilesCached {
-  _id: string
-  project_id?: string | Uuid
-  files?: string | string[]
+  _id: string | Uuid
   expired_at?: number
 
-  static castToCached(e) {
+  static castToCached(_e) {
+    const e = _.cloneDeep(_e)
     if (!e.expired_at) e.expired_at = new Date()
+    if (e.expired_at instanceof Date) e.expired_at = e.expired_at.getTime()
     return JSON.stringify({
       _id: e._id.toString(),
-      files: e.files,
-      project_id: e.project_id.toString(),
-      expired_at: e.expired_at.getTime()
+      expired_at: e.expired_at
     })
   }
   static castToObject(_e) {
-    const e = JSON.parse(_e)
-    e.project_id = Mongo.uuid(e.project_id)
-    return e as FilesCached
+    const e = JSON.parse(_e) as FilesCached
+    e._id = Mongo.uuid(e._id)
+    return e
   }
 }
 /* tslint:enable */
@@ -69,13 +68,15 @@ export class FilesService {
       $where: {
         status: Files.Status.TEMP
       },
-      $recordsPerPage: 0,
       $fields: {
-        _id: 1, files: 1, project_id: 1, expired_at: 1
+        _id: 1, expired_at: 1
+      },
+      $recordsPerPage: 0,
+      $sort: {
+        updated_at: 1
       }
     })
-    const files = rs.map(FilesCached.castToCached)
-    FilesService.redis.rpush('files.temp', files)
+    await FilesService.redis.rpush('files.temp', rs.map(FilesCached.castToCached))
     FilesService.syncToRemoveTempFiles()
   }
 
@@ -86,8 +87,7 @@ export class FilesService {
       for (let f of rs.map(FilesCached.castToObject).filter(e => e.expired_at < now)) {
         try {
           await FilesService.delete({
-            files: f.files,
-            project_id: Mongo.uuid(f.project_id)
+            _id: f._id
           })
         } catch (e) {
           console.error(e)
@@ -112,13 +112,14 @@ export class FilesService {
     Checker.option(body, 'sizes', Array)
     body.created_at = new Date()
     body.updated_at = new Date()
-    body.expired_at = new Date(body.updated_at.getTime() + (config.expiredTime * 1000))
+    if (body.status === Files.Status.TEMP)
+      body.expired_at = new Date(body.updated_at.getTime() + (config.expiredTime * 1000))
   })
   static async insert(body: Files, _config) {
     try {
       const rs = await FilesService.mongo.insert<Files>(Files, body)
       if (rs.status === Files.Status.TEMP) {
-        FilesService.redis.rpush('files.temp', FilesCached.castToCached(rs))
+        await FilesService.redis.rpush('files.temp', FilesCached.castToCached(rs))
       }
       return rs
     } catch (e) {
@@ -133,11 +134,12 @@ export class FilesService {
     Checker.required(body._id, 'account_id', Uuid)
     body.status = Files.Status.SAVED
     body.updated_at = new Date()
+    body.expired_at = undefined
   })
   static async store(body: Files) {
     const old = await FilesService.mongo.update<Files>(Files, body, { return: true })
     if (!old) throw HttpError.NOT_FOUND('Could not found item to store')
-    FilesService.redis.lrem('files.temp', FilesCached.castToCached(old))
+    await FilesService.redis.lrem('files.temp', FilesCached.castToCached(old))
   }
 
   @VALIDATE((key: Object) => {
@@ -148,7 +150,7 @@ export class FilesService {
       return: true
     })
     if (!old) throw HttpError.NOT_FOUND('Could not found item to delete')
-    FilesService.redis.lrem('files.temp', FilesCached.castToCached(old))
+    await FilesService.redis.lrem('files.temp', FilesCached.castToCached(old))
     Utils.deleteUploadFiles(old.files, old.sizes)
   }
 }
