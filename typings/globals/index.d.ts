@@ -10,6 +10,12 @@ interface IAppConfig {
     url: string
     releaseTimeout?: number
   }
+  redis?: {
+    host: string
+    port: number
+    db?: string
+    releaseTimeout?: number
+  }
   encrypt?: {
     pwd?: string
     mode?: Array<'query' | 'body' | 'response'>

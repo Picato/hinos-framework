@@ -21,7 +21,13 @@
     },
     "mongo": {
       "url": "mongodb://localhost:27017/files",
-      "releaseTimeout": 50000
+      "releaseTimeout": 5000
+    },
+    "redis": {
+      "host": "localhost",
+      "port": 6379,
+      "db": 0,
+      "releaseTimeout": 5000
     },
     "app": {
       "scanTimeout": 1000
@@ -44,6 +50,7 @@
     "hinos-cors": "^1.0.1",
     "hinos-helmet": "^1.0.0",
     "hinos-mongo": "^1.1.7",
+    "hinos-redis": "^1.0.14",
     "hinos-requesthasher": "^1.1.7",
     "hinos-route": "^1.1.10",
     "hinos-serve": "^1.1.1",

@@ -5,11 +5,13 @@ import { Mongo } from 'hinos-mongo'
 import { cors } from 'hinos-cors'
 import { serve } from 'hinos-serve'
 import { FilesService } from './service/FilesService'
+import { Redis } from 'hinos-redis'
 import './config'
 
 require(`./env.${Server.env}`).default(Server)
 
 Mongo(AppConfig.mongo).debug(!Server.isProduction)
+Redis(AppConfig.redis).debug(!Server.isProduction)
 
 Server.use(serve({
   [`${AppConfig.path}/upload`]: path.join(__dirname, '..', 'assets', 'upload')

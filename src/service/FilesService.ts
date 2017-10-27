@@ -3,6 +3,7 @@ import { ImageResize } from 'hinos-bodyparser/file'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
 import Utils from '../common/Utils'
+import { REDIS, Redis } from 'hinos-redis'
 
 /************************************************
  ** FilesService || 4/10/2017, 10:19:24 AM **
@@ -24,6 +25,30 @@ export class Files {
 }
 /* tslint:enable */
 
+/* tslint:disable */
+export class FilesCached {
+  _id: string
+  project_id?: string | Uuid
+  files?: string | string[]
+  expired_at?: number
+
+  static castToCached(e) {
+    if (!e.expired_at) e.expired_at = new Date()
+    return JSON.stringify({
+      _id: e._id.toString(),
+      files: e.files,
+      project_id: e.project_id.toString(),
+      expired_at: e.expired_at.getTime()
+    })
+  }
+  static castToObject(_e) {
+    const e = JSON.parse(_e)
+    e.project_id = Mongo.uuid(e.project_id)
+    return e as FilesCached
+  }
+}
+/* tslint:enable */
+
 export namespace Files {
   export const Status = {
     TEMP: 0,
@@ -35,9 +60,11 @@ export class FilesService {
   @MONGO()
   private static mongo: Mongo
 
-  private static tempFiles = [] as any
+  @REDIS()
+  private static redis: Redis
 
   static async loadIntoCached() {
+    await FilesService.redis.del('files.temp')
     const rs = await FilesService.mongo.find<Files>(Files, {
       $where: {
         status: Files.Status.TEMP
@@ -47,30 +74,27 @@ export class FilesService {
         _id: 1, files: 1, project_id: 1, expired_at: 1
       }
     })
-    const files = rs.map(e => {
-      e.expired_at = e.expired_at ? e.expired_at.getTime() as any : new Date().getTime()
-      return e
-    })
-    FilesService.tempFiles = FilesService.tempFiles.concat(files)
+    const files = rs.map(FilesCached.castToCached)
+    FilesService.redis.rpush('files.temp', files)
     FilesService.syncToRemoveTempFiles()
   }
 
   static async syncToRemoveTempFiles() {
     const now = new Date().getTime()
-    const rs = FilesService.tempFiles
+    const rs = await FilesService.redis.lrange('files.temp')
     if (rs.length > 0) {
-      for (let f of rs.filter(e => e.expired_at < now)) {
+      for (let f of rs.map(FilesCached.castToObject).filter(e => e.expired_at < now)) {
         try {
           await FilesService.delete({
             files: f.files,
-            project_id: f.project_id
+            project_id: Mongo.uuid(f.project_id)
           })
         } catch (e) {
           console.error(e)
         }
       }
     }
-    setTimeout(FilesService.syncToRemoveTempFiles, 1000)
+    setTimeout(FilesService.syncToRemoveTempFiles, AppConfig.app.scanTimeout)
   }
 
   static async find(fil = {}) {
@@ -94,12 +118,7 @@ export class FilesService {
     try {
       const rs = await FilesService.mongo.insert<Files>(Files, body)
       if (rs.status === Files.Status.TEMP) {
-        FilesService.tempFiles.push({
-          _id: rs._id,
-          project_id: rs.project_id,
-          expired_at: rs.expired_at,
-          files: rs.files
-        })
+        FilesService.redis.rpush('files.temp', FilesCached.castToCached(rs))
       }
       return rs
     } catch (e) {
@@ -118,20 +137,18 @@ export class FilesService {
   static async store(body: Files) {
     const old = await FilesService.mongo.update<Files>(Files, body, { return: true })
     if (!old) throw HttpError.NOT_FOUND('Could not found item to store')
-    const idx = FilesService.tempFiles.findIndex(e => e._id.toString() === old._id.toString())
-    FilesService.tempFiles.splice(idx, 1)
+    FilesService.redis.lrem('files.temp', FilesCached.castToCached(old))
   }
 
   @VALIDATE((key: Object) => {
     Checker.required(key, [, 'key'], Object)
   })
   static async delete(key: Object) {
-    const item = await FilesService.mongo.delete<Files>(Files, key, {
+    const old = await FilesService.mongo.delete<Files>(Files, key, {
       return: true
     })
-    if (!item) throw HttpError.NOT_FOUND('Could not found item to delete')
-    const idx = FilesService.tempFiles.findIndex(e => e._id.toString() === item._id.toString())
-    FilesService.tempFiles.splice(idx, 1)
-    Utils.deleteUploadFiles(item.files, item.sizes)
+    if (!old) throw HttpError.NOT_FOUND('Could not found item to delete')
+    FilesService.redis.lrem('files.temp', FilesCached.castToCached(old))
+    Utils.deleteUploadFiles(old.files, old.sizes)
   }
 }
