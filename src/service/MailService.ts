@@ -4,6 +4,7 @@ import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
 import { MailConfig, MailConfigService } from './MailConfigService'
 import * as nodemailer from 'nodemailer'
+import { REDIS, Redis } from 'hinos-redis'
 
 /************************************************
  ** MailService || 4/10/2017, 10:19:24 AM **
@@ -34,11 +35,42 @@ export class Mail {
   cc?: string[]
   attachments?: Attachments[]
   error?: any
-  send_at?: Date
+  retry_at?: Date
   created_at?: Date
   updated_at?: Date
 }
 /* tslint:enable */
+
+/* tslint:disable */
+export class MailCached {
+  _id?: Uuid | string
+  config_id?: Uuid | string
+  subject?: string
+  status?: number
+  text?: string
+  html?: string
+  from?: string
+  to?: string[]
+  cc?: string[]
+  attachments?: Attachments[]
+  retry_at?: Date
+
+  static castToCached(_e) {
+    const e = _.cloneDeep(_e)
+    if (!e.retry_at) e.retry_at = new Date()
+    if (e.retry_at instanceof Date) e.retry_at = e.retry_at.getTime()
+    if (e.attachments && e.attachments.length > 0) {
+      e.attachments = e.attachments.map(e => _.pick(e, ['path', 'filename', 'content', 'contentType', 'encoding', 'raw']))
+    }
+    return JSON.stringify(_.pick(e, ['_id', 'config_id', 'subject', 'text', 'html', 'from', 'to', 'cc', 'attachments', 'retry_at', 'status']))
+  }
+  static castToObject(_e) {
+    const e = JSON.parse(_e)
+    e._id = Mongo.uuid(e._id)
+    e.config_id = Mongo.uuid(e.config_id)
+    return e as MailCached
+  }
+}
 
 export namespace Mail {
   export const Status = {
@@ -53,24 +85,26 @@ export class MailService {
   @MONGO()
   private static mongo: Mongo
 
-  private static tempMails = [] as any
+  @REDIS()
+  private static redis: Redis
 
   static async loadIntoCached() {
+    await MailService.redis.del('mail.temp')
     const mails = await MailService.mongo.find<Mail>(Mail, {
       $where: {
         status: {
           $in: [...Mail.Status.ERROR, Mail.Status.PENDING]
         }
       },
+      $fields: {
+        _id: 1, config_id: 1, subject: 1, text: 1, html: 1, from: 1, to: 1, cc: 1, attachments: 1, retry_at: 1, status: 1
+      },
       $recordsPerPage: 0,
       $sort: {
         updated_at: 1
       }
     })
-    MailService.tempMails = MailService.tempMails = mails.map(e => {
-      e.send_at = e.send_at.getTime() as any
-      return e
-    })
+    await MailService.redis.rpush('mail.temp', mails.map(MailCached.castToCached))
     MailService.schedule()
   }
 
@@ -103,16 +137,14 @@ export class MailService {
     if (body.to.length === 0) throw new Error(`"To" must be not empty`)
     Checker.option(body, 'cc', Array, [])
     Checker.option(body, 'attachments', Array, [])
+    body.attachments = body.attachments.filter(e => Object.keys(e).length > 0)
     body.status = Mail.Status.PENDING
     body.created_at = new Date()
     body.updated_at = body.created_at
-    body.send_at = body.updated_at
   })
   static async insert(body: Mail) {
     const rs = await MailService.mongo.insert<Mail>(Mail, body)
-    MailService.tempMails.push(_.merge({}, rs, {
-      send_at: rs.send_at.getTime()
-    }))
+    await MailService.redis.rpush('mail.temp', MailCached.castToCached(rs))
     return rs
   }
 
@@ -120,16 +152,15 @@ export class MailService {
     Checker.required(body, '_id', Object)
     body.status = Mail.Status.PENDING
     body.updated_at = new Date()
-    body.send_at = body.updated_at
+    body.retry_at = undefined
   })
   static async resend(body: Mail) {
     const rs = await MailService.mongo.update<Mail>(Mail, body, { return: true })
     if (!rs) throw HttpError.NOT_FOUND('Could not found item to update')
-    const idx = MailService.tempMails.findIndex(e => e._id.toString() === body._id.toString())
-    MailService.tempMails.splice(idx, 1)
+    await MailService.redis.lrem('mail.temp', MailCached.castToCached(rs))
+    rs.retry_at = undefined
     rs.status = body.status
-    rs.send_at = body.send_at.getTime() as any
-    MailService.tempMails.push(rs)
+    await MailService.redis.rpush('mail.temp', MailCached.castToCached(rs))
   }
 
   // @VALIDATE((body: Mail) => {
@@ -153,10 +184,9 @@ export class MailService {
     Checker.required(_id, [, '_id'], Object)
   })
   static async delete(_id: any) {
-    const rs = await MailService.mongo.delete(Mail, _id)
-    if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to delete')
-    const idx = MailService.tempMails.findIndex(e => e._id.toString() === _id._id.toString())
-    MailService.tempMails.splice(idx, 1)
+    const old = await MailService.mongo.delete(Mail, _id, { return: true })
+    if (!old) throw HttpError.NOT_FOUND('Could not found item to delete')
+    await MailService.redis.lrem('mail.temp', MailCached.castToCached(old))
   }
 
   private static async sendMail(mailOptions: Mail, config: MailConfig) {
@@ -179,23 +209,28 @@ export class MailService {
 
   private static async schedule() {
     const now = new Date().getTime()
-    const listEmail = MailService.tempMails.filter(e => !e.send_at || e.send_at <= now)
-    if (listEmail.length > 0) {
-      for (const e of listEmail) {
+    const rs = await MailService.redis.lrange('mail.temp')
+    if (rs.length > 0) {
+      for (const e of rs.map(MailCached.castToObject).filter(e => !e.retry_at || e.retry_at <= now)) {
         try {
           const config = await MailConfigService.get(e.config_id)
           await MailService.sendMail(e, config.config)
+          await MailService.redis.lrem('mail.temp', MailCached.castToCached(e))
           e.status = Mail.Status.PASSED
           e.error = undefined
-          const idx = MailService.tempMails.findIndex(_e => _e._id.toString() === e._id.toString())
-          MailService.tempMails.splice(idx, 1)
+          e.retry_at = undefined
         } catch (err) {
-          e.status--
+          if (Mail.Status.ERROR.includes(e.status - 1)) {
+            await MailService.redis.lrem('mail.temp', MailCached.castToCached(e))
+            e.retry_at = new Date(new Date().getTime() + (AppConfig.app.retrySending * (e.status - 1) * -1))
+            e.status--
+            await MailService.redis.rpush('mail.temp', MailCached.castToCached(e))
+          } else {
+            await MailService.redis.lrem('mail.temp', MailCached.castToCached(e))
+            e.status--
+            e.retry_at = undefined
+          }
           e.error = err
-          e.send_at = new Date(new Date().getTime() + AppConfig.app.retrySending)
-          const idx = MailService.tempMails.findIndex(_e => _e._id.toString() === e._id.toString())
-          MailService.tempMails[idx].send_at = e.send_at.getTime()
-          MailService.tempMails[idx].status--
         }
         await MailService.mongo.update(Mail, e)
       }

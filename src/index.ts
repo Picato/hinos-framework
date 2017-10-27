@@ -4,11 +4,13 @@ import { route } from 'hinos-route'
 import { Mongo } from 'hinos-mongo'
 import { cors } from 'hinos-cors'
 import { MailService } from './service/MailService'
+import { Redis } from 'hinos-redis'
 import './config'
 
 require(`./env.${Server.env}`).default(Server)
 
 Mongo(AppConfig.mongo).debug(!Server.isProduction)
+Redis(AppConfig.redis).debug(!Server.isProduction)
 
 Server.use(cors())
 Server.use(route(path.join(__dirname, 'controller'), {
