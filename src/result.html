@@ -18,9 +18,6 @@
       padding: .25em .5em .25em;
       background-color: white;
     }
-    .url-doc-header > .columns:first-child {
-      
-    }
     .json-doc li.item {
       padding: 2px 0px;
     }    
@@ -240,10 +237,6 @@
       text-shadow: none;
     }
 
-    .json-doc.header {}
-
-    .json-doc.body {}
-
     .json-doc {
       padding: 8px 24px;
       position: relative;
@@ -265,40 +258,36 @@
       vertical-align: middle;
     }
 
-    .url-doc .pointer {
-      position: relative;
-    }
-    .url-doc .pointer i {
-      font-weight: normal;
-    }
-    .url-doc .pointer .status {
-      position: absolute;
-      right: 0px;
-    }
-
-    .url-doc .pointer:hover i {
-      text-decoration: underline;      
-    }
-
-    .url-doc .pointer:hover .clipboard,
+    .url-doc .url-doc:hover .clipboard,
     .json-doc:hover .clipboard {
       visibility: visible;
     }
 
+    .url-doc .url-doc {
+      padding: 8px;
+      min-width: 500px;
+      justify-content: start;
+    }
+
+    .url-doc .url-doc .status {
+      position: absolute;
+      right: 8px;
+    }
+
     .url-doc {
-      border: outset 1px #fff;
+      border: inset 1px #fff;
       background-color: white;
       padding: 8px 24px;
-      min-width: 1000px;
     }
 
     .url-doc .clipboard {
       visibility: hidden;
       height: auto;
-      margin-left: 30px;
       color: black;
       font-size: 11px;
       text-shadow: 0px 0px 1px #fff;
+      position: absolute;
+      right: -75px;
     }
     .json-doc .clipboard {
       position: absolute;
@@ -307,21 +296,13 @@
       font-weight: bold;
     }
 
-    .url-doc .pointer {
-      width: 100%;
-      justify-content: initial;
-    }
-
-    .url-doc .clipboard {
-      border-radius: 2px;
-    }
-
     .url-doc .tag.status {
       border: transparent;
       background: transparent;
     }
     .note {
       width: 100%;
+      border-top: dashed 1px #fffee2;
     }
     .note > pre > pre {
       position: relative;
@@ -570,16 +551,30 @@
             </tr>
           </thead>
           <template v-for="(gp, i) in doc">
-            <thead class="tc-title pointer" @click="toggleTc(i)">
+            <thead class="tc-title pointer">
               <tr :class="{'is-selected': !gp.isHide}">
                 <td colspan="5">
                   <div class="columns">
                     <div class="column">
-                      <a class="has-text-dark no-wrap">
+                      <a class="has-text-dark no-wrap" @click="toggleTc(i)">
                         <span class="icon">
                           <i class="fa" :class="{'fa-angle-down': !gp.isHide, 'fa-angle-right': gp.isHide }"></i>
                         </span>
                         {{gp.group}}
+                      </a>
+                    </div>
+                    <div class="column has-text-right">
+                      <a class="button is-small is-warning" @click="copyToTest(gp.apis, i, gp.group)">
+                        <span class="icon">
+                          <i class="fa fa-clipboard"></i>
+                        </span>&nbsp;
+                        {{gp.copyText || 'Copy APIs'}}
+                      </a>
+                      <a class="button is-small is-info" @click="gotoTest()">
+                        <span class="icon">
+                          <i class="fa fa-internet-explorer"></i>
+                        </span>&nbsp;
+                        Test page
                       </a>
                     </div>
                   </div>                
@@ -608,14 +603,24 @@
                   <div class="url-doc-header">
                     <div class="columns url-doc">
                       <div class="column is-paddingless">
-                        <div class="pointer tag method is-medium" :class="api.method" @click="copy(api.url.url, i, j)">
-                          <b>{{api.method}}</b>&nbsp;&nbsp;<i v-html="formatUrl(api.url.requestPath)"></i>
-                          <b class="tag is-medium is-primary status"><i class="fa fa-circle"></i>&nbsp;{{api.status}}</b>
-                          <span class="clipboard">
-                            <i class="fa fa-clipboard" v-if="api.copyText === undefined"></i>
-                            <i class="fa fa-check" v-else></i>
-                            &nbsp;<span>{{api.copyText || 'Copy link'}}</span>
-                          </span>  
+                        <div class="field has-addons">
+                          <div class="control">
+                            <button class="button is-small is-pulled-left is-info" @click="gotoTest(api, gp.group)">
+                              <i class="fa fa-internet-explorer"></i>&nbsp;<b>TEST NOW</b>
+                            </button>
+                          </div>
+                          <div class="control">                          
+                            <div class="button is-danger is-small url-doc" :class="api.method" @click="copy(api.url.url, i, j)">                                                    
+                              <b>{{api.method}}</b>&nbsp;&nbsp;<i v-html="formatUrl(api.url.url)"></i>
+                              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                              <b class="status"><i class="fa fa-circle"></i>&nbsp;{{api.status}}</b>
+                              <span class="clipboard">
+                                <i class="fa fa-clipboard" v-if="api.copyText === undefined"></i>
+                                <i class="fa fa-check" v-else></i>
+                                &nbsp;<span>{{api.copyText || 'Copy link'}}</span>
+                              </span>  
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -664,6 +669,7 @@
       `,
       data() {
         return {
+          testUrl: 'http://test.clipvnet.com',
           title: data.title,
           des: data.des,
           doc: []
@@ -686,6 +692,46 @@
 
       },
       methods: {
+        convertToTest(api, gpName) {
+          let testData = {
+            title: (gpName ? `[${gpName.toUpperCase()}] ` : '') + api.title,
+            url: api.url.requestUrl,
+            method: api.method
+          }
+          testData._headers = []
+          for(let k in api.headers) {
+            testData._headers.push({ key: k, value: api.headers[k] })
+          }
+          testData._headers.push({})
+          testData._data = api.body
+          return testData
+        },
+        gotoTest(_api, gpName) {
+          if(_api) {
+            api = this.convertToTest(_api, gpName)
+            api = encodeURIComponent(btoa(JSON.stringify(api)))
+            window.open(`${this.testUrl}/test-api?cmd=${api}`, _api.title)
+          } else {
+            window.open(`${this.testUrl}/test-api`, 'Test api')
+          }
+        },
+        copyToTest(_apis, i, gpName) {
+          if(_apis instanceof Array) {
+            let apis = _apis.map(e => {
+              return this.convertToTest(e, gpName)
+            })
+            apis = encodeURIComponent(btoa(JSON.stringify(apis)))
+            clipboard.copy(apis)
+          } else {
+            const api = this.convertToTest(_apis, gpName)
+            api = encodeURIComponent(btoa(JSON.stringify(api)))
+            clipboard.copy(api)
+          }
+          this.$set(this.doc[i], 'copyText', 'Copied')
+          setTimeout(() => {
+            this.$delete(this.doc[i], 'copyText')
+          }, 1000)
+        },
         copy(txt, i, j) {
           clipboard.copy(txt)
           this.$set(this.doc[i].apis[j], 'copyText', 'Copied')
