@@ -1,8 +1,8 @@
 export default class HttpError extends Error {
   expose: boolean = true
 
-  constructor(public readonly status: number, readonly message: any = '') {
-    super(message)
+  constructor(public readonly status: number, public readonly message: any = '') {
+    super()
   }
 
   static BAD_REQUEST = (msg?) => new HttpError(400, msg)
