@@ -40,13 +40,13 @@ export class AccountCached {
   role_ids: Uuid[]
   /* tslint:enable */
 
-  static cast(_this) {
-    return {
-      project_id: Mongo.uuid(_this.project_id),
-      role_ids: Mongo.uuid(_this.role_ids),
-      account_id: Mongo.uuid(_this.account_id)
-    } as AccountCached
-  }
+  // static cast(_this) {
+  //   return {
+  //     project_id: Mongo.uuid(_this.project_id),
+  //     role_ids: Mongo.uuid(_this.role_ids),
+  //     account_id: Mongo.uuid(_this.account_id)
+  //   } as AccountCached
+  // }
 }
 
 export namespace Account {
@@ -198,9 +198,15 @@ export class AccountService {
     let act
     for (const r of accRole) {
       if ((!r.isPathRegex && r.path === path) || (r.isPathRegex && new RegExp(`^${r.path}$`, 'g').test(path))) {
-        if (r.isActionRegex) act = new RegExp(`^${r.actions}$`, 'g')
-        for (let a of actions) {
-          if ((r.isActionRegex && act.test(a)) || (!r.isActionRegex && r.actions === a)) return cached
+        if (r.isActionRegex) {
+          act = new RegExp(`^${r.actions}$`, 'g')
+          for (let a of actions) {
+            if (act.test(a)) return cached
+          }
+        } else {
+          for (let a of actions) {
+            if (r.actions === a) return cached
+          }
         }
       }
     }
