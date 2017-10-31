@@ -11,7 +11,7 @@ import { authoriz } from '../service/Authoriz'
 export class LogController {
 
   @DELETE('/:_id')
-  @INJECT(authoriz(`${AppConfig.path}`, ['DELETE']))
+  @INJECT(authoriz(`${AppConfig.path}`, 'DELETE'))
   @RESTRICT({
     params: {
       _id: Mongo.uuid

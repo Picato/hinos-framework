@@ -13,7 +13,7 @@ import { authoriz } from '../service/Authoriz'
 export class ClientController {
 
   @GET('/')
-  @INJECT(authoriz(`${AppConfig.path}`, ['FIND']))
+  @INJECT(authoriz(`${AppConfig.path}`, 'FIND'))
   @RESTRICT({
     query: {
       mine: Boolean,
@@ -46,7 +46,7 @@ export class ClientController {
   }
 
   @GET('/:_id')
-  @INJECT(authoriz(`${AppConfig.path}`, ['GET']))
+  @INJECT(authoriz(`${AppConfig.path}`, 'GET'))
   @RESTRICT({
     params: {
       _id: Mongo.uuid
@@ -62,7 +62,7 @@ export class ClientController {
   }
 
   @POST('/')
-  @INJECT(authoriz(`${AppConfig.path}`, ['INSERT']))
+  @INJECT(authoriz(`${AppConfig.path}`, 'INSERT'))
   @BODYPARSER()
   static async add({ body, state }) {
     body = Mongo.autocast(body)
@@ -75,7 +75,7 @@ export class ClientController {
   }
 
   @PUT('/:_id')
-  @INJECT(authoriz(`${AppConfig.path}`, ['UPDATE']))
+  @INJECT(authoriz(`${AppConfig.path}`, 'UPDATE'))
   @BODYPARSER()
   @RESTRICT({
     params: {
