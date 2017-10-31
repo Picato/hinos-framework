@@ -6,26 +6,39 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/go-redis/redis"
 )
 
-type AccountCached struct {
+type accountCached struct {
 	ProjectID string   `json:"project_id"`
 	AccountID string   `json:"account_id"`
 	RoleIDs   []string `json:"role_ids"`
 }
 
-type Role struct {
+type roleCached struct {
 	OptionA string `json:"option_A"`
 }
 
-type ApiAction struct {
+type apiActionCached struct {
 	Path          string `json:"path"`
 	Actions       string `json:"actions"`
 	IsPathRegex   bool   `json:"isPathRegex"`
 	IsActionRegex bool   `json:"isActionRegex"`
 	RoleID        string `json:"role_id"`
+}
+
+type pluginCached struct {
+	Oauth *pluginOauthCached `json:"oauth"`
+}
+
+type pluginOauthCached struct {
+	App            []string `json:"app"`
+	IsVerify       bool     `json:"is_verify"`
+	SessionExpired int      `json:"session_expired"`
+	SingleMode     bool     `json:"single_mode"`
+	Trying         int      `json:"trying"`
 }
 
 var client = redis.NewClient(&redis.Options{
@@ -34,12 +47,12 @@ var client = redis.NewClient(&redis.Options{
 	DB:       0,
 })
 
-func GetAccountCached(token string) (*AccountCached, error) {
+func GetAccountCached(token string) (*accountCached, error) {
 	_accountCached, err := client.Get("$token:" + token).Result()
 	if err != nil {
 		return nil, err
 	}
-	accountCached := &AccountCached{}
+	accountCached := &accountCached{}
 	err = json.Unmarshal([]byte(_accountCached), accountCached)
 	if err != nil {
 		return nil, err
@@ -47,12 +60,12 @@ func GetAccountCached(token string) (*AccountCached, error) {
 	return accountCached, nil
 }
 
-func GetRoleApiCached(projectId string) (*[]ApiAction, error) {
+func GetRoleApiCached(projectId string) (*[]apiActionCached, error) {
 	_roleCached, err := client.Get("$roles.api:" + projectId).Result()
 	if err != nil {
 		return nil, err
 	}
-	roleCached := &[]ApiAction{}
+	roleCached := &[]apiActionCached{}
 	err = json.Unmarshal([]byte(_roleCached), roleCached)
 	if err != nil {
 		return nil, err
@@ -60,7 +73,20 @@ func GetRoleApiCached(projectId string) (*[]ApiAction, error) {
 	return roleCached, nil
 }
 
-func CheckPath(path string, r ApiAction) bool {
+func GetPluginCached(projectId string) (*pluginCached, error) {
+	_pluginCached, err := client.Get("$plugins:" + projectId).Result()
+	if err != nil {
+		return nil, err
+	}
+	pluginCached := &pluginCached{}
+	err = json.Unmarshal([]byte(_pluginCached), pluginCached)
+	if err != nil {
+		return nil, err
+	}
+	return pluginCached, nil
+}
+
+func CheckPath(path string, r apiActionCached) bool {
 	if !r.IsPathRegex && r.Path == path {
 		return true
 	} else if r.IsPathRegex {
@@ -72,36 +98,99 @@ func CheckPath(path string, r ApiAction) bool {
 	return false
 }
 
-func CheckAction(actions string, r ApiAction) bool {
+func CheckAction(action string, r apiActionCached) bool {
 	if r.IsActionRegex {
 		var b = regexp.MustCompile("^" + r.Actions + "$")
-		isOk := b.Match([]byte(actions))
+		isOk := b.Match([]byte(action))
 		if isOk {
 			return true
 		}
-	} else if r.Actions == actions {
+	} else if r.Actions == action {
 		return true
 	}
 	return false
 }
 
-func CheckAuthoriz(path string, actions string, accountCached AccountCached, roleCached []ApiAction) bool {
+func CheckAuthoriz(path string, action string, accountCached accountCached, roleCached []apiActionCached) bool {
 	userRoles := strings.Join(accountCached.RoleIDs, ",")
 	for _, r := range roleCached {
 		if strings.Contains(userRoles, r.RoleID) {
-			if CheckPath(path, r) && CheckAction(actions, r) {
+			if CheckPath(path, r) && CheckAction(action, r) {
 				return true
 			}
 		}
 	}
 	return false
 }
+
+func handleAuthoriz(token string, path string, action string) (*accountCached, error) {
+	// if token != "147896325" {
+	accountCached, err := GetAccountCached(token)
+	if err != nil {
+		return nil, err
+	}
+	rolesCached, err := GetRoleApiCached(accountCached.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+	isOk := CheckAuthoriz(path, action, *accountCached, *rolesCached)
+	if !isOk {
+		return nil, nil
+	}
+	return accountCached, nil
+}
+
 func main() {
+	http.HandleFunc("/oauth/ping", func(w http.ResponseWriter, r *http.Request) {
+		token := r.Header.Get("token")
+
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "token")
+		w.Header().Set("Access-Control-Request-Method", "HEAD")
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(204)
+			return
+		}
+		if r.Method != "HEAD" {
+			w.WriteHeader(405)
+			return
+		}
+		if len(token) == 0 {
+			w.WriteHeader(401)
+			return
+		}
+
+		token = strings.Split(token, "?")[0]
+
+		accountCached, err := handleAuthoriz(token, "/oauth/Account", "PING")
+		if err != nil {
+			w.WriteHeader(500)
+			return
+		}
+		if err == nil && accountCached == nil {
+			w.WriteHeader(403)
+			return
+		}
+
+		pluginCached, err := GetPluginCached(accountCached.ProjectID)
+		if err != nil {
+			w.WriteHeader(500)
+			return
+		}
+		if pluginCached.Oauth.SessionExpired > 0 {
+			if pluginCached.Oauth.SessionExpired > 1800 {
+				client.ExpireAt("$token:"+token, time.Now().Add(time.Duration(pluginCached.Oauth.SessionExpired)*time.Second))
+			} else {
+				client.Expire("$token:"+token, time.Duration(pluginCached.Oauth.SessionExpired)*time.Second)
+			}
+		}
+		w.WriteHeader(204)
+	})
 
 	http.HandleFunc("/oauth/authoriz", func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("token")
 		path := r.URL.Query().Get("path")
-		actions := r.URL.Query().Get("actions")
+		action := r.URL.Query().Get("actions")
 
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "token")
@@ -112,36 +201,32 @@ func main() {
 			return
 		}
 		if r.Method != "HEAD" {
-			w.WriteHeader(404)
+			w.WriteHeader(405)
 			return
 		}
-		if len(token) == 0 || len(path) == 0 || len(actions) == 0 {
+		if len(token) == 0 {
 			w.WriteHeader(401)
 			return
 		}
-		token = strings.Split(token, "?")[0]
 
-		if token != "123" {
-			accountCached, err := GetAccountCached(token)
-			if err != nil {
-				w.WriteHeader(500)
-				return
-			}
-			rolesCached, err := GetRoleApiCached(accountCached.ProjectID)
-			if err != nil {
-				w.WriteHeader(500)
-				return
-			}
-			isOk := CheckAuthoriz(path, actions, *accountCached, *rolesCached)
-			if !isOk {
-				w.WriteHeader(403)
-				return
-			}
-			w.Header().Set("project_id", accountCached.ProjectID)
-			w.Header().Set("account_id", accountCached.AccountID)
-			w.WriteHeader(204)
+		if len(path) == 0 || len(action) == 0 {
+			w.WriteHeader(400)
 			return
 		}
+
+		token = strings.Split(token, "?")[0]
+
+		accountCached, err := handleAuthoriz(token, path, action)
+		if err != nil {
+			w.WriteHeader(500)
+			return
+		}
+		if err == nil && accountCached == nil {
+			w.WriteHeader(403)
+			return
+		}
+		w.Header().Set("project_id", accountCached.ProjectID)
+		w.Header().Set("account_id", accountCached.AccountID)
 		w.WriteHeader(204)
 	})
 
