@@ -133,7 +133,7 @@ func handleAuthoriz(token string, path string, action string, accountCached *acc
 }
 
 func main() {
-	http.HandleFunc("/oauth/ping", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/oauth/Ping", func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("token")
 
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -175,10 +175,10 @@ func main() {
 		w.WriteHeader(204)
 	})
 
-	http.HandleFunc("/oauth/authoriz", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/oauth/Authoriz", func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("token")
 		path := r.URL.Query().Get("path")
-		action := r.URL.Query().Get("actions")
+		action := r.URL.Query().Get("action")
 
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "token")
