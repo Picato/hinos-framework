@@ -14,7 +14,7 @@ import HttpError from '../common/HttpError'
 export class RoleController {
 
   @GET('/Role/Default')
-  @INJECT(authoriz(`${AppConfig.path}/Role`, ['GET_DEFAULT']))
+  @INJECT(authoriz(`${AppConfig.path}/Role`, 'GET_DEFAULT'))
   @RESTRICT({
     query: {
       type: String
@@ -26,7 +26,7 @@ export class RoleController {
   }
 
   @GET('/Role')
-  @INJECT(authoriz(`${AppConfig.path}/Role`, ['FIND']))
+  @INJECT(authoriz(`${AppConfig.path}/Role`, 'FIND'))
   @RESTRICT({
     query: {
       page: Number,
@@ -54,7 +54,7 @@ export class RoleController {
   }
 
   @GET('/Role/:_id')
-  @INJECT(authoriz(`${AppConfig.path}/Role`, ['GET']))
+  @INJECT(authoriz(`${AppConfig.path}/Role`, 'GET'))
   @RESTRICT({
     params: {
       _id: Mongo.uuid
@@ -69,7 +69,7 @@ export class RoleController {
   }
 
   @POST('/Role')
-  @INJECT(authoriz(`${AppConfig.path}/Role`, ['INSERT']))
+  @INJECT(authoriz(`${AppConfig.path}/Role`, 'INSERT'))
   @BODYPARSER()
   @RESTRICT({
     body: {
@@ -87,7 +87,7 @@ export class RoleController {
   }
 
   @PUT('/Role/:_id')
-  @INJECT(authoriz(`${AppConfig.path}/Role`, ['UPDATE']))
+  @INJECT(authoriz(`${AppConfig.path}/Role`, 'UPDATE'))
   @BODYPARSER()
   @RESTRICT({
     params: {
@@ -111,7 +111,7 @@ export class RoleController {
   }
 
   @DELETE('/Role/:_id')
-  @INJECT(authoriz(`${AppConfig.path}/Role`, ['DELETE']))
+  @INJECT(authoriz(`${AppConfig.path}/Role`, 'DELETE'))
   @RESTRICT({
     params: {
       _id: Mongo.uuid

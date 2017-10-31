@@ -86,7 +86,7 @@ export class ProjectController {
   /////////////////////////////////////////////////////////////
 
   @GET('/Project')
-  @INJECT(authoriz(`${AppConfig.path}/Project`, ['GET']))
+  @INJECT(authoriz(`${AppConfig.path}/Project`, 'GET'))
   static async getMyProject({ state }) {
     const prj = await ProjectService.get(state.auth.projectId, {
       status: 0, owner: 0
@@ -95,7 +95,7 @@ export class ProjectController {
   }
 
   @PUT('/Project')
-  @INJECT(authoriz(`${AppConfig.path}/Project`, ['UPDATE_MINE']))
+  @INJECT(authoriz(`${AppConfig.path}/Project`, 'UPDATE_MINE'))
   @BODYPARSER()
   @RESTRICT({
     body: {

@@ -156,8 +156,10 @@ export class AccountService {
     return me.role_ids
   }
 
-  static async ping({ token = undefined as string, projectId = undefined as Uuid }) {
-    const plugins = await ProjectService.getCachedPlugins(projectId)
+  static async ping(token: string) {
+    if (!token) throw HttpError.AUTHEN()
+    const accountCached = await AccountService.getCachedToken(token)
+    const plugins = await ProjectService.getCachedPlugins(accountCached.project_id)
     await AccountService.touchCachedToken(token, plugins.oauth.session_expired)
   }
 
@@ -185,35 +187,25 @@ export class AccountService {
     return acc
   }
 
-  static async authoriz({ token = undefined as string, path = undefined as string, actions = [] }) {
+  static async authoriz({ token = undefined as string, path = undefined as string, action = undefined as string }) {
     if (!token) throw HttpError.AUTHEN()
 
-    if (token === AppConfig.app.suid) return undefined // Super admin ?
-
-    let cached = await AccountService.getCachedToken(token)
+    const cached = await AccountService.getCachedToken(token)
     if (!cached) throw HttpError.EXPIRED()
 
     const roles = await RoleService.getCachedApiRole(cached.project_id)
     const accRole = roles.filter(e => cached.role_ids.includes(e.role_id))
-    let act
     for (const r of accRole) {
-      if ((!r.isPathRegex && r.path === path) || (r.isPathRegex && new RegExp(`^${r.path}$`, 'g').test(path))) {
-        if (r.isActionRegex) {
-          act = new RegExp(`^${r.actions}$`, 'g')
-          for (let a of actions) {
-            if (act.test(a)) return cached
-          }
-        } else {
-          for (let a of actions) {
-            if (r.actions === a) return cached
-          }
-        }
+      if ((!r.isPathRegex && r.path === path) || (r.isPathRegex && new RegExp(`^${r.path}$`).test(path))) {
+        if (r.isActionRegex && new RegExp(`^${r.actions}$`).test(action)) return cached
+        else if (r.actions === action) return cached
       }
     }
     throw HttpError.AUTHORIZ('Not allow access')
   }
 
-  static async logout({ token }) {
+  static async logout(token) {
+    if (!token) throw HttpError.AUTHEN()
     await AccountService.setCachedToken(token)
   }
 

@@ -3,10 +3,14 @@ import { Mongo } from 'hinos-mongo'
 import axios from 'axios'
 import HttpError from '../common/HttpError'
 
-export function authoriz(path: string, actions: string[]) {
+export function authoriz(path: string, action: string) {
   return async ({ ctx, headers }: Context, next: Function) => {
     try {
-      const res = await axios.head(`${AppConfig.services.oauth}/oauth/Authoriz?path=${path}&actions=${actions.join(',')}`, {
+      const res = await axios.head(`${AppConfig.services.oauth}/oauth/Authoriz`, {
+        params: {
+          path,
+          action
+        },
         headers: {
           token: headers.token
         }
@@ -27,18 +31,7 @@ export function authoriz(path: string, actions: string[]) {
 
 export function suAuthoriz() {
   return async ({ headers }: Context, next: Function) => {
-    try {
-      const res = await axios.head(`${AppConfig.services.oauth}/oauth/Authoriz`, {
-        headers: {
-          token: headers.token
-        }
-      })
-      if (Object.keys(res.headers).includes('token')) throw HttpError.AUTHORIZ('This api need super admin permission')
-      await next()
-    } catch (e) {
-      if (e instanceof HttpError) throw e
-      if (e.response) throw HttpError.CUSTOMIZE(e.response.status, e.response.data)
-      throw e
-    }
+    if (headers.token && headers.token === AppConfig.app.suid) return await next()
+    throw HttpError.AUTHORIZ('This api need super admin permission')
   }
 }

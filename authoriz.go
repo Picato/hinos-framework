@@ -111,7 +111,7 @@ func CheckAction(action string, r apiActionCached) bool {
 	return false
 }
 
-func CheckAuthoriz(path string, action string, accountCached accountCached, roleCached []apiActionCached) bool {
+func CheckAuthoriz(path string, action string, accountCached *accountCached, roleCached []apiActionCached) bool {
 	userRoles := strings.Join(accountCached.RoleIDs, ",")
 	for _, r := range roleCached {
 		if strings.Contains(userRoles, r.RoleID) {
@@ -123,21 +123,13 @@ func CheckAuthoriz(path string, action string, accountCached accountCached, role
 	return false
 }
 
-func handleAuthoriz(token string, path string, action string) (*accountCached, error) {
-	// if token != "147896325" {
-	accountCached, err := GetAccountCached(token)
-	if err != nil {
-		return nil, err
-	}
+func handleAuthoriz(token string, path string, action string, accountCached *accountCached) (bool, error) {
 	rolesCached, err := GetRoleApiCached(accountCached.ProjectID)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
-	isOk := CheckAuthoriz(path, action, *accountCached, *rolesCached)
-	if !isOk {
-		return nil, nil
-	}
-	return accountCached, nil
+	isOk := CheckAuthoriz(path, action, accountCached, *rolesCached)
+	return isOk, nil
 }
 
 func main() {
@@ -162,13 +154,9 @@ func main() {
 
 		token = strings.Split(token, "?")[0]
 
-		accountCached, err := handleAuthoriz(token, "/oauth/Account", "PING")
+		accountCached, err := GetAccountCached(token)
 		if err != nil {
-			w.WriteHeader(500)
-			return
-		}
-		if err == nil && accountCached == nil {
-			w.WriteHeader(403)
+			w.WriteHeader(440)
 			return
 		}
 
@@ -216,12 +204,18 @@ func main() {
 
 		token = strings.Split(token, "?")[0]
 
-		accountCached, err := handleAuthoriz(token, path, action)
+		accountCached, err := GetAccountCached(token)
+		if err != nil {
+			w.WriteHeader(440)
+			return
+		}
+
+		isOk, err := handleAuthoriz(token, path, action, accountCached)
 		if err != nil {
 			w.WriteHeader(500)
 			return
 		}
-		if err == nil && accountCached == nil {
+		if !isOk {
 			w.WriteHeader(403)
 			return
 		}

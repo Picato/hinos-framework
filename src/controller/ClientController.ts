@@ -107,9 +107,8 @@ export default class AccountController {
       token: vl => vl.split('?')[0]
     }
   })
-  @INJECT(authoriz(`${AppConfig.path}/Account`, ['LOGOUT']))
-  static async logout({ state }) {
-    await AccountService.logout(state.auth)
+  static async logout({ headers }) {
+    await AccountService.logout(headers.token)
   }
 
   @HEAD('/Ping')
@@ -118,9 +117,8 @@ export default class AccountController {
       token: vl => vl.split('?')[0]
     }
   })
-  @INJECT(authoriz(`${AppConfig.path}/Account`, ['PING']))
-  static async ping({ state }) {
-    await AccountService.ping(state.auth)
+  static async ping({ headers }) {
+    await AccountService.ping(headers.token)
   }
 
   @HEAD('/Authoriz')
@@ -130,49 +128,47 @@ export default class AccountController {
     },
     query: {
       path: String,
-      actions: vl => vl.split(',').map(e => e.trim())
+      action: String
     }
   })
-  @INJECT(async ({ headers, query, ctx }, next: Function) => {
-    ctx.state.token = headers.token
-    ctx.state.path = query.path
-    ctx.state.actions = query.actions
-    await next()
-  })
-  static async authoriz({ state, ctx }) {
-    const ac = await AccountService.authoriz(state)
+  static async authoriz({ headers, query, ctx }) {
+    const ac = await AccountService.authoriz({
+      token: headers.token,
+      path: query.path,
+      action: query.action
+    })
     if (ac) ctx.set({ account_id: ac.account_id, project_id: ac.project_id })
   }
 
   @PUT('/Secretkey')
-  @INJECT(authoriz(`${AppConfig.path}/Account`, ['GEN_SECRETKEY']))
+  @INJECT(authoriz(`${AppConfig.path}/Account`, 'GEN_SECRETKEY'))
   static async genSecretKey({ state }) {
     const secretKey = await AccountService.genSecretKey(state.auth)
     return secretKey
   }
 
   @DELETE('/Secretkey')
-  @INJECT(authoriz(`${AppConfig.path}/Account`, ['REMOVE_SECRETKEY']))
+  @INJECT(authoriz(`${AppConfig.path}/Account`, 'REMOVE_SECRETKEY'))
   static async clearSecretKey({ state }) {
     await AccountService.clearSecretKey(state.auth)
   }
 
   @GET('/Secretkey')
-  @INJECT(authoriz(`${AppConfig.path}/Account`, ['GET_SECRETKEY']))
+  @INJECT(authoriz(`${AppConfig.path}/Account`, 'GET_SECRETKEY'))
   static async getSecretKey({ state }) {
     const secretKey = await AccountService.getSecretKey(state.auth)
     return secretKey
   }
 
   @GET('/Me')
-  @INJECT(authoriz(`${AppConfig.path}/Account`, ['GET_ME']))
+  @INJECT(authoriz(`${AppConfig.path}/Account`, 'GET_ME'))
   static async getMe({ state }) {
     const me = await AccountService.getMe(state.auth)
     return me
   }
 
   @PUT('/Me')
-  @INJECT(authoriz(`${AppConfig.path}/Account`, ['UPDATE_ME']))
+  @INJECT(authoriz(`${AppConfig.path}/Account`, 'UPDATE_ME'))
   @BODYPARSER()
   @RESTRICT({
     body: {
@@ -188,7 +184,7 @@ export default class AccountController {
   }
 
   @GET('/MyRoles')
-  @INJECT(authoriz(`${AppConfig.path}/Account`, ['GET_MYROLES']))
+  @INJECT(authoriz(`${AppConfig.path}/Account`, 'GET_MYROLES'))
   @RESTRICT({
     query: {
       type: String
