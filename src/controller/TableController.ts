@@ -12,7 +12,7 @@ import { authoriz } from '../service/Authoriz'
 export class TableController {
 
   @GET('/Table')
-  @INJECT(authoriz(`${AppConfig.path}/Table`, ['FIND']))
+  @INJECT(authoriz(`${AppConfig.path}/Table`, 'FIND'))
   @RESTRICT({
     query: {
       page: Number,
@@ -32,7 +32,7 @@ export class TableController {
   }
 
   @POST('/Table')
-  @INJECT(authoriz(`${AppConfig.path}/Table`, ['INSERT']))
+  @INJECT(authoriz(`${AppConfig.path}/Table`, 'INSERT'))
   @BODYPARSER()
   @RESTRICT({
     body: {
@@ -49,7 +49,7 @@ export class TableController {
   }
 
   @DELETE('/Table/:_id')
-  @INJECT(authoriz(`${AppConfig.path}/Table`, ['DELETE']))
+  @INJECT(authoriz(`${AppConfig.path}/Table`, 'DELETE'))
   @RESTRICT({
     params: {
       _id: Mongo.uuid

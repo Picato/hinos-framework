@@ -13,7 +13,7 @@ import { authoriz } from '../service/Authoriz'
 export class DynamicController {
 
   @GET('/Object/:table')
-  @INJECT(authoriz(`${AppConfig.path}/Object`, ['FIND']))
+  @INJECT(authoriz(`${AppConfig.path}/Object`, 'FIND'))
   @RESTRICT({
     params: {
       table: String
@@ -49,7 +49,7 @@ export class DynamicController {
   }
 
   @GET('/Object/:table/:_id')
-  @INJECT(authoriz(`${AppConfig.path}/Object`, ['GET']))
+  @INJECT(authoriz(`${AppConfig.path}/Object`, 'GET'))
   @RESTRICT({
     params: {
       table: String,
@@ -61,7 +61,7 @@ export class DynamicController {
   }
 
   @POST('/Object/:table')
-  @INJECT(authoriz(`${AppConfig.path}/Object`, ['INSERT']))
+  @INJECT(authoriz(`${AppConfig.path}/Object`, 'INSERT'))
   @BODYPARSER()
   @RESTRICT({
     params: {
@@ -79,7 +79,7 @@ export class DynamicController {
   }
 
   @PUT('/Object/:table/:_id')
-  @INJECT(authoriz(`${AppConfig.path}/Object`, ['INSERT']))
+  @INJECT(authoriz(`${AppConfig.path}/Object`, 'INSERT'))
   @BODYPARSER()
   @RESTRICT({
     params: {
@@ -98,7 +98,7 @@ export class DynamicController {
   }
 
   @DELETE('/Object/:table/:_id')
-  @INJECT(authoriz(`${AppConfig.path}/Object`, ['DELETE']))
+  @INJECT(authoriz(`${AppConfig.path}/Object`, 'DELETE'))
   @RESTRICT({
     params: {
       _id: Mongo.uuid,
