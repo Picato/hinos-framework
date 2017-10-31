@@ -10,7 +10,7 @@ import { authoriz } from '../service/Authoriz'
 export class LogController {
 
   @GET('/Log')
-  @INJECT(authoriz(`${AppConfig.path}/log`, ['FIND']))
+  @INJECT(authoriz(`${AppConfig.path}/log`, 'FIND'))
   @RESTRICT({
     query: {
       page: Number,

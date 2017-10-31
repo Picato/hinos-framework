@@ -12,13 +12,13 @@ import { authoriz } from '../service/Authoriz'
 export class ServiceController {
 
   @GET('/WSSession')
-  @INJECT(authoriz(`${AppConfig.path}/service`, ['SESSION']))
+  @INJECT(authoriz(`${AppConfig.path}/service`, 'SESSION'))
   static async getWebsocketSession({ state }) {
     return state.auth.projectId.toString()
   }
 
   @GET('/Service')
-  @INJECT(authoriz(`${AppConfig.path}/service`, ['FIND']))
+  @INJECT(authoriz(`${AppConfig.path}/service`, 'FIND'))
   @RESTRICT({
     query: {
       page: Number,
@@ -37,7 +37,7 @@ export class ServiceController {
   }
 
   @POST('/Service')
-  @INJECT(authoriz(`${AppConfig.path}/service`, ['INSERT']))
+  @INJECT(authoriz(`${AppConfig.path}/service`, 'INSERT'))
   @BODYPARSER()
   @RESTRICT({
     body: {
@@ -54,7 +54,7 @@ export class ServiceController {
   }
 
   @PUT('/Service/:_id')
-  @INJECT(authoriz(`${AppConfig.path}/service`, ['UPDATE']))
+  @INJECT(authoriz(`${AppConfig.path}/service`, 'UPDATE'))
   @BODYPARSER()
   @RESTRICT({
     params: {
@@ -75,7 +75,7 @@ export class ServiceController {
   }
 
   @DELETE('/Service/:_id')
-  @INJECT(authoriz(`${AppConfig.path}/service`, ['DELETE']))
+  @INJECT(authoriz(`${AppConfig.path}/service`, 'DELETE'))
   @RESTRICT({
     params: {
       _id: Mongo.uuid
