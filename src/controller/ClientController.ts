@@ -12,7 +12,7 @@ import { authoriz } from '../service/Authoriz'
 export class ClientController {
 
   @POST('/Send/:configId')
-  @INJECT(authoriz(`${AppConfig.path}`, ['SEND']))
+  @INJECT(authoriz(`${AppConfig.path}`, 'SEND'))
   @BODYPARSER()
   @RESTRICT({
     params: {
