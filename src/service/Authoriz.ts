@@ -3,10 +3,14 @@ import axios from 'axios'
 import { Mongo } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
 
-export function authoriz(path: string, actions: string[]) {
+export function authoriz(path: string, action: string) {
   return async ({ ctx, headers }: Context, next: Function) => {
     try {
-      const res = await axios.head(`${AppConfig.services.oauth}/oauth/Authoriz?path=${path}&actions=${actions.join(',')}`, {
+      const res = await axios.head(`${AppConfig.services.oauth}/oauth/Authoriz`, {
+        params: {
+          path,
+          action
+        },
         headers: {
           token: headers.token
         }

@@ -12,7 +12,7 @@ import { authoriz } from '../service/Authoriz'
 export class FileConfigController {
 
   @GET('/Config')
-  @INJECT(authoriz(`${AppConfig.path}/Config`, ['FIND']))
+  @INJECT(authoriz(`${AppConfig.path}/Config`, 'FIND'))
   @RESTRICT({
     query: {
       page: Number,
@@ -33,7 +33,7 @@ export class FileConfigController {
   }
 
   @POST('/Config')
-  @INJECT(authoriz(`${AppConfig.path}/Config`, ['INSERT']))
+  @INJECT(authoriz(`${AppConfig.path}/Config`, 'INSERT'))
   @BODYPARSER()
   @RESTRICT({
     body: {
@@ -49,7 +49,7 @@ export class FileConfigController {
   }
 
   @PUT('/Config/:_id')
-  @INJECT(authoriz(`${AppConfig.path}/Config`, ['UPDATE']))
+  @INJECT(authoriz(`${AppConfig.path}/Config`, 'UPDATE'))
   @BODYPARSER()
   @RESTRICT({
     params: {
@@ -69,7 +69,7 @@ export class FileConfigController {
   }
 
   @DELETE('/Config/:_id')
-  @INJECT(authoriz(`${AppConfig.path}/Config`, ['DELETE']))
+  @INJECT(authoriz(`${AppConfig.path}/Config`, 'DELETE'))
   @RESTRICT({
     params: {
       _id: Mongo.uuid
