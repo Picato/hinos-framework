@@ -159,7 +159,9 @@ export class AccountService {
   static async ping(token: string) {
     if (!token) throw HttpError.AUTHEN()
     const accountCached = await AccountService.getCachedToken(token)
+    if (!accountCached) throw HttpError.EXPIRED()
     const plugins = await ProjectService.getCachedPlugins(accountCached.project_id)
+    if (!plugins) throw HttpError.INTERNAL('Could not found plugin configuration')
     await AccountService.touchCachedToken(token, plugins.oauth.session_expired)
   }
 
