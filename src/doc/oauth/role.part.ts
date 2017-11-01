@@ -39,7 +39,7 @@ export default [
     i18doc: Object.assign({}, i18doc, {
       '*.account_id': 'Account ID'
     }),
-    url: HEAD(`${HOST.OAUTH}/oauth/Authoriz?path=:path*&actions=:actions*`, 'hinos-oauth-service>Me', 'GET_INFOR, UPDATE')
+    url: HEAD(`${HOST.OAUTH}/oauth/Authoriz?path=:path*&action=:action*`, 'hinos-oauth-service>Me', 'GET_INFOR, UPDATE')
   }, { extends: '#authRequestByToken' }),
   '#adminLogin',
   DOC('Add new role', GROUP, TAG.ADMIN, {
