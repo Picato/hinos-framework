@@ -39,7 +39,6 @@
     }
   },
   "dependencies": {
-    "axios": "^0.16.2",
     "hinos": "^1.1.5",
     "hinos-bodyparser": "^2.1.1",
     "hinos-cors": "^1.0.1",

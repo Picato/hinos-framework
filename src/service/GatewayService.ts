@@ -2,6 +2,7 @@ import * as httpProxy from 'http-proxy'
 import { VALIDATE, Checker } from 'hinos-validation'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
+import axios from 'axios'
 
 const proxy = httpProxy.createProxyServer()
 
@@ -27,6 +28,12 @@ export class GatewayService {
     const services = await GatewayService.find({ $recordsPerPage: 0, $fields: { name: 1, link: 1 } })
     AppConfig.app.gateway = {}
     services.forEach(e => AppConfig.app.gateway[e.name] = e.link)
+  }
+
+  static forwardRequest(opts) {
+    return new Promise((resolve, reject) => {
+      axios(opts).then(resolve).catch(reject)
+    })
   }
 
   static forward({ req, res, params }) {
