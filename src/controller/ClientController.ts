@@ -97,7 +97,7 @@ export default class AccountController {
         throw HttpError.BAD_REQUEST(`This app not supported to register via social network ${body.app}`)
       }
     }
-    const acc = await AccountService.register(body, plugins)
+    const acc = await AccountService.register(body, plugins as any)
     return acc
   }
 

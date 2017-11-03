@@ -12,7 +12,7 @@ import { AccountService } from './AccountService'
 export type Plugin = {
   oauth?: {
     app?: string[]
-    is_verify?: boolean
+    mail_verify_template?: Uuid
     session_expired?: number
     single_mode?: boolean
     trying?: number
@@ -90,7 +90,7 @@ export class ProjectService {
       oauth: {
         single_mode: true,
         session_expired: 2700,
-        is_verify: true,
+        mail_verify_template: undefined,
         trying: 3
       }
     })

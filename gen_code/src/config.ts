@@ -20,7 +20,7 @@ export namespace generation {
         oauth: {
           single_mode: true,
           session_expired: 15 * 60,
-          is_verify: true
+          mail_verify_template: undefined
         }
       }),
       created_at: date().auto('insert'),

@@ -113,6 +113,16 @@ export class AccountService {
     return acc.secret_key
   }
 
+  static async getAdminNativeSecretKey(projectId: Uuid) {
+    const acc = await AccountService.mongo.get<Account>(Account, {
+      project_id: projectId,
+      native: true
+    }, {
+        secret_key: 1
+      })
+    return acc.secret_key
+  }
+
   static async genSecretKey({ accountId = undefined as Uuid, projectId = undefined as Uuid }) {
     const secretKey = AccountService.generateToken()
     const acc = await AccountService.mongo.get<Account>(Account, {
@@ -176,11 +186,11 @@ export class AccountService {
     body.created_at = new Date()
     body.updated_at = new Date()
 
-    body.status = !oauth.is_verify ? Account.Status.ACTIVED : Account.Status.INACTIVED
+    body.status = !oauth.mail_verify_template ? Account.Status.ACTIVED : Account.Status.INACTIVED
 
   })
-  static async register(body, _plugins) {
-    const acc = await AccountService.insert(body)
+  static async register(body, { oauth }) {
+    const acc = await AccountService.insert(body, oauth)
     delete acc.role_ids
     delete acc.project_id
     delete acc.trying
@@ -324,13 +334,32 @@ export class AccountService {
     body.created_at = new Date()
     body.updated_at = new Date()
   })
-  static async insert(body: Account) {
+  static async insert(body: Account, oauth?: any) {
     const existed = await AccountService.mongo.get(Account, {
       username: new RegExp(`^${body.username}$`, 'i'),
       project_id: body.project_id
     })
     // Check username must be not existed
     if (existed) throw HttpError.BAD_REQUEST(`Username ${body.username} was existed`)
+    
+    if (oauth && oauth.mail_verify_template) {
+      const nativeToken = await AccountService.getAdminNativeSecretKey(body.project_id)
+      const sendMail = () => {
+        return new Promise((resolve, reject) => {
+          axios.put(`${AppConfig.services.mail}/mail/Send/${oauth.mail_verify_template}`, {
+            "to": [body.recover_by],
+            "_this": body
+          }, {
+              headers: { token: nativeToken }
+            }
+          ).then(resolve).catch(err => {
+            reject(err.response ? HttpError.CUSTOMIZE(err.response.status, err.response.data) : err)
+          })
+        })
+      }
+      await sendMail()
+    }
+
     const rs = await AccountService.mongo.insert<Account>(Account, body) as Account
     delete rs.trying
     delete rs.token

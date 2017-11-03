@@ -17,7 +17,8 @@
     "url": "http://localhost:6111",
     "path": "/oauth",
     "services": {
-      "oauth": "http://localhost:6111"
+      "oauth": "http://localhost:6111",
+      "mail": "http://localhost:6113"
     },
     "mongo": {
       "url": "mongodb://localhost:27017/oauthv3",

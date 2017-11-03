@@ -23,6 +23,7 @@ interface IAppConfig {
   }
   services: {
     oauth: string
+    mail: string
   }
   app: {
     suid: string
