@@ -1,0 +1,59 @@
+{
+  des: 'Add',
+  method: 'POST',
+  url: 'http://localhost:6113/MailTemplate',
+  requestHeader: {
+    'content-type': 'application/json'
+  },
+  requestBody: {
+    _id: Uuid,
+			name: string,
+			subject: string,
+			text: string,
+			html: string,
+			config_id: Uuid,
+			project_id: Uuid,
+			account_id: Uuid,
+			created_at: Date,
+			updated_at: Date
+  }
+}
+
+{
+  des: 'Get list',
+  method: 'GET',
+  url: 'http://localhost:6113/MailTemplate'
+}
+
+{
+  des: 'Update',
+  method: 'PUT',
+  url: 'http://localhost:6113/MailTemplate/ITEM_ID',
+  requestHeader: {
+    'content-type': 'application/json'
+  },
+  requestBody: {
+    _id: Uuid,
+			name: string,
+			subject: string,
+			text: string,
+			html: string,
+			config_id: Uuid,
+			project_id: Uuid,
+			account_id: Uuid,
+			created_at: Date,
+			updated_at: Date
+  }
+}
+
+{
+  des: 'Get detail',
+  method: 'GET',
+  url: 'http://localhost:6113/MailTemplate/ITEM_ID'
+}
+
+{
+  des: 'Delete',
+  method: 'DELETE',
+  url: 'http://localhost:6113/MailTemplate/ITEM_ID'
+}

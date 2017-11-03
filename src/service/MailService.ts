@@ -3,6 +3,7 @@ import { VALIDATE, Checker } from 'hinos-validation'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
 import { MailConfig, MailConfigService } from './MailConfigService'
+import { MailTemplateService } from './MailTemplateService'
 import * as nodemailer from 'nodemailer'
 import { REDIS, Redis } from 'hinos-redis'
 
@@ -33,6 +34,7 @@ export class Mail {
   from?: string
   to?: string[]
   cc?: string[]
+  template_id?: Uuid
   attachments?: Attachments[]
   error?: any
   retry_at?: Date
@@ -122,8 +124,22 @@ export class MailService {
     return rs
   }
 
-  @VALIDATE((body: Mail) => {
+  private static replaceVar(cnt, obj) {
+    let ev = []
+    for (let k in obj) {
+      ev.push('var ' + k + ' = ' + JSON.stringify(obj[k]))
+    }
+    return eval(`(() => {
+      ${ev.join('\n')}
+      return \`${cnt}\` })()`)
+  }
+
+  @VALIDATE(async (body: Mail, _this = {} as any) => {
     body._id = Mongo.uuid() as Uuid
+    await Checker.option(body, 'template_id', Uuid, undefined, async () => {
+      const mail = await MailTemplateService.get(body.template_id)
+      _.merge(body, _.pick(mail, ['subject', 'text', 'html', 'config_id', 'from']))
+    })
     Checker.required(body, 'config_id', Uuid)
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
@@ -132,6 +148,14 @@ export class MailService {
       // Incase body.text === ''
       if (!body.text) Checker.required(body, 'html', String)
     })
+    if (body.template_id) {
+      body.subject = MailService.replaceVar(body.subject, _this)
+      if (body.html) {
+        body.html = MailService.replaceVar(body.html, _this)
+      } else if (body.text) {
+        body.text = MailService.replaceVar(body.text, _this)
+      }
+    }
     Checker.required(body, 'from', String)
     Checker.required(body, 'to', Array)
     if (body.to.length === 0) throw new Error(`"To" must be not empty`)
@@ -142,7 +166,7 @@ export class MailService {
     body.created_at = new Date()
     body.updated_at = body.created_at
   })
-  static async insert(body: Mail) {
+  static async insert(body: Mail, _this?: any) {
     const rs = await MailService.mongo.insert<Mail>(Mail, body)
     await MailService.redis.rpush('mail.temp', MailCached.castToCached(rs))
     return rs
