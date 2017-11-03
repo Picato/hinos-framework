@@ -57,10 +57,10 @@ export class MailTemplateService {
 		return rs
 	}
 
-	@VALIDATE((body: MailTemplate) => {
+	@VALIDATE(async (body: MailTemplate) => {
 		Checker.required(body, '_id', Object)
 		Checker.option(body, 'name', String)
-		Checker.option(body, 'from', String, undefined, () => {
+		await Checker.option(body, 'from', String, undefined, () => {
 			if(!/^[_-\w]+$/.test(body.from)) throw HttpError.BAD_REQUEST('from must be alphabet, digit, _ or -')
 		})		
 		Checker.option(body, 'subject', String)
