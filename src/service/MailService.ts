@@ -145,7 +145,6 @@ export class MailService {
     Checker.required(body, 'account_id', Uuid)
     Checker.required(body, 'subject', String)
     Checker.option(body, 'text', String, undefined, () => {
-      // Incase body.text === ''
       if (!body.text) Checker.required(body, 'html', String)
     })
     if (body.template_id) {
@@ -157,6 +156,7 @@ export class MailService {
       }
     }
     Checker.required(body, 'from', String)
+    if(!/^[_-\w]+$/.test(body.from)) throw HttpError.BAD_REQUEST('from must be alphabet, digit, _ or -')
     Checker.required(body, 'to', Array)
     if (body.to.length === 0) throw new Error(`"To" must be not empty`)
     Checker.option(body, 'cc', Array, [])

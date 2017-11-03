@@ -42,6 +42,7 @@ export class MailTemplateService {
 		Checker.required(body, 'name', String)
 		Checker.required(body, 'subject', String)
 		Checker.required(body, 'from', String)
+		if(!/^[_-\w]+$/.test(body.from)) throw HttpError.BAD_REQUEST('from must be alphabet, digit, _ or -')
 		Checker.option(body, 'text', String, undefined, () => {
 			if (!body.text) Checker.required(body, 'html', String)
 		})
@@ -59,7 +60,9 @@ export class MailTemplateService {
 	@VALIDATE((body: MailTemplate) => {
 		Checker.required(body, '_id', Object)
 		Checker.option(body, 'name', String)
-		Checker.required(body, 'from', String)
+		Checker.option(body, 'from', String, undefined, () => {
+			if(!/^[_-\w]+$/.test(body.from)) throw HttpError.BAD_REQUEST('from must be alphabet, digit, _ or -')
+		})		
 		Checker.option(body, 'subject', String)
 		Checker.option(body, 'text', String, undefined, () => {
 			if (!body.text) Checker.required(body, 'html', String)
