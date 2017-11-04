@@ -65,7 +65,7 @@ export class MailCached {
       e.attachments = e.attachments.map(e => _.pick(e, ['path', 'filename', 'content', 'contentType', 'encoding', 'raw']))
     }
     e.config = await MailConfigService.get(e.config_id)
-    return JSON.stringify(_.pick(e, ['_id', 'config_id', 'subject', 'text', 'html', 'from', 'to', 'cc', 'attachments', 'retry_at', 'status']))
+    return JSON.stringify(_.pick(e, ['_id', 'config', 'subject', 'text', 'html', 'from', 'to', 'cc', 'attachments', 'retry_at', 'status']))
   }
   static castToObject(_e: string): MailCached {
     const e = JSON.parse(_e)
