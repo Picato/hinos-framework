@@ -64,7 +64,8 @@ export class MailCached {
     if (e.attachments && e.attachments.length > 0) {
       e.attachments = e.attachments.map(e => _.pick(e, ['path', 'filename', 'content', 'contentType', 'encoding', 'raw']))
     }
-    e.config = await MailConfigService.get(e.config_id)
+    const config = await MailConfigService.get(e.config_id)
+    e.config = config.config
     return JSON.stringify(_.pick(e, ['_id', 'config', 'subject', 'text', 'html', 'from', 'to', 'cc', 'attachments', 'retry_at', 'status']))
   }
   static castToObject(_e: string): MailCached {
@@ -239,8 +240,7 @@ export class MailService {
     if (rs.length > 0) {
       for (const e of rs.map(MailCached.castToObject).filter(e => !e.retry_at || e.retry_at <= now)) {
         try {
-          const config = await MailConfigService.get(e.config_id)
-          await MailService.sendMail(e, config.config)
+          await MailService.sendMail(e, e.config)          
           await MailService.redis.lrem('mail.temp', await MailCached.castToCached(e))
           e.status = Mail.Status.PASSED
           e.error = undefined
@@ -258,7 +258,7 @@ export class MailService {
           }
           e.error = err
         }
-        await MailService.mongo.update(Mail, e)
+        await MailService.mongo.update(Mail, _.omit(e, ['config']))
       }
     }
     setTimeout(MailService.schedule, AppConfig.app.scanTimeout)
