@@ -91,6 +91,7 @@ export class ProjectService {
         single_mode: true,
         session_expired: 2700,
         mail_verify_template: undefined,
+        app: [],
         trying: 3
       }
     })
