@@ -64,9 +64,8 @@ export class MailTemplateService {
 			if(!/^[_-\w]+$/.test(body.from)) throw HttpError.BAD_REQUEST('from must be alphabet, digit, _ or -')
 		})		
 		Checker.option(body, 'subject', String)
-		Checker.option(body, 'text', String, undefined, () => {
-			if (!body.text) Checker.required(body, 'html', String)
-		})
+		Checker.option(body, 'text', String)
+		Checker.option(body, 'html', String)
 		Checker.option(body, 'config_id', Uuid)
 		Checker.required(body, 'account_id', Uuid)
 		if (!body.html) body.html = undefined
