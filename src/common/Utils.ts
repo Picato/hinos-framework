@@ -28,7 +28,7 @@ export default class Utils {
       } catch (e) { /*File was removed before that*/ }
       if (sizes) {
         for (let s of sizes) {
-          if (s.ext) remove(f.substr(0, f.lastIndexOf('.') + 1) + s.ext + f.substr(f.lastIndexOf('.')))
+          if (s.ext) remove(f.substr(0, f.lastIndexOf('.')) + s.ext + f.substr(f.lastIndexOf('.')))
         }
       }
     }
