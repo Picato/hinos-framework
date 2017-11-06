@@ -16,7 +16,7 @@ export default [
       `You can add any data via dynamic service.`,
       `Note: All of fields at top level must be not <code>_id</code> <code>project_id</code> <code>account_id</code> <code>created_at</code> <code>updated_at</code>`
     ],
-    url: POST(`${HOST.DYNAMIC}/dynamic/object/:table*`, $var('newtable.name')),
+    url: POST(`${HOST.DYNAMIC}/dynamic/Object/:table*`, $var('newtable.name')),
     body: {
       name: 'thanh',
       age: 10
@@ -33,12 +33,12 @@ export default [
       `You can update full data. The new will be replace the old one`,
       `Note: All of fields at top level must be not <code>_id</code> <code>project_id</code> <code>account_id</code> <code>created_at</code> <code>updated_at</code>`
     ],
-    url: PUT(`${HOST.DYNAMIC}/dynamic/object/:table*/:dynamicId*`, $var('newtable.name'), $var('newobject._id')),
+    url: PUT(`${HOST.DYNAMIC}/dynamic/Object/:table*/:dynamicId*`, $var('newtable.name'), $var('newobject._id')),
     body: {
       school: 'hbt'
     }
   }, { extends: '#authRequestByToken' }),
   DOC('Remove a dynamic object', GROUP, {
-    url: DELETE(`${HOST.DYNAMIC}/dynamic/object/:table*/:dynamicId*`, $var('newtable.name'), $var('newobject._id'))
+    url: DELETE(`${HOST.DYNAMIC}/dynamic/Object/:table*/:dynamicId*`, $var('newtable.name'), $var('newobject._id'))
   }, { extends: '#authRequestByToken' })
 ]

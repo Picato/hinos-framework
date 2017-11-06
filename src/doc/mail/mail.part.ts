@@ -8,25 +8,25 @@ const i18doc = {
   '*.subject': DOC.required().des('Email subject'),
   '*.text': DOC.required().groupStart().des('Email text content (just use text or html)'),
   '*.html': DOC.required().groupEnd('OR').des('Email html content (just use html or text)'),
-  '*.from': DOC.required().des('Email from'),
+  '*.from': DOC.required().des('Email from. <code>Its value must be <b>alphabet</b>, <b>digit</b>, <b>_</b> or <b>-</b></code>'),
   '*.to': DOC.required().des('Send to (emails)'),
   '*.cc': DOC.des('CC to (emails)'),
   '*.attachments': DOC.des('Email attachments. It\'s link')
 }
 
 export default [
-  DOC('Send an email', GROUP, TAG.ADMIN, {
+  DOC('Send an email via mail config', GROUP, TAG.ADMIN, {
     i18doc,
     note: [
       `To send an email, you must push it to queue in mail service`,
       `Mail service will auto send your email`
     ],
-    url: POST(`${HOST.MAIL}/mail/send/:mailConfigId*`, $var('newmailconfig._id')),
+    url: POST(`${HOST.MAIL}/mail/Send/:mailConfigId*`, $var('newmailconfig._id')),
     body: {
       subject: 'Test mail',
       text: 'Hello world',
       html: '<b>Hello</b> <i>world</i>',
-      from: 'Tester@abc.com',
+      from: 'Tester',
       to: ['user1@abc.com'],
       cc: ['user2@abc.com'],
       attachments: ['http://www.logoeps.com/wp-content/uploads/2011/02/youtube-logo-vector.png']
@@ -35,9 +35,25 @@ export default [
       'newmail': $var('this.$body')
     }
   }, { extends: '#authRequestByToken' }),
+  DOC('Send an email via mail template', GROUP, TAG.ADMIN, {
+    i18doc,
+    note: [
+      `To send an email, you must push it to queue in mail service`,
+      `Mail service will auto send your email`,
+      `The email will be auto apply email template to send to user`
+    ],
+    url: PUT(`${HOST.MAIL}/mail/Send/:mailTemplateId*`, $var('newmailtemplate._id')),
+    body: {
+      to: ['user1@abc.com'],
+      cc: ['user2@abc.com']
+    },
+    var: {
+      'newmail1': $var('this.$body')
+    }
+  }, { extends: '#authRequestByToken' }),
   DOC('Resend an existed email', GROUP, TAG.ADMIN, {
     i18doc,
-    url: PUT(`${HOST.MAIL}/mail/resend/:mailId*`, $var('newmail._id'))
+    url: PUT(`${HOST.MAIL}/mail/Resend/:mailId*`, $var('newmail._id'))
   }, { extends: '#authRequestByToken' }),
   DOC('Get list emails', GROUP, TAG.ADMIN, {
     i18doc,

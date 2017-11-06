@@ -28,7 +28,7 @@ export default [
     note: [
       `Add SMTP server information for sending`
     ],
-    url: POST(`${HOST.FILE}/files/config`),
+    url: POST(`${HOST.FILE}/files/Config`),
     body: {
       'config': {
         'maxSize': 2046,
@@ -47,7 +47,7 @@ export default [
   }, { extends: '#authRequestByToken' }),
   DOC('Update files config', GROUP, TAG.ADMIN, {
     i18doc,
-    url: PUT(`${HOST.FILE}/files/config/:fileConfigId*`, $var('newfileconfig._id')),
+    url: PUT(`${HOST.FILE}/files/Config/:fileConfigId*`, $var('newfileconfig._id')),
     body: {
       'name': 'test avatar',
       'config': {
@@ -67,12 +67,12 @@ export default [
   }, { extends: '#authRequestByToken' }),
   DOC('Get list files config', GROUP, TAG.ADMIN, {
     i18doc,
-    url: GET(`${HOST.FILE}/files/config`)
+    url: GET(`${HOST.FILE}/files/Config`)
   }, { extends: '#authRequestByToken' }),
 
   ...INCLUDE('doc/file/file.part'),
 
   DOC('Remove files config', GROUP, TAG.ADMIN, {
-    url: DELETE(`${HOST.FILE}/files/config/:fileConfigId*`, $var('newfileconfig._id'))
+    url: DELETE(`${HOST.FILE}/files/Config/:fileConfigId*`, $var('newfileconfig._id'))
   }, { extends: '#authRequestByToken' })
 ]

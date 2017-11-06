@@ -22,7 +22,7 @@ export default {
     }, { key: '#authRequestBySecretkey' }),
     API('Template ping with token', {
       method: 'HEAD',
-      url: `${HOST.OAUTH}/oauth/ping`
+      url: `${HOST.OAUTH}/oauth/Ping`
     }, { key: '#ping', extends: '#authRequestByToken' }),
     API('Login by admin account', {
       url: POST(`${HOST.OAUTH}/oauth/Login`),

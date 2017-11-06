@@ -24,7 +24,7 @@ export default [
   },
   {
     title: 'Mail APIs',
-    des: 'Manage mail config, mail and mail sending',
+    des: 'Manage mail config, mail template and mail sending',
     output: path.join('..', 'service@quickstart', 'mail', 'assets', 'doc.html'),
     groups: ['MEMBER', 'ROLE', 'SECRET KEY'],
     scenarios: ['./doc/oauth/shared', './doc/mail/main.tc']
