@@ -68,9 +68,7 @@ export class MailTemplateService {
 			if (!body.text) Checker.required(body, 'html', String)
 		})
 		Checker.option(body, 'config_id', Uuid)
-		Checker.option(body, 'project_id', Uuid)
-		Checker.option(body, 'account_id', Uuid)
-		Checker.option(body, 'created_at', Date)
+		Checker.required(body, 'account_id', Uuid)
 		if (!body.html) body.html = undefined
 		if (!body.text) body.text = undefined
 		body.updated_at = new Date()
