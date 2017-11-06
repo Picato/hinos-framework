@@ -41,8 +41,8 @@ export class ClientController {
         fileSize: '() => ctx.state.config.maxSize'
       },
       uploadDir: '() => `assets/upload/${ctx.state.auth.projectId}`',
-      maxCount: '() => ctx.state.config.maxFile',
-      resize: '() => ctx.state.config.resize'
+      maxCount: '() => ctx.state.config.maxFile'
+      // resize: '() => ctx.state.config.resize'
     }
   ], err => {
     if (err.code && 'LIMIT_UNEXPECTED_FILE' === err.code) throw HttpError.BAD_REQUEST(`The maximum number of files is ${err.ctx.state.config.maxFile}`)
@@ -83,6 +83,32 @@ export class ClientController {
             await Utils.deleteUploadFiles(vl.path, state.config.resize)
             const httpPath = path.join(httpName.dir, `${httpName.name}.zip`)
             return `${httpPath}?name=${fileName.name}.zip`
+          }
+        } else if (state.config.resize && state.config.resize.length > 0) {
+          const resize = state.config.resize
+          const resizeImage = async (vl) => {
+            path.resolve(vl.path)
+            const fileName = path.parse(vl.originalname)
+            const httpName = path.parse(vl.httpPath)
+            const fileOut = path.resolve(vl.path)
+            try {
+              await Utils.executeCmd(`go run ${path.resolve('resize_image.go')} "` + `${JSON.stringify(JSON.stringify({ path: fileOut, sizes: resize }))}` + '"')
+            } catch (e) {
+              await Utils.deleteUploadFiles(vl.path, state.config.resize)
+              throw HttpError.INTERNAL('Could not resize image')
+            }
+            const httpPath = path.join(httpName.dir, `${httpName.name}${httpName.ext}`)
+            return `${httpPath}?name=${fileName.name}${httpName.ext}`
+          }
+          if (!state.config.zip && resize && resize.length > 0) {
+            if (vl instanceof Array) {
+              if (vl.length <= 0) return vl
+              await Promise.all(vl.map(async (e) => {
+                return await resizeImage(e)
+              }))
+            } else {
+              await resizeImage(vl)
+            }
           }
         }
         return vl instanceof Array ? vl.map(e => `${e.httpPath}?name=${e.originalname}`) : `${vl.httpPath}?name=${vl.originalname}`

@@ -5,6 +5,16 @@ import { ImageResize } from 'hinos-bodyparser/file'
 
 export default class Utils {
 
+  public static async executeCmd(cmd: string) {
+    var exec = require('child_process').exec;
+    return new Promise((resolve, reject) => {
+      exec(cmd, function callback(error) {
+        if (error) return reject(error)
+        resolve()
+      });
+    })
+  }
+
   public static getUploadFile(assetPath: string) {
     return Utils.getAssetPath(assetPath)
   }
