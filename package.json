@@ -25,7 +25,7 @@
       "releaseTimeout": 50000
     },
     "encrypt": {
-      "pwd": ")^!!!(**",
+      "pwd": "a!b@=;",
       "mode": [
         "query",
         "body",
@@ -42,7 +42,7 @@
     "hinos-cors": "^1.0.1",
     "hinos-helmet": "^1.0.0",
     "hinos-mongo": "^1.1.7",
-    "hinos-requesthasher": "^1.1.7",
+    "hinos-requesthasher": "^1.1.9",
     "hinos-route": "^1.1.12",
     "hinos-validation": "^1.1.2",
     "lodash": "^4.17.4",
