@@ -20,13 +20,12 @@
     "services": {
       "oauth": "http://localhost:1001"
     },
-    "encryptKey": ")^!!!(**",
     "mongo": {
       "url": "mongodb://localhost:27017/test",
       "releaseTimeout": 50000
     },
     "encrypt": {
-      "pwd": ")^!!!(**",
+      "pwd": "a!b@=;",
       "mode": [
         "query",
         "body",
