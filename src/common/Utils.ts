@@ -15,6 +15,26 @@ export default class Utils {
     })
   }
 
+  public static zipFolder(input: string, output: string) {
+    return new Promise((resolve, reject) => {
+      const zipFolder = require('zip-folder')
+      zipFolder(input, output, function (err) {
+        if (err) return reject(err)
+        resolve()
+      })
+    })
+  }
+
+  public static removeFolder(input: string) {
+    return new Promise((resolve, reject) => {
+      const rimraf = require('rimraf')
+      rimraf(input, function (err) {
+        if (err) return reject(err)
+        resolve()
+      })
+    })
+  }
+
   public static getUploadFile(assetPath: string) {
     return Utils.getAssetPath(assetPath)
   }
@@ -62,6 +82,11 @@ export default class Utils {
     if (paths instanceof Array) return paths.map(e => path.join(e.indexOf('assets') === 0 ? '' : 'assets', e))
     if (paths.indexOf('assets') === 0) return paths
     return path.join('assets', paths)
+  }
+
+  static getTempPath(...paths: string[]) {
+    const tmp = require('os').tmpdir()
+    return path.join(tmp, ...paths)
   }
 
 }

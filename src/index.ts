@@ -17,10 +17,12 @@ Server.use(serve({
   [`${AppConfig.path}/upload`]: path.join(__dirname, '..', 'assets', 'upload')
 }))
 Server.use(cors())
-Server.use(route(path.join(__dirname, 'controller'), {
-  ignorecase: true,
-  root: AppConfig.path
-}))
+Server.use(route(
+  [
+    path.join(__dirname, 'controller', 'GlobalController.js'),
+    path.join(__dirname, 'controller')
+  ], { ignorecase: true, root: AppConfig.path }
+))
 Server.listen(AppConfig.port, () => {
   FilesService.loadIntoCached()  
   console.info(`
