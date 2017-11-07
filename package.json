@@ -45,11 +45,11 @@
     "hinos-helmet": "^1.0.0",
     "hinos-mongo": "^1.1.7",
     "hinos-requesthasher": "^1.1.7",
-    "hinos-route": "^1.1.10",
+    "hinos-route": "^1.1.12",
     "hinos-validation": "^1.1.2",
     "http-proxy": "^1.16.2",
     "lodash": "^4.17.4",
-    "typescript": "^2.5.3"
+    "typescript": "^2.6.1"
   },
   "author": "doanthuanthanh88@gmail.com",
   "license": "ISC",
