@@ -1,5 +1,5 @@
 import { VALIDATE, Checker } from 'hinos-validation'
-import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
+import { MONGO, Mongo, Uuid } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
 
 /************************************************
