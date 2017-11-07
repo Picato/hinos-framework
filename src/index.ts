@@ -10,10 +10,12 @@ require(`./env.${Server.env}`).default(Server)
 Mongo(AppConfig.mongo).debug(!Server.isProduction)
 
 Server.use(cors())
-Server.use(route(path.join(__dirname, 'controller'), {
-  ignorecase: true,
-  root: AppConfig.path
-}))
+Server.use(route(
+  [
+    path.join(__dirname, 'controller', 'GlobalController.js'),
+    path.join(__dirname, 'controller')
+  ], { ignorecase: true, root: AppConfig.path }
+))
 
 Server.listen(AppConfig.port, () => {
   console.info(`

@@ -41,16 +41,17 @@
     "hinos-helmet": "^1.0.0",
     "hinos-mongo": "^1.1.7",
     "hinos-requesthasher": "^1.1.7",
-    "hinos-route": "^1.1.10",
+    "hinos-route": "^1.1.12",
     "hinos-validation": "^1.1.2",
-    "lodash": "^4.17.4"
+    "lodash": "^4.17.4",
+    "zip-folder": "^1.0.0"
   },
   "author": "doanthuanthanh88@gmail.com",
   "license": "ISC",
   "devDependencies": {
     "@types/axios": "^0.14.0",
     "@types/chai": "^3.5.2",
-    "@types/lodash": "^4.14.80",
+    "@types/lodash": "^4.14.82",
     "@types/mocha": "^2.2.44",
     "@types/node": "^7.0.46",
     "axios": "^0.16.2",
