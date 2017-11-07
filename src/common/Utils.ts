@@ -1,34 +1,44 @@
-// import * as path from 'path'
-// import * as fs from 'fs'
-// import { ImageResize } from 'hinos-bodyparser'
+import * as path from 'path'
 
-// export default class Utils {
+export default class Utils {
 
-//   public static getUploadFile(assetPath: string) {
-//     return Utils.getAssetPath(assetPath)
-//   }
+  public static async executeCmd(cmd: string) {
+    return new Promise((resolve, reject) => {
+      const exec = require('child_process').exec
+      exec(cmd, function callback(error) {
+        if (error) return reject(error)
+        resolve()
+      });
+    })
+  }
 
-//   public static deleteUploadFiles(files: string | string[], sizes?: ImageResize[]): void {
-//     if (!files) return
-//     const remove = (f: string, sizes?: ImageResize[]) => {
-//       try {
-//         fs.statSync(f)
-//         fs.unlinkSync(f)
-//       } catch (e) { /*File was removed before that*/ }
-//       if (sizes) {
-//         for (let s of sizes) {
-//           if (s.ext) remove(f.substr(0, f.lastIndexOf('.') + 1) + s.ext + f.substr(f.lastIndexOf('.')))
-//         }
-//       }
-//     }
-//     if (!(files instanceof Array)) return remove(Utils.getAssetPath(files.split('?')[0]), sizes)
-//     for (let f of files) {
-//       remove(Utils.getAssetPath(f.split('?')[0]), sizes)
-//     }
-//   }
+  public static zipFolder(input: string, output: string) {
+    return new Promise((resolve, reject) => {
+      const zipFolder = require('zip-folder')
+      zipFolder(input, output, function (err) {
+        if (err) return reject(err)
+        resolve()
+      })
+    })
+  }
 
-//   private static getAssetPath(...paths: string[]) {
-//     return path.join(paths.indexOf('assets') === 0 ? '' : 'assets', ...paths)
-//   }
+  public static removeFolder(input: string) {
+    return new Promise((resolve, reject) => {
+      const rimraf = require('rimraf')
+      rimraf(input, function (err) {
+        if (err) return reject(err)
+        resolve()
+      })
+    })
+  }
 
-// }
+  static getAssetPath(...paths: string[]) {
+    return path.join(paths.indexOf('assets') === 0 ? '' : 'assets', ...paths)
+  }
+
+  static getTempPath(...paths: string[]) {
+    const tmp = require('os').tmpdir()
+    return path.join(tmp, ...paths)
+  }
+
+}

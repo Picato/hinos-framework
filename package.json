@@ -43,18 +43,19 @@
     "hinos-mongo": "^1.1.7",
     "hinos-requesthasher": "^1.1.7",
     "hinos-requestmatcher": "^1.0.7",
-    "hinos-route": "^1.1.10",
+    "hinos-route": "^1.1.12",
     "hinos-serve": "^1.1.1",
     "hinos-validation": "^1.1.2",
     "lodash": "^4.17.4",
-    "typescript": "^2.5.2"
+    "typescript": "^2.6.1",
+    "zip-folder": "^1.0.0"
   },
   "author": "doanthuanthanh88@gmail.com",
   "license": "ISC",
   "devDependencies": {
     "@types/axios": "^0.14.0",
     "@types/chai": "^3.5.2",
-    "@types/lodash": "^4.14.80",
+    "@types/lodash": "^4.14.82",
     "@types/mocha": "^2.2.44",
     "@types/node": "^7.0.43",
     "axios": "^0.16.2",

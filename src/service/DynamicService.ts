@@ -6,7 +6,6 @@ import HttpError from '../common/HttpError'
  ** DynamicService || 4/10/2017, 10:19:24 AM **
  ************************************************/
 
-@Collection('Dynamic')
 /* tslint:disable */
 export class Dynamic {
   _id?: Uuid
