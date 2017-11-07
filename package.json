@@ -33,7 +33,7 @@
       "scanTimeout": 1000
     },
     "encrypt": {
-      "pwd": ")^!!!(**",
+      "pwd": "a!b@=;",
       "mode": [
         "query",
         "body",
@@ -51,7 +51,7 @@
     "hinos-helmet": "^1.0.0",
     "hinos-mongo": "^1.1.7",
     "hinos-redis": "^1.0.25",
-    "hinos-requesthasher": "^1.1.7",
+    "hinos-requesthasher": "^1.1.9",
     "hinos-route": "^1.1.12",
     "hinos-serve": "^1.1.1",
     "hinos-validation": "^1.1.2",
