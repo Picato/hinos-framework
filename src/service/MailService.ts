@@ -240,7 +240,7 @@ export class MailService {
     if (rs.length > 0) {
       for (const e of rs.map(MailCached.castToObject).filter(e => !e.retry_at || e.retry_at <= now)) {
         try {
-          await MailService.sendMail(e, e.config)          
+          await MailService.sendMail(e, e.config)
           await MailService.redis.lrem('mail.temp', await MailCached.castToCached(e))
           e.status = Mail.Status.PASSED
           e.error = undefined

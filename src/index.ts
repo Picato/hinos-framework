@@ -13,10 +13,12 @@ Mongo(AppConfig.mongo).debug(!Server.isProduction)
 Redis(AppConfig.redis).debug(!Server.isProduction)
 
 Server.use(cors())
-Server.use(route(path.join(__dirname, 'controller'), {
-  ignorecase: true,
-  root: AppConfig.path
-}))
+Server.use(route(
+  [
+    path.join(__dirname, 'controller', 'GlobalController.js'),
+    path.join(__dirname, 'controller')
+  ], { ignorecase: true, root: AppConfig.path }
+))
 
 Server.listen(AppConfig.port, () => {
   MailService.loadIntoCached()
