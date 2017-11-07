@@ -48,7 +48,7 @@
     "hinos-helmet": "^1.0.0",
     "hinos-mongo": "^1.1.7",
     "hinos-requesthasher": "^1.1.7",
-    "hinos-route": "^1.1.10",
+    "hinos-route": "^1.1.12",
     "hinos-socketio": "^2.0.8",
     "hinos-validation": "^1.1.2",
     "lodash": "^4.17.4",

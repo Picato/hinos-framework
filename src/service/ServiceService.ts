@@ -82,7 +82,7 @@ export class ServiceService {
         const mailConfig = AppConfig.app.configs[s.project_id.toString()]
         if (mailConfig && mailConfig.mailConfigId && ((mailConfig.mailTo && mailConfig.mailTo.length > 0) || (s.email && s.email.length > 0)) && (!s.lastSent || (s.lastSent.getTime() - new Date().getTime() >= AppConfig.app.timeoutSpamMail))) {
           try {
-            await Http.post(`${AppConfig.services.mail}/Mail/Send/${mailConfig.mailConfigId}`, {
+            await Http.post(`${AppConfig.services.mail}/mail/Send/${mailConfig.mailConfigId}`, {
               headers: {
                 token: mailConfig.secretKey
               },
