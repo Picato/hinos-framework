@@ -22,7 +22,7 @@ export default [
       'body.html': DOC.required()
     }),
     note: [],
-    url: POST(`${HOST.MAIL}/mail/MailTemplate`),
+    url: POST(`${HOST.MAIL}/mail/Template`),
     body: {
       name: 'Test template',
       config_id: $var('newmailconfig._id'),
@@ -44,7 +44,7 @@ export default [
       'body.text': DOC.required(false),
       'body.html': DOC.required(false)
     }),
-    url: PUT(`${HOST.MAIL}/mail/MailTemplate/:mailTemplateId*`, $var('newmailtemplate._id')),
+    url: PUT(`${HOST.MAIL}/mail/Template/:mailTemplateId*`, $var('newmailtemplate._id')),
     body: {
       name: 'Test template 1',
       subject: 'Test mail 1',
@@ -55,16 +55,16 @@ export default [
   }, { extends: '#authRequestByToken' }),
   DOC('Get list mail template', GROUP, TAG.ADMIN, {
     i18doc,
-    url: GET(`${HOST.MAIL}/mail/MailTemplate`)
+    url: GET(`${HOST.MAIL}/mail/Template`)
   }, { extends: '#authRequestByToken' }),
   DOC('Get details mail template', GROUP, TAG.ADMIN, {
     i18doc,
-    url: GET(`${HOST.MAIL}/mail/MailTemplate/:mailTemplateId*`, $var('newmailtemplate._id'))
+    url: GET(`${HOST.MAIL}/mail/Template/:mailTemplateId*`, $var('newmailtemplate._id'))
   }, { extends: '#authRequestByToken' }),
   
   ...INCLUDE('doc/mail/mail.part'),
 
   DOC('Remove mail template', GROUP, TAG.ADMIN, {
-    url: DELETE(`${HOST.MAIL}/mail/MailTemplate/:mailTemplateId*`, $var('newmailtemplate._id'))
+    url: DELETE(`${HOST.MAIL}/mail/Template/:mailTemplateId*`, $var('newmailtemplate._id'))
   }, { extends: '#authRequestByToken' })
 ]
