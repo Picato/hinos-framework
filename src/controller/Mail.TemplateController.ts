@@ -11,8 +11,8 @@ import { authoriz } from '../service/Authoriz'
 
 export class MailTemplateController {
 
-	@GET('/MailTemplate')
-	@INJECT(authoriz(`${AppConfig.path}/MailTemplate`, 'FIND'))
+	@GET('/Template')
+	@INJECT(authoriz(`${AppConfig.path}/Template`, 'FIND'))
 	@RESTRICT({
 		query: {
 			page: Number,
@@ -31,8 +31,8 @@ export class MailTemplateController {
 		return rs
 	}
 
-	@GET('/MailTemplate/:_id')
-	@INJECT(authoriz(`${AppConfig.path}/MailTemplate`, 'GET'))
+	@GET('/Template/:_id')
+	@INJECT(authoriz(`${AppConfig.path}/Template`, 'GET'))
 	@RESTRICT({
 		params: {
 			_id: Mongo.uuid
@@ -46,8 +46,8 @@ export class MailTemplateController {
 		return rs
 	}
 
-	@POST('/MailTemplate')
-	@INJECT(authoriz(`${AppConfig.path}/MailTemplate`, 'INSERT'))
+	@POST('/Template')
+	@INJECT(authoriz(`${AppConfig.path}/Template`, 'INSERT'))
 	@BODYPARSER()
 	@RESTRICT({
 		body: {
@@ -66,8 +66,8 @@ export class MailTemplateController {
 		return rs
 	}
 
-	@PUT('/MailTemplate/:_id')
-	@INJECT(authoriz(`${AppConfig.path}/MailTemplate`, 'UPDATE'))
+	@PUT('/Template/:_id')
+	@INJECT(authoriz(`${AppConfig.path}/Template`, 'UPDATE'))
 	@BODYPARSER()
 	@RESTRICT({
 		params: {
@@ -91,8 +91,8 @@ export class MailTemplateController {
 		await MailTemplateService.update(body)
 	}
 
-	@DELETE('/MailTemplate/:_id')
-	@INJECT(authoriz(`${AppConfig.path}/MailTemplate`, 'DELETE'))
+	@DELETE('/Template/:_id')
+	@INJECT(authoriz(`${AppConfig.path}/Template`, 'DELETE'))
 	@RESTRICT({
 		params: {
 			_id: Mongo.uuid
