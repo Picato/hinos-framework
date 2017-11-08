@@ -16,6 +16,7 @@ Server.use(cors())
 Server.use(route(
   [
     path.join(__dirname, 'controller', 'GlobalController.js'),
+    path.join(__dirname, 'controller', 'MailTemplateController.js'),
     path.join(__dirname, 'controller')
   ], { ignorecase: true, root: AppConfig.path }
 ))
