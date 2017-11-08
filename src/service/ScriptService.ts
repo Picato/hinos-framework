@@ -146,9 +146,7 @@ export class ScriptService {
   }
 
   @VALIDATE((where: any) => {
-    Checker.required(where, '_id', Object)
-    Checker.required(where._id, '_id', Uuid)
-    Checker.required(where._id, 'project_id', Uuid)
+    Checker.required(where, [, '_id'], Object)
   })
   static async delete(where: any) {
     const rs = await ScriptService.mongo.delete(Script, where)
