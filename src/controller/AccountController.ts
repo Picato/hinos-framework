@@ -31,7 +31,7 @@ export class AccountController {
 
     _.merge(where, { project_id: state.auth.projectId })
 
-    const rs = await AccountService.find({
+    const rs = await AccountService.find(state.auth.token.split('?')[0], {
       $where: where,
       $page: query.page,
       $recordsPerPage: query.recordsPerPage,

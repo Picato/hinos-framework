@@ -41,7 +41,7 @@ export class RoleController {
     let sort: any = query.sort || {}
     let fields: any = query.fields || { project_id: 0 }
 
-    _.merge(where, { project_id: state.auth.projectId })
+    _.merge(where, { project_id: state.auth.projectId, native: { $exists: false } })
 
     const rs: Role[] = await RoleService.find({
       $where: where,

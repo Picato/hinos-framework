@@ -38,6 +38,7 @@ export class AccountCached {
   project_id: Uuid
   account_id: Uuid
   role_ids: Uuid[]
+  native: boolean
   /* tslint:enable */
 
   // static cast(_this) {
@@ -69,13 +70,14 @@ export class AccountService {
       $where: {
         secret_key: { $exists: true }
       },
-      $fields: { project_id: 1, _id: 1, role_ids: 1, secret_key: 1 }
+      $fields: { project_id: 1, _id: 1, role_ids: 1, secret_key: 1, native: 1 }
     })
     for (const cached of caches) {
       await AccountService.setCachedToken(cached.secret_key, {
         project_id: cached.project_id,
         account_id: cached._id,
-        role_ids: cached.role_ids
+        role_ids: cached.role_ids,
+        native: cached.native
       } as AccountCached)
     }
     console.log(`Loaded ${caches.length} accounts into cached`)
@@ -128,7 +130,7 @@ export class AccountService {
     const acc = await AccountService.mongo.get<Account>(Account, {
       _id: accountId,
       project_id: projectId
-    }, { role_ids: 1, secret_key: 1 })
+    }, { role_ids: 1, secret_key: 1, native: 1 })
     const rs = await AccountService.mongo.update(Account, {
       _id: accountId,
       secret_key: secretKey
@@ -138,7 +140,8 @@ export class AccountService {
     await AccountService.setCachedToken(secretKey, {
       project_id: projectId,
       account_id: accountId,
-      role_ids: acc.role_ids
+      role_ids: acc.role_ids,
+      native: acc.native
     } as AccountCached)
     return secretKey
   }
@@ -225,7 +228,7 @@ export class AccountService {
     const acc = await AccountService.mongo.get<Account>(Account, {
       username: new RegExp(`^${user.username}$`, 'i'),
       project_id: user.projectId
-    }, { password: 1, app: 1, token: 1, status: 1, _id: 1, project_id: 1, role_ids: 1, trying: 1 })
+    }, { password: 1, app: 1, token: 1, status: 1, _id: 1, project_id: 1, role_ids: 1, trying: 1, native: 1 })
     if (!acc) throw HttpError.NOT_FOUND(`Could not found username ${user.username}`)
     if (acc.status === Account.Status.LOCKED) throw HttpError.BAD_REQUEST('Account was locked')
     if (acc.status !== Account.Status.ACTIVED) throw HttpError.BAD_REQUEST('Account not actived')
@@ -281,7 +284,8 @@ export class AccountService {
     await AccountService.setCachedToken(token, {
       account_id: acc._id,
       role_ids: acc.role_ids,
-      project_id: acc.project_id
+      project_id: acc.project_id,
+      native: acc.native
     } as AccountCached)
     await AccountService.touchCachedToken(token, oauth.session_expired)
     return `${token}?${oauth.session_expired}`
@@ -306,7 +310,11 @@ export class AccountService {
     })
   }
 
-  static async find(fil: any = {}) {
+  static async find(token: string, fil: any = {}) {
+    const acc = await AccountService.getCachedToken(token)
+    if (!acc.native) {
+      fil.$where.native = { $exists: false }
+    }
     const rs = await AccountService.mongo.find<Account>(Account, fil)
     return rs
   }
@@ -341,7 +349,7 @@ export class AccountService {
     })
     // Check username must be not existed
     if (existed) throw HttpError.BAD_REQUEST(`Username ${body.username} was existed`)
-    
+
     if (oauth && oauth.mail_verify_template) {
       const nativeToken = await AccountService.getAdminNativeSecretKey(body.project_id)
       const sendMail = () => {
@@ -405,7 +413,8 @@ export class AccountService {
         await AccountService.setCachedToken(old.secret_key, {
           account_id: body._id,
           role_ids: body.role_ids,
-          project_id: body.project_id
+          project_id: body.project_id,
+          native: old.native
         } as AccountCached)
       }
     }

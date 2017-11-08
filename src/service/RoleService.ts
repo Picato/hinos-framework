@@ -79,7 +79,7 @@ export class RoleService {
   static async createDefaultAdminRole(projectId: Uuid) {
     // Admin role
     const rs = await RoleService.insert({
-      name: 'Admin',
+      name: 'ROOT',
       api: [
         { path: '.*', actions: '.*' }
       ],
