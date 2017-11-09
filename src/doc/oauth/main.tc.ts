@@ -8,7 +8,8 @@ export default {
       '*.password': 'Password',
       'headers.role': 'Default role of user after register. <code>Contact to admin to get it</code>',
       '*.recover_by': 'Email which help active, reset password...',
-      '*.more': DOC.type('Dynamic<Object>').des('Dynamic object which include all of user information. <code>Eg: fullname, age, firstname...</code>')
+      '*.fullname': DOC.type('Dynamic<any>').des('Fullname'),
+      '*.phone': DOC.type('Dynamic<any>').des('Phone')
     }
   },
   apis: [

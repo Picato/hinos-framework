@@ -18,6 +18,12 @@ export default [
       'body.password': DOC.required(),
       'body.recover_by': DOC.required()
     }),
+    note: [
+      `You can add dynamic properties for user but it must be passed the bellow rules`,
+      `1. Must fill "username", "password", "recover_by" when register by default`,
+      `2. Must fill "token", "app" when register by social network. "app" must be in ["google", "facebook"]`,
+      `3. Top level key fields in object must be not same keywords "_id", "trying", "secret_key", "created_at", "updated_at", "token", "native", "status"`      
+    ],
     url: POST(`${HOST.OAUTH}/oauth/Register`),
     headers: {
       pj: $var('$$pj'),
@@ -27,10 +33,8 @@ export default [
       username: $var('$$user.username'),
       password: $var('$$user.password'),
       recover_by: 'testuser@abc.com',
-      more: {
-        fullname: 'Test user name',
-        phone: '093239842'
-      }
+      fullname: 'Test user name',
+      phone: '093239842'
     },
     var: {
       'user': $var('this.$body')
@@ -87,9 +91,7 @@ export default [
     body: {
       password: $var('$$user.password'),
       recover_by: 'abc123@abc.com',
-      more: {
-        fullname: 'Updated name'
-      }
+      fullname: 'Updated name'
     }
   }, { extends: '#authRequestByToken' }),
   DOC('Get user information', GROUP, {
@@ -121,9 +123,7 @@ export default [
       'password': 'test123',
       'status': 1,
       'recover_by': 'newuser@abc.com',
-      'more': {
-        'fullname': 'New name'
-      },
+      'fullname': 'New name',
       'role_ids': [$var('$$role')]
     },
     var: {
@@ -137,9 +137,7 @@ export default [
       'password': 'test123',
       'status': 1,
       'recover_by': 'newuser@abc.com',
-      'more': {
-        'fullname': 'New name'
-      },
+      'fullname': 'New name',
       'role_ids': [$var('$$role')]
     }
   }, { extends: '#authRequestByToken' }),
