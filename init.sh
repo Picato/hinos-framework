@@ -1,0 +1,1 @@
+nohup go run authoriz.go > authoriz.go.log &
