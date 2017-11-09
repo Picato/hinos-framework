@@ -61,7 +61,6 @@ export class ProjectController {
       _id: Mongo.uuid
     },
     body: {
-      name: String,
       des: String,
       status: Number,
       plugins: Object
