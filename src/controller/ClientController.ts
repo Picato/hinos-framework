@@ -20,7 +20,12 @@ export default class AccountController {
   @BODYPARSER()
   @RESTRICT({
     headers: {
-      pj: Mongo.uuid
+      pj: e => {
+        try {
+          return Mongo.uuid(e)
+        } catch (_e) { }
+        return e
+      }
     },
     body: {
       app: String,
@@ -30,8 +35,8 @@ export default class AccountController {
     }
   })
   static async login({ headers, ctx, body }) {
-    body.projectId = headers.pj
-    const plugins = await ProjectService.getCachedPlugins(body.projectId)
+    const { plugins, projectId } = await ProjectService.getCachedPlugins(headers.pj)
+    body.projectId = projectId
     if (!plugins || !plugins.oauth) throw HttpError.INTERNAL('Project config got problem')
     const oauth = plugins.oauth
     if (oauth.app && oauth.app.length > 0 && body.app) {
@@ -61,20 +66,22 @@ export default class AccountController {
       pj: Mongo.uuid,
       role: Mongo.uuid
     },
-    body: {
-      username: String,
-      password: md5,
-      recover_by: String,
-      token: String,
-      app: String,
-      more: Object
-    }
+    // body: {
+    //   username: String,
+    //   password: md5,
+    //   recover_by: String,
+    //   token: String,
+    //   app: String
+    //   // more: Object
+    // }
   })
   static async register({ body, headers }) {
-    body.project_id = headers.pj
+    body = Mongo.autocast(body)
+    body = _.omit(body, ['_id', 'trying', 'secret_key', 'created_at', 'updated_at', 'token', 'native', 'status'])    
     body.role_ids = headers.role ? [headers.role] : undefined
-    if (body.more) body.more = Mongo.autocast(body.more)
-    const plugins = await ProjectService.getCachedPlugins(body.project_id)
+    const { plugins, projectId } = await ProjectService.getCachedPlugins(headers.pj)
+    body.project_id = projectId
+    if (body.password) body.password = md5(body.password)
     if (!plugins || !plugins.oauth) throw HttpError.INTERNAL('Project config got problem')
     const oauth = plugins.oauth
     // Register via social network
@@ -84,12 +91,12 @@ export default class AccountController {
           const { id, email, more } = await AccountService.getMeFacebook(body.token)
           body.username = email || id
           body.recover_by = email
-          body.more = _.merge(more, body.more)
+          body = _.merge({}, more, body)
         } else if ('google' === body.app) {
           const { id, email, more } = await AccountService.getMeGoogle(body.token)
           body.username = email || id
           body.recover_by = email
-          body.more = _.merge(more, body.more)
+          body = _.merge({}, more, body)
         } else {
           throw HttpError.BAD_REQUEST(`This app not supported to register via social network ${body.app}`)
         }
@@ -162,24 +169,28 @@ export default class AccountController {
 
   @GET('/Me')
   @INJECT(authoriz(`${AppConfig.path}/Account`, 'GET_ME'))
-  static async getMe({ state }) {
-    const me = await AccountService.getMe(state.auth)
+  static async getMe({ state, query }) {
+    let fields: any = query.fields
+    _.merge(fields, { token: 0, password: 0, project_id: 0, trying: 0, secret_key: 0 })
+    const me = await AccountService.getMe(state.auth, fields)
     return me
   }
 
   @PUT('/Me')
   @INJECT(authoriz(`${AppConfig.path}/Account`, 'UPDATE_ME'))
   @BODYPARSER()
-  @RESTRICT({
-    body: {
-      password: md5,
-      recover_by: String,
-      more: Object
-    }
-  })
+  // @RESTRICT({
+  //   body: {
+  //     password: md5,
+  //     recover_by: String,
+  //     more: Object
+  //   }
+  // })
   static async updateMe({ body, state }) {
+    body = Mongo.autocast(body)
+    body = _.omit(body, ['_id', 'project_id', 'app', 'username', 'trying', 'secret_key', 'created_at', 'updated_at', 'token', 'native', 'status', 'role_ids'])
     body._id = state.auth.accountId
-    if (body.more) body.more = Mongo.autocast(body.more)
+    if (body.password) body.password = md5(body.password)
     await AccountService.update(body)
   }
 

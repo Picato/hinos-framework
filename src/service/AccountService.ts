@@ -1,3 +1,4 @@
+import * as _ from 'lodash'
 import { VALIDATE, Checker } from 'hinos-validation'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import { Redis, REDIS } from 'hinos-redis'
@@ -23,7 +24,6 @@ export class Account {
   status?: number
   recover_by?: string
   role_ids?: Uuid[]
-  more?: object
   trying?: number
   secret_key?: string
   created_at?: Date
@@ -159,8 +159,8 @@ export class AccountService {
     await AccountService.setCachedToken(acc.secret_key)
   }
 
-  static async getMe({ accountId }) {
-    const me = await AccountService.mongo.get<Account>(Account, accountId, { username: 1, recover_by: 1, more: 1, created_at: 1, updated_at: 1, role_ids: 1 })
+  static async getMe({ accountId }, fields?: any) {
+    const me = await AccountService.mongo.get<Account>(Account, accountId, fields)
     return me
   }
 
@@ -173,7 +173,7 @@ export class AccountService {
     if (!token) throw HttpError.AUTHEN()
     const accountCached = await AccountService.getCachedToken(token)
     if (!accountCached) throw HttpError.EXPIRED()
-    const plugins = await ProjectService.getCachedPlugins(accountCached.project_id)
+    const { plugins } = await ProjectService.getCachedPlugins(accountCached.project_id)
     if (!plugins) throw HttpError.INTERNAL('Could not found plugin configuration')
     await AccountService.touchCachedToken(token, plugins.oauth.session_expired)
   }
@@ -185,7 +185,6 @@ export class AccountService {
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'recover_by', String)
     Checker.required(body, 'role_ids', Array)
-    Checker.option(body, 'more', Object, {})
     body.created_at = new Date()
     body.updated_at = new Date()
 
@@ -194,12 +193,7 @@ export class AccountService {
   })
   static async register(body, { oauth }) {
     const acc = await AccountService.insert(body, oauth)
-    delete acc.role_ids
-    delete acc.project_id
-    delete acc.trying
-    delete acc.token
-    delete acc.password
-    return acc
+    return _.omit(acc, ['role_ids', 'project_id', 'trying', 'token', 'secret_key', 'password'])
   }
 
   static async authoriz({ token = undefined as string, path = undefined as string, action = undefined as string }) {
@@ -310,11 +304,7 @@ export class AccountService {
     })
   }
 
-  static async find(token: string, fil: any = {}) {
-    const acc = await AccountService.getCachedToken(token)
-    if (!acc.native) {
-      fil.$where.native = { $exists: false }
-    }
+  static async find(fil: any = {}) {
     const rs = await AccountService.mongo.find<Account>(Account, fil)
     return rs
   }
@@ -336,7 +326,6 @@ export class AccountService {
     }, () => {
       body.role_ids = []
     })
-    Checker.option(body, 'more', Object, {})
     body.trying = 0
     body.token = []
     body.created_at = new Date()
@@ -369,11 +358,7 @@ export class AccountService {
     }
 
     const rs = await AccountService.mongo.insert<Account>(Account, body) as Account
-    delete rs.trying
-    delete rs.token
-    delete rs.project_id
-    delete rs.role_ids
-    return rs
+    return _.omit(rs, ['trying', 'token', 'project_id', 'role_ids'])
   }
 
   @VALIDATE((body: Account) => {
@@ -386,7 +371,6 @@ export class AccountService {
     Checker.option(body, 'role_ids', Array, () => {
       body.role_ids = Mongo.uuid(body.role_ids)
     })
-    Checker.option(body, 'more', Object)
     body.updated_at = new Date()
   })
   static async update(body: Account) {

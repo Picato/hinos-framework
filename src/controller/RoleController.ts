@@ -4,6 +4,7 @@ import { BODYPARSER } from 'hinos-bodyparser'
 import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { Mongo } from 'hinos-mongo'
 import { Role, RoleService } from '../service/RoleService'
+import { AccountService } from '../service/AccountService'
 import { authoriz } from '../service/Authoriz'
 import HttpError from '../common/HttpError'
 
@@ -39,9 +40,13 @@ export class RoleController {
   static async find({ query, state }) {
     let where: any = Mongo.autocast(query.where || {})
     let sort: any = query.sort || {}
-    let fields: any = query.fields || { project_id: 0 }
+    let fields: any = query.fields
 
-    _.merge(where, { project_id: state.auth.projectId, native: { $exists: false } })
+    _.merge(fields, { project_id: 0 })
+    _.merge(where, { project_id: state.auth.projectId })
+
+    const me = await AccountService.getCachedToken(state.auth.token.split('?')[0])
+    if (!me.native) where.native = { $exists: false }
 
     const rs: Role[] = await RoleService.find({
       $where: where,

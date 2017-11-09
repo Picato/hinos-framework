@@ -99,7 +99,6 @@ export class ProjectController {
   @BODYPARSER()
   @RESTRICT({
     body: {
-      name: String,
       des: String,
       plugins: Object
     }

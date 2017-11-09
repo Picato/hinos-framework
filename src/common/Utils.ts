@@ -2,6 +2,10 @@ import * as path from 'path'
 
 export default class Utils {
 
+  public static getUname(str) {
+    return Buffer.from(str, 'ascii').toString().replace(/[^\w]+/g, '-').toLowerCase()
+  }
+
   public static async executeCmd(cmd: string) {
     return new Promise((resolve, reject) => {
       const exec = require('child_process').exec

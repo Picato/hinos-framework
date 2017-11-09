@@ -34,7 +34,6 @@ export namespace generation {
       status: number().default(0),
       recover_by: string(),
       role_ids: array().required(false),
-      more: object().default({}),
       secret_key: string().required(false),
       created_at: date().auto('insert'),
       updated_at: date().auto('insert|update')

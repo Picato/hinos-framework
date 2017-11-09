@@ -11,7 +11,6 @@ describe('Test Account API', function() {
         status: number,
         recover_by: string,
         role_ids?: Array,
-        more: object,
         secret_key?: string,
         created_at?: Date,
         updated_at?: Date
@@ -41,7 +40,6 @@ describe('Test Account API', function() {
         status: number,
         recover_by: string,
         role_ids?: Array,
-        more: object,
         secret_key?: string,
         created_at?: Date,
         updated_at?: Date

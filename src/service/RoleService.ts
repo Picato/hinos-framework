@@ -1,3 +1,4 @@
+import * as _ from 'lodash'
 import { VALIDATE, Checker } from 'hinos-validation'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import { REDIS, Redis } from 'hinos-redis'
@@ -126,8 +127,7 @@ export class RoleService {
     const rs = await RoleService.mongo.insert<Role>(Role, body)
     // Reload cache
     await RoleService.reloadCachedRole(body.project_id)
-    delete rs.project_id
-    return rs
+    return _.omit(rs, ['project_id'])
   }
 
   @VALIDATE((body: Role) => {
