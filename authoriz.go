@@ -74,12 +74,12 @@ func GetRoleApiCached(projectId string) (*[]apiActionCached, error) {
 }
 
 func GetPluginCached(projectId string) (*pluginCached, error) {
-	_pluginCached, err := client.Get("$plugins:" + projectId).Result()
+	_pluginCached, err := client.HGetAll("$plugins:" + projectId).Result()
 	if err != nil {
 		return nil, err
 	}
 	pluginCached := &pluginCached{}
-	err = json.Unmarshal([]byte(_pluginCached), pluginCached)
+	err = json.Unmarshal([]byte(_pluginCached["plugins"]), pluginCached)
 	if err != nil {
 		return nil, err
 	}
