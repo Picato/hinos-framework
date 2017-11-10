@@ -2,6 +2,7 @@
   "name": "hinos-auto-script",
   "version": "1.0.0",
   "main": ".build",
+  "private": true,
   "scripts": {
     "once": "npm install -g typescript && npm install -g cross-var && npm install -g tslint-config-standard",
     "start": "node .",
@@ -36,9 +37,12 @@
   },
   "dependencies": {
     "archiver": "^2.1.0",
+    "zip-folder": "^1.0.0"
+  },
+  "peerDependencies": {
     "axios": "^0.16.2",
     "hinos": "^1.1.5",
-    "hinos-bodyparser": "^2.1.1",
+    "hinos-bodyparser": "^2.1.2",
     "hinos-cors": "^1.0.1",
     "hinos-helmet": "^1.0.0",
     "hinos-mongo": "^1.1.7",
@@ -46,7 +50,7 @@
     "hinos-route": "^1.1.12",
     "hinos-validation": "^1.1.2",
     "lodash": "^4.17.4",
-    "zip-folder": "^1.0.0"
+    "rimraf": "^2.6.2"
   },
   "author": "doanthuanthanh88@gmail.com",
   "license": "ISC",
@@ -54,9 +58,7 @@
     "@types/axios": "^0.14.0",
     "@types/chai": "^3.5.2",
     "@types/node": "^7.0.46",
-    "axios": "^0.16.2",
     "chai": "^3.5.0",
-    "mocha": "^3.5.3",
-    "rimraf": "^2.6.2"
+    "mocha": "^3.5.3"
   }
 }
