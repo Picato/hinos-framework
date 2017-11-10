@@ -1,4 +1,3 @@
-import * as _ from 'lodash'
 import { VALIDATE, Checker } from 'hinos-validation'
 import { ImageResize } from 'hinos-bodyparser/file'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
@@ -30,14 +29,28 @@ export class Files {
 export class FilesCached {
   _id: string | Uuid
   expired_at?: number
+  files?: string[]
 
-  static castToCached(_e) {
-    const e = _.cloneDeep(_e)
-    if (!e.expired_at) e.expired_at = new Date()
-    if (e.expired_at instanceof Date) e.expired_at = e.expired_at.getTime()
+  static castToCached(_e: Files) {
+    const e = {} as FilesCached
+    e.expired_at = !_e.expired_at ? new Date().getTime() : _e.expired_at.getTime()
+    e._id = _e._id.toString()
+    let files = _e.files instanceof Array ? _e.files : [_e.files]
+    files = files.map(e => e.split('?')[0])
+    files.forEach(f => {
+      f = f.split('?')[0]
+      if (_e.sizes && _e.sizes.length > 0) {
+        for (let s of _e.sizes) {
+          if (s.ext) {
+            files.push(f.substr(0, f.lastIndexOf('.')) + s.ext + f.substr(f.lastIndexOf('.')))
+          }
+        }
+      }
+    })
     return JSON.stringify({
       _id: e._id.toString(),
-      expired_at: e.expired_at
+      expired_at: e.expired_at,
+      files
     })
   }
   static castToObject(_e) {
@@ -69,7 +82,7 @@ export class FilesService {
         status: Files.Status.TEMP
       },
       $fields: {
-        _id: 1, expired_at: 1
+        _id: 1, expired_at: 1, files: 1, sizes: 1
       },
       $recordsPerPage: 0,
       $sort: {
@@ -77,25 +90,25 @@ export class FilesService {
       }
     })
     await FilesService.redis.rpush('files.temp', rs.map(FilesCached.castToCached))
-    FilesService.syncToRemoveTempFiles()
+    // FilesService.syncToRemoveTempFiles()
   }
 
-  static async syncToRemoveTempFiles() {
-    const now = new Date().getTime()
-    const rs = await FilesService.redis.lrange('files.temp')
-    if (rs.length > 0) {
-      for (let f of rs.map(FilesCached.castToObject).filter(e => e.expired_at < now)) {
-        try {
-          await FilesService.delete({
-            _id: f._id
-          })
-        } catch (e) {
-          console.error(e)
-        }
-      }
-    }
-    setTimeout(FilesService.syncToRemoveTempFiles, AppConfig.app.scanTimeout)
-  }
+  // static async syncToRemoveTempFiles() {
+  //   const now = new Date().getTime()
+  //   const rs = await FilesService.redis.lrange('files.temp')
+  //   if (rs.length > 0) {
+  //     for (let f of rs.map(FilesCached.castToObject).filter(e => e.expired_at < now)) {
+  //       try {
+  //         await FilesService.delete({
+  //           _id: f._id
+  //         })
+  //       } catch (e) {
+  //         console.error(e)
+  //       }
+  //     }
+  //   }
+  //   setTimeout(FilesService.syncToRemoveTempFiles, AppConfig.app.scanTimeout)
+  // }
 
   static async find(fil = {}) {
     const rs = await FilesService.mongo.find<Files>(Files, fil)
