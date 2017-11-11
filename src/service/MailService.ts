@@ -58,15 +58,13 @@ export class MailCached {
   retry_at?: number
 
   static async castToCached(_e: Mail): Promise<string> {
-    const e = _.cloneDeep(_e)
-    if (!e.retry_at) e.retry_at = new Date()
-    if (e.retry_at instanceof Date) e.retry_at = e.retry_at.getTime()
-    if (e.attachments && e.attachments.length > 0) {
-      e.attachments = e.attachments.map(e => _.pick(e, ['path', 'filename', 'content', 'contentType', 'encoding', 'raw']))
-    }
-    const config = await MailConfigService.get(e.config_id)
+    const e = {} as MailCached
+    if (!_e.retry_at) e.retry_at = new Date().getTime()
+    if (_e.retry_at instanceof Date) e.retry_at = _e.retry_at.getTime()
+    const config = await MailConfigService.get(_e.config_id)
     e.config = config.config
-    return JSON.stringify(_.pick(e, ['_id', 'config', 'subject', 'text', 'html', 'from', 'to', 'cc', 'attachments', 'retry_at', 'status']))
+    _.merge(e, _.pick(_e, ['_id', 'subject', 'text', 'html', 'from', 'to', 'cc', 'attachments', 'status']))
+    return JSON.stringify(e)
   }
   static castToObject(_e: string): MailCached {
     const e = JSON.parse(_e)
@@ -246,17 +244,15 @@ export class MailService {
           e.error = undefined
           e.retry_at = undefined
         } catch (err) {
-          if (Mail.Status.ERROR.includes(e.status - 1)) {
-            await MailService.redis.lrem('mail.temp', await MailCached.castToCached(e))
-            e.retry_at = new Date(new Date().getTime() + (AppConfig.app.retrySending * (e.status - 1) * -1))
-            e.status--
-            await MailService.redis.rpush('mail.temp', await MailCached.castToCached(e))
-          } else {
-            await MailService.redis.lrem('mail.temp', await MailCached.castToCached(e))
-            e.status--
-            e.retry_at = undefined
-          }
+          await MailService.redis.lrem('mail.temp', await MailCached.castToCached(e))
+          e.status--
           e.error = err
+          if (Mail.Status.ERROR.includes(e.status)) {            
+            e.retry_at = new Date(new Date().getTime() + (AppConfig.app.retrySending * (e.status - 1) * -1))
+            await MailService.redis.rpush('mail.temp', await MailCached.castToCached(e))
+          } else {                        
+            e.retry_at = undefined
+          }          
         }
         await MailService.mongo.update(Mail, _.omit(e, ['config']))
       }
