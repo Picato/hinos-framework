@@ -60,6 +60,7 @@ export class ClientController {
     body.project_id = state.auth.projectId
     body.account_id = state.auth.accountId
     body.template_id = params.templateId
+    if (body._this === undefined) body._this = {}
     const rs = await MailService.insert(_.omit(body, ['_this']), body._this) as Mail
     delete rs.project_id
     return rs

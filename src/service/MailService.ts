@@ -62,7 +62,7 @@ export class MailCached {
     if (!_e.retry_at) e.retry_at = new Date().getTime()
     if (_e.retry_at instanceof Date) e.retry_at = _e.retry_at.getTime()
     const config = await MailConfigService.get(_e.config_id)
-    e.config = config.config
+    if (config) e.config = config.config
     _.merge(e, _.pick(_e, ['_id', 'subject', 'text', 'html', 'from', 'to', 'cc', 'attachments', 'status']))
     return JSON.stringify(e)
   }
@@ -247,12 +247,12 @@ export class MailService {
           await MailService.redis.lrem('mail.temp', await MailCached.castToCached(e))
           e.status--
           e.error = err
-          if (Mail.Status.ERROR.includes(e.status)) {            
+          if (Mail.Status.ERROR.includes(e.status)) {
             e.retry_at = new Date(new Date().getTime() + (AppConfig.app.retrySending * (e.status - 1) * -1))
             await MailService.redis.rpush('mail.temp', await MailCached.castToCached(e))
-          } else {                        
+          } else {
             e.retry_at = undefined
-          }          
+          }
         }
         await MailService.mongo.update(Mail, _.omit(e, ['config']))
       }
