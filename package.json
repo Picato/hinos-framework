@@ -31,7 +31,7 @@
       "releaseTimeout": 5000
     },
     "app": {
-      "scanTimeout": 5000,
+      "scanTimeout": 1000,
       "retrySending": 300000
     },
     "encrypt": {
