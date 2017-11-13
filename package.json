@@ -12,7 +12,9 @@
     "pretest": "rimraf .spec && tsc -p src/test/tsconfig.json",
     "test": "mocha --opts src/test/mocha.opts \".spec/test/spec/*.js\"",
     "dev": "tsc --watch --pretty --sourceMap",
-    "pm2": "cross-var \"pm2 start . --env production --name $npm_package_name\""
+    "pm2": "cross-var \"pm2 start . --env production --name $npm_package_name\"",
+    "hinosgen": "git clone https://github.com/doanthuanthanh88/quickstart.git -b hinos@gencode --single-branch @gencode && cd @gencode && npm install",
+    "gen": "cd @gencode && npm start"
   },
   "config": {
     "externalConfig": "../config.cfg#dynamic",
@@ -21,7 +23,6 @@
     "services": {
       "oauth": "http://localhost:6111"
     },
-    "encryptKey": ")^!!!(**",
     "mongo": {
       "url": "mongodb://localhost:27017/dynamic",
       "releaseTimeout": 50000
