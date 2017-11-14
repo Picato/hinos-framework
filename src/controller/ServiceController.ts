@@ -61,8 +61,6 @@ export class ServiceController {
       _id: Mongo.uuid
     },
     body: {
-      name: String,
-      link: String,
       email: Array
     }
   })

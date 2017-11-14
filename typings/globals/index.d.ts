@@ -4,16 +4,22 @@ declare namespace SocketIOClient {
   }
 }
 interface IAppConfig {
-  externalConfig?: string;
-  url: string;
+  externalConfig?: string
+  url: string
   path: string
-  name: string;
-  port?: number;
-  host?: string;
+  name: string
+  port?: number
+  host?: string
   mongo?: {
-    url: string;
-    releaseTimeout?: number;
-  };
+    url: string
+    releaseTimeout?: number
+  }
+  redis?: {
+    host: string
+    port: number
+    db?: string
+    releaseTimeout?: number
+  }
   encrypt?: {
     pwd?: string
     mode?: Array<'query' | 'body' | 'response'>
@@ -22,6 +28,7 @@ interface IAppConfig {
   services: {
     oauth: string
     mail: string
+    log: string
   }
   app: {
     timeoutSpamMail: number
@@ -36,4 +43,4 @@ interface IAppConfig {
   }
 }
 
-declare const AppConfig: IAppConfig;
+declare const AppConfig: IAppConfig

@@ -23,7 +23,8 @@ export class MonitorConfigController {
   @RESTRICT({
     body: {
       mail_to: Array,
-      mail_config_id: Mongo.uuid
+      mail_template_id: Mongo.uuid,
+      enabled: Boolean
     }
   })
   static async config({ body, state }) {

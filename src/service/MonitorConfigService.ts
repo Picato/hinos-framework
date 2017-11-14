@@ -1,6 +1,8 @@
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
 import { Http } from 'hinos-common/Http'
+import { REDIS, Redis } from 'hinos-redis'
+import { ServiceService, ServiceCached } from './ServiceService';
 
 /************************************************
  ** ServiceService || 4/10/2017, 10:19:24 AM **
@@ -12,8 +14,9 @@ export class MonitorConfig {
   _id?: Uuid
   project_id: Uuid
   mail_to: string[]
-  mail_config_id: Uuid
+  mail_template_id: Uuid
   secret_key: string
+  enabled: boolean
 }
 /* tslint:enable */
 
@@ -21,15 +24,32 @@ export class MonitorConfigService {
   @MONGO()
   private static mongo: Mongo
 
+  @REDIS()
+  private static redis: Redis
+
   static async loadConfig() {
+    await MonitorConfigService.redis.del('monitor.config')
+    await MonitorConfigService.redis.del('monitor.temp')
     const configs = await MonitorConfigService.find()
+    let obj = {}
     for (let cf of configs) {
-      AppConfig.app.configs[cf.project_id.toString()] = {
-        mailConfigId: cf.mail_config_id,
+      obj[cf.project_id.toString()] = JSON.stringify({
+        enabled: cf.enabled,
+        mailTemplateId: cf.mail_template_id,
         mailTo: cf.mail_to,
         secretKey: cf.secret_key
+      })
+      // AppConfig.app.configs[cf.project_id.toString()] = {
+      //   mailTemplateId: cf.mail_template_id,
+      //   mailTo: cf.mail_to,
+      //   secretKey: cf.secret_key
+      // }
+      if (cf.enabled) {
+        ServiceService.loadIntoCached(cf.project_id)
       }
     }
+    await MonitorConfigService.redis.hset('monitor.config', obj)
+    ServiceService.check()
   }
 
   static async getMailConfig({ token }) {
@@ -55,14 +75,32 @@ export class MonitorConfigService {
     if (config) {
       data._id = config._id
       await MonitorConfigService.mongo.update(MonitorConfig, data)
+      if (data.enabled !== config.enabled) {
+        if (data.enabled) {
+          await ServiceService.loadIntoCached(data.project_id)
+        } else {
+          const sers = await MonitorConfigService.redis.lrange("monitor.temp") as string[]
+          for (let s of sers.map(e => JSON.parse(e))) {
+            await MonitorConfigService.redis.lrem("monitor.temp", ServiceCached.castToCached(s))
+          }
+        }
+      }
     } else {
       await MonitorConfigService.mongo.insert<MonitorConfig>(MonitorConfig, data)
     }
-    AppConfig.app.configs[data.project_id.toString()] = {
-      mailConfigId: data.mail_config_id,
-      mailTo: data.mail_to,
-      secretKey: data.secret_key
-    }
+    await MonitorConfigService.redis.hset('monitor.config', {
+      [data.project_id.toString()]: JSON.stringify({
+        enabled: data.enabled,
+        mailTemplateId: data.mail_template_id,
+        mailTo: data.mail_to,
+        secretKey: data.secret_key
+      })
+    })
+    // AppConfig.app.configs[data.project_id.toString()] = {
+    //   mailTemplateId: data.mail_template_id,
+    //   mailTo: data.mail_to,
+    //   secretKey: data.secret_key
+    // }
   }
 
   static async get(projectId: Uuid) {

@@ -22,14 +22,21 @@
     "path": "/monitor",
     "services": {
       "oauth": "http://localhost:6111",
-      "mail": "http://localhost:6113"
+      "mail": "http://localhost:6113",
+      "log": "http://localhost:6114"
     },
     "mongo": {
       "url": "mongodb://localhost:27017/monitor",
       "releaseTimeout": 50000
     },
+    "redis": {
+      "host": "localhost",
+      "port": 6379,
+      "db": 0,
+      "releaseTimeout": 5000
+    },
     "app": {
-      "timeoutPingService": 300000,
+      "timeoutPingService": 5000,
       "timeoutSpamMail": 900000,
       "configs": {}
     },

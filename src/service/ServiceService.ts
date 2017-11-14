@@ -1,9 +1,9 @@
 import { VALIDATE, Checker } from 'hinos-validation'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import { SOCKETIO, Socketio } from 'hinos-socketio'
+import { REDIS, Redis } from 'hinos-redis'
 import HttpError from '../common/HttpError'
 import { Http } from 'hinos-common/Http'
-import { LogService, Log } from './LogService'
 import * as portscanner from 'portscanner'
 
 /************************************************
@@ -16,13 +16,56 @@ export class Service {
   _id?: Uuid
   name?: string
   link?: string
-  logs?: Log[]
   status?: number
   email?: String[]
   project_id?: Uuid
-  lastSent?: Date
   created_at?: Date
   updated_at?: Date
+}
+/* tslint:enable */
+
+/* tslint:disable */
+export class Log {
+  title: string
+  type: string
+  error: string
+  status: number
+  service_id: Uuid | string
+}
+/* tslint:enable */
+
+/* tslint:disable */
+export class ServiceCached {
+  _id?: Uuid | string
+  name?: string
+  link?: string
+  host?: string
+  port?: number
+  status?: number
+  project_id?: Uuid | string
+  email?: string[]
+  lastSent?: number
+
+  static castToCached(_e: Service | ServiceCached) {
+    const links = _e.link.split(":")
+    return JSON.stringify({
+      _id: _e._id.toString(),
+      name: _e.name,
+      link: _e.link,
+      host: links[0],
+      port: +links[1],
+      status: _e.status,
+      project_id: _e.project_id,
+      email: _e.email,
+      lastSent: _e['lastSent'] || 0
+    })
+  }
+
+  static castToObject(_e: string) {
+    const e = JSON.parse(_e) as ServiceCached
+    e._id = Mongo.uuid(e._id)
+    return e
+  }
 }
 /* tslint:enable */
 
@@ -38,8 +81,27 @@ export class ServiceService {
   @MONGO()
   private static mongo: Mongo
 
+  @REDIS()
+  private static redis: Redis
+
   @SOCKETIO()
   private static socket: Socketio
+
+  static async loadIntoCached(projectId: Uuid) {
+    const rs = await ServiceService.mongo.find<Service>(Service, {
+      $where: {
+        project_id: projectId
+      },
+      $fields: {
+        _id: 1, name: 1, link: 1, status: 1, project_id: 1, email: 1
+      },
+      $recordsPerPage: 0,
+      $sort: {
+        updated_at: 1
+      }
+    })
+    await ServiceService.redis.rpush('monitor.temp', rs.map(ServiceCached.castToCached))
+  }
 
   static checkPortUsing(ip, port, name) {
     return new Promise((resolve, reject) => {
@@ -53,16 +115,25 @@ export class ServiceService {
   }
 
   static async check() {
-    const services = await ServiceService.mongo.find<Service>(Service)
-    for (let s of services) {
-      let msg
-      const [host, port] = s.link.split(':')
+    const services = await ServiceService.redis.lrange("monitor.temp") as string[]
+    for (let i = 0; i < services.length; i++) {
+      const s = ServiceCached.castToObject(services[i]) as ServiceCached
+      const now = new Date().getTime()
+      const mailConfig = JSON.parse(await ServiceService.redis.hget("monitor.config", s.project_id))
+      if (!mailConfig) continue
+      let log = {
+        title: `${s.name}`,
+        type: 'MONITOR'
+      } as Log
+      log['@service_id'] = `${s._id}`
+      log['created_at'] = new Date()
+      const oldStatus = s.status
       try {
-        await ServiceService.checkPortUsing(host, +port, s.name)
-        msg = await LogService.insert({
-          service_id: s._id,
-          status: Service.Status.ALIVE
-        })
+        await ServiceService.checkPortUsing(s.host, s.port, s.name)
+
+        log.status = Service.Status.ALIVE
+        s.status = Service.Status.ALIVE
+
         if (s.status !== Service.Status.ALIVE) {
           ServiceService.mongo.update(Service, {
             _id: s._id,
@@ -70,40 +141,46 @@ export class ServiceService {
           })
         }
       } catch (error) {
-        msg = await LogService.insert({
-          service_id: s._id,
-          error: error.toString(),
-          status: Service.Status.DEAD
-        })
-        let item: Service = {
-          _id: s._id,
-          status: Service.Status.DEAD
-        }
-        const mailConfig = AppConfig.app.configs[s.project_id.toString()]
-        if (mailConfig && mailConfig.mailConfigId && ((mailConfig.mailTo && mailConfig.mailTo.length > 0) || (s.email && s.email.length > 0)) && (!s.lastSent || (s.lastSent.getTime() - new Date().getTime() >= AppConfig.app.timeoutSpamMail))) {
+        s.status = Service.Status.DEAD
+        log.status = Service.Status.DEAD
+        log.error = error.message || error.toString()
+
+        if (mailConfig && mailConfig.mailTemplateId && ((mailConfig.mailTo && mailConfig.mailTo.length > 0) || (s.email && s.email.length > 0)) && (!s.lastSent || (now - s.lastSent >= AppConfig.app.timeoutSpamMail))) {
           try {
-            await Http.post(`${AppConfig.services.mail}/mail/Send/${mailConfig.mailConfigId}`, {
+            await Http.put(`${AppConfig.services.mail}/mail/Send/${mailConfig.mailTemplateId}`, {
               headers: {
                 token: mailConfig.secretKey
               },
               data: {
-                subject: `Micro service ${s.name} is downing, please check ASAP !`,
-                text: error.toString(),
-                from: 'Monitor@email.com',
-                to: mailConfig.mailTo.concat(s.email as string[] || [])
+                to: mailConfig.mailTo.concat(s.email as string[] || []),
+                _this: {
+                  service: s,
+                  error: error.toString()
+                }
               }
             })
-            item.lastSent = new Date()
           } catch (e) {
-            ServiceService.socket.send('/msg', s.project_id.toString(), `Send mail failed ${e}`)
+            log.error += '\n' + e.message || e.toString()
           } finally {
-            if (s.status !== Service.Status.DEAD) {
-              ServiceService.mongo.update(Service, item)
-            }
+            s.lastSent = now
           }
         }
       } finally {
-        ServiceService.socket.send('/msg', s.project_id.toString(), msg)
+        if (log.status !== oldStatus) {
+          try {
+            await ServiceService.mongo.update(Service, {
+              _id: s._id,
+              status: log.status
+            })
+            await ServiceService.pushToLog(log, mailConfig.secretKey)
+            await ServiceService.redis.lset("monitor.temp", i, JSON.stringify(s))
+          } catch (e) {
+            log.error += '\n' + e.message || e.toString()
+          }
+        } else if (s.lastSent === now) {
+          await ServiceService.redis.lset("monitor.temp", i, JSON.stringify(s))
+        }
+        ServiceService.socket.send('/msg', s.project_id.toString(), log)
       }
     }
     setTimeout(ServiceService.check, AppConfig.app.timeoutPingService)
@@ -111,15 +188,6 @@ export class ServiceService {
 
   static async find(fil = {}) {
     const rs = await ServiceService.mongo.find<Service>(Service, fil)
-    for (let i in rs) {
-      rs[i].logs = await LogService.find({
-        $where: {
-          service_id: rs[i]._id
-        },
-        $sort: { created_at: -1 },
-        $recordsPerPage: 50
-      })
-    }
     return rs
   }
 
@@ -135,6 +203,10 @@ export class ServiceService {
   })
   static async insert(body: Service) {
     const rs = await ServiceService.mongo.insert<Service>(Service, body)
+    const config = JSON.parse(await ServiceService.redis.hget("monitor.config", body.project_id.toString()))
+    if (config && config.enabled) {
+      await ServiceService.redis.rpush('monitor.temp', ServiceCached.castToCached(rs))
+    }
     return rs
   }
 
@@ -142,8 +214,6 @@ export class ServiceService {
     Checker.required(body, '_id', Object)
     Checker.required(body._id, '_id', Uuid)
     Checker.required(body._id, 'project_id', Uuid)
-    Checker.option(body, 'name', String)
-    Checker.option(body, 'link', String)
     Checker.option(body, 'email', Array, [])
     body.updated_at = new Date()
   })
@@ -156,7 +226,23 @@ export class ServiceService {
     Checker.required(where, 'project_id', Uuid)
   })
   static async delete(where) {
-    const rs = await ServiceService.mongo.delete(Service, where)
-    if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to delete')
+    const old = await ServiceService.mongo.delete<Service>(Service, where, { return: true })
+    if (!old) throw HttpError.NOT_FOUND('Could not found item to delete')
+    const sers = await ServiceService.redis.lrange("monitor.temp") as string[]
+    for (let s of sers.map(e => ServiceCached.castToObject(e)) as ServiceCached[]) {
+      if (s._id.toString() === old._id.toString()) {
+        await ServiceService.redis.lrem("monitor.temp", ServiceCached.castToCached(s))
+        break
+      }
+    }
+  }
+
+  private static async pushToLog(log: Log, secretKey: string) {
+    await Http.post(`${AppConfig.services.log}/log`, {
+      headers: {
+        token: secretKey
+      },
+      data: log
+    })
   }
 }

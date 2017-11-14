@@ -1,0 +1,178 @@
+package main
+
+import (
+	"encoding/json"
+	"log"
+	"net"
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/go-redis/redis"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
+
+	"bytes"
+)
+
+type serviceCached struct {
+	ID        string `json:"_id"`
+	Name      string `json:"name"`
+	Status    int    `json:"status"`
+	Link      string `json:"link"`
+	ProjectID string `json:"project_id"`
+	Email     string `json:"email"`
+}
+
+type configCached struct {
+	MailConfigID string `json:"mailConfigId"`
+	MailTo       string `json:"mailTo"`
+	SecretKey    string `json:"secretKey"`
+}
+
+var client = redis.NewClient(&redis.Options{
+	Addr:     "127.0.0.1:6379",
+	Password: "",
+	DB:       0,
+})
+
+func getServiceCached(_serviceCached string) (*serviceCached, error) {
+	serviceCached := &serviceCached{}
+	err := json.Unmarshal([]byte(_serviceCached), serviceCached)
+	if err != nil {
+		return nil, err
+	}
+	return serviceCached, nil
+}
+
+func getConfigCached(projectId string) (*configCached, error) {
+	_configCached, err := client.HGet("monitor.config", projectId).Result()
+	if err != nil {
+		return nil, err
+	}
+	configCached := &configCached{}
+	err = json.Unmarshal([]byte(_configCached), configCached)
+	if err != nil {
+		return nil, err
+	}
+	return configCached, nil
+}
+
+func sendMail(serviceCached *serviceCached, errs string) error {
+	config, err := getConfigCached(serviceCached.ProjectID)
+	if err != nil {
+		return err
+	}
+	client := &http.Client{}
+	data := []byte(`{
+		"subject": "Monitor service: Service is downing",
+		"text": "` + errs + `",
+		"from": "Tester",
+		"to": [
+			` + strings.Join(serviceCached.Email, ",") + `
+		],
+		"cc": [
+			"thanhdt611@gmail.com"
+		]
+	}`)
+
+	r, _ := http.NewRequest("POST", "http://service.clipvnet.com/mail/Send/"+config.MailConfigID, bytes.NewBuffer(data))
+	r.Header.Add("Content-Type", "application/json")
+	r.Header.Add("token", config.SecretKey)
+
+	resp, _err := client.Do(r)
+	if _err != nil {
+		return _err
+	}
+	if resp.StatusCode != 200 {
+		log.Println("Send mail failed with status " + string(resp.StatusCode))
+	}
+	return nil
+}
+
+func addLog(serviceCached *serviceCached, status int, errs string) error {
+	session, err := mgo.Dial("localhost")
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+	session.SetMode(mgo.Monotonic, true)
+
+	if serviceCached.Status != status {
+		c := session.DB("monitor").C("Service")
+		err = c.UpdateId(serviceCached.ID, bson.M{
+			"$set": bson.M{
+				"status": status,
+			},
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	c := session.DB("monitor").C("Log")
+	err = c.Insert(bson.M{
+		"_id":        bson.NewObjectId(),
+		"service_id": serviceCached.ID,
+		"status":     status,
+		"error":      errs,
+		"created_at": time.Now().UnixNano() / int64(time.Millisecond),
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func check(serviceCached *serviceCached) error {
+	conn, err := net.Dial("tcp", serviceCached.Link)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+	return nil
+}
+
+func main() {
+	for {
+		_services, err := client.LRange("monitor.temp", 0, -1).Result()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		if len(_services) > 0 {
+			for _, f := range _services {
+				serviceCached, err := getServiceCached(f)
+				if err != nil {
+					log.Println(err)
+				} else {
+					_err := check(serviceCached)
+					var status int
+					if _err != nil {
+						log.Println("Failed")
+						status = -1
+						addLog(serviceCached, status, _err.Error())
+						sendMail(serviceCached, _err.Error())
+					} else {
+						log.Println("Passed")
+						status = 1
+						addLog(serviceCached, status, "")
+					}
+					if serviceCached.Status != status {
+						log.Println("Change status")
+						client.LRem("monitor.temp", 1, f)
+
+						serviceCached.Status = status
+						str, err := json.Marshal(serviceCached)
+						if err == nil {
+							client.RPush("monitor.temp", string(str))
+						}
+					}
+				}
+			}
+		}
+		time.Sleep(5 * time.Second)
+	}
+}
