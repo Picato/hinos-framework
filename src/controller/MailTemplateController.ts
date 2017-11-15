@@ -19,8 +19,10 @@ export class MailTemplateController {
 			recordsPerPage: Number
 		}
 	})
-	static async find({ query }) {
-		let where = {}
+	static async find({ query, state }) {
+		let where = {
+			project_id: state.auth.projectId
+		}
 		const rs = await MailTemplateService.find({
 			$where: where,
 			$page: query.page,
