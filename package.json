@@ -15,7 +15,7 @@
     "hinosgen": "git clone https://github.com/doanthuanthanh88/quickstart.git -b hinos@gencode --single-branch @gencode && cd @gencode && npm install",
     "gen": "cd @gencode && npm start"
   },
-  "config": {
+  "appconfig": {
     "externalConfig": "../config.cfg#mail",
     "url": "http://localhost:6113",
     "path": "/mail",
@@ -43,7 +43,8 @@
         "body",
         "response"
       ],
-      "baseOnRequest": true
+      "baseOnRequest": true,
+      "helmet": false
     }
   },
   "dependencies": {
