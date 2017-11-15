@@ -16,7 +16,7 @@
     "hinosgen": "git clone https://github.com/doanthuanthanh88/quickstart.git -b hinos@gencode --single-branch @gencode && cd @gencode && npm install",
     "gen": "cd @gencode && npm start"
   },
-  "config": {
+  "appconfig": {
     "externalConfig": "../config.cfg#apiGateway",
     "url": "http://localhost:6110",
     "path": "/gateway",
@@ -38,7 +38,8 @@
         "body",
         "response"
       ],
-      "baseOnRequest": true
+      "baseOnRequest": true,
+      "helmet": false
     }
   },
   "dependencies": {

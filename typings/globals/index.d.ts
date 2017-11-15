@@ -11,7 +11,8 @@ interface IAppConfig {
   encrypt?: {
     pwd?: string
     mode?: Array<'query' | 'body' | 'response'>
-    baseOnRequest?: boolean,
+    baseOnRequest?: boolean
+    helmet: boolean
   }
   mongo?: any
   proxy?: any
