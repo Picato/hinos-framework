@@ -14,15 +14,17 @@ npm run once //Install global library
 npm install //Install app library
 ```
 ### Generate code
-1. Go to ```./gen_code```
+0. ```npm run hinosgen``` to get generation code project
+1. Go to ```./@gencode```
 2. ```npm install```
-3. Declare your tables (collection) in mongo at ```./gen_code/src/config.ts```
+3. Declare your tables (collection) in mongo at ```./@gencode/src/schema.ts```
 4. Please run ``` npm run gen ``` to auto generate code
 5. After done, please check files: 
     1. ./src/controller/```${YourTable}```Controller.ts ` ==> Declare API path`
     2. ./src/service/```${YourTable}```Service.ts ` ==> Handle business`
     3. ./http/```${YourTable}```.http ` ==> Quick test API via json`
     4. ./src/test/spec/```${YourTable}```.spec.ts ` ==> Test base on mocha framework`
+    5. ./hinosgen is schema backup to regenerate when you need
 ### Configuration
 1. Declare your application config in `./package.json` field `config`
 2. After done, you can get its value in `AppConfig.${your config}`
