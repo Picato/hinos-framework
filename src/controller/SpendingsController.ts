@@ -26,7 +26,7 @@ export default class SpendingsController {
   }
 
   @PUT('/Sync/:email')
-  @INJECT(authoriz(`${AppConfig.path}/Common`, ['SYNC']))
+  @INJECT(authoriz(`${AppConfig.path}/Common`, 'SYNC'))
   @BODYPARSER()
   @RESTRICT({
     query: {
@@ -65,7 +65,7 @@ export default class SpendingsController {
   }
 
   @GET('/StatisticByMonth')
-  @INJECT(authoriz(`${AppConfig.path}/Spendings`, ['STATISTIC_BY_MONTH']))
+  @INJECT(authoriz(`${AppConfig.path}/Spendings`, 'STATISTIC_BY_MONTH'))
   @RESTRICT({
     query: {
       startDate: Date,
@@ -89,7 +89,7 @@ export default class SpendingsController {
   }
 
   @GET('/StatisticByTypeSpending')
-  @INJECT(authoriz(`${AppConfig.path}/Spendings`, ['STATISTIC_BY_TYPE_SPENDING']))
+  @INJECT(authoriz(`${AppConfig.path}/Spendings`, 'STATISTIC_BY_TYPE_SPENDING'))
   @RESTRICT({
     query: {
       type: Number,
@@ -115,14 +115,14 @@ export default class SpendingsController {
   }
 
   @GET('/Spendings/Suggestion')
-  @INJECT(authoriz(`${AppConfig.path}/Spendings`, ['SUGGESTION']))
+  @INJECT(authoriz(`${AppConfig.path}/Spendings`, 'SUGGESTION'))
   static async getSuggestion({ state }) {
     const rs = await SpendingsService.getSuggestion(state.auth)
     return rs
   }
 
   @GET('/Spendings/Bookmark')
-  @INJECT(authoriz(`${AppConfig.path}/Spendings`, ['BOOKMARK']))
+  @INJECT(authoriz(`${AppConfig.path}/Spendings`, 'BOOKMARK'))
   static async getBookmark({
 		state
 	}) {
@@ -139,7 +139,7 @@ export default class SpendingsController {
   }
 
   @GET('/Spendings')
-  @INJECT(authoriz(`${AppConfig.path}/Spendings`, ['FIND']))
+  @INJECT(authoriz(`${AppConfig.path}/Spendings`, 'FIND'))
   @RESTRICT({
     query: {
       startDate: Date,
@@ -167,7 +167,7 @@ export default class SpendingsController {
   }
 
   @POST('/Spendings')
-  @INJECT(authoriz(`${AppConfig.path}/Spendings`, ['INSERT']))
+  @INJECT(authoriz(`${AppConfig.path}/Spendings`, 'INSERT'))
   @BODYPARSER()
   @RESTRICT({
     body: {
@@ -187,7 +187,7 @@ export default class SpendingsController {
   }
 
   @PUT('/Spendings/:_id')
-  @INJECT(authoriz(`${AppConfig.path}/Spendings`, ['UPDATE']))
+  @INJECT(authoriz(`${AppConfig.path}/Spendings`, 'UPDATE'))
   @BODYPARSER()
   @RESTRICT({
     params: {
@@ -210,7 +210,7 @@ export default class SpendingsController {
   }
 
   @DELETE('/Spendings/Bookmark/:_id')
-  @INJECT(authoriz(`${AppConfig.path}/Spendings`, ['UNBOOKMARK']))
+  @INJECT(authoriz(`${AppConfig.path}/Spendings`, 'UNBOOKMARK'))
   @RESTRICT({
     params: {
       _id: Mongo.uuid
@@ -221,7 +221,7 @@ export default class SpendingsController {
   }
 
   @DELETE('/Spendings/:_id')
-  @INJECT(authoriz(`${AppConfig.path}/Spendings`, ['DELETE']))
+  @INJECT(authoriz(`${AppConfig.path}/Spendings`, 'DELETE'))
   @RESTRICT({
     params: {
       _id: Mongo.uuid

@@ -12,7 +12,7 @@ import { authoriz } from '../service/Authoriz'
 export default class WalletController {
 
   @PUT('/Wallet/Transfer')
-  @INJECT(authoriz(`${AppConfig.path}/Wallet`, ['UPDATE']))
+  @INJECT(authoriz(`${AppConfig.path}/Wallet`, 'UPDATE'))
   @BODYPARSER()
   @RESTRICT({
     body: {
@@ -29,7 +29,7 @@ export default class WalletController {
   }
 
   @GET('/Wallet')
-  @INJECT(authoriz(`${AppConfig.path}/Wallet`, ['FIND']))
+  @INJECT(authoriz(`${AppConfig.path}/Wallet`, 'FIND'))
   @RESTRICT({
     query: {
       type: Number
@@ -50,7 +50,7 @@ export default class WalletController {
   }
 
   @POST('/Wallet')
-  @INJECT(authoriz(`${AppConfig.path}/Wallet`, ['INSERT']))
+  @INJECT(authoriz(`${AppConfig.path}/Wallet`, 'INSERT'))
   @BODYPARSER()
   @RESTRICT({
     body: {
@@ -71,7 +71,7 @@ export default class WalletController {
   }
 
   @PUT('/Wallet/reset/:_id')
-  @INJECT(authoriz(`${AppConfig.path}/Wallet`, ['UPDATE']))
+  @INJECT(authoriz(`${AppConfig.path}/Wallet`, 'UPDATE'))
   @BODYPARSER()
   @RESTRICT({
     params: {
@@ -87,7 +87,7 @@ export default class WalletController {
   }
 
   @PUT('/Wallet/:_id')
-  @INJECT(authoriz(`${AppConfig.path}/Wallet`, ['UPDATE']))
+  @INJECT(authoriz(`${AppConfig.path}/Wallet`, 'UPDATE'))
   @BODYPARSER()
   @RESTRICT({
     params: {
@@ -111,7 +111,7 @@ export default class WalletController {
   }
 
   @DELETE('/Wallet/:_id')
-  @INJECT(authoriz(`${AppConfig.path}/Wallet`, ['DELETE']))
+  @INJECT(authoriz(`${AppConfig.path}/Wallet`, 'DELETE'))
   @RESTRICT({
     params: {
       _id: Mongo.uuid

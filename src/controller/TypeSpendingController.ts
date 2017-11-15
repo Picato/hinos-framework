@@ -12,7 +12,7 @@ import { authoriz } from '../service/Authoriz'
 export default class TypeSpendingsController {
 
   @GET('/TypeSpendings')
-  @INJECT(authoriz(`${AppConfig.path}/TypeSpendings`, ['FIND']))
+  @INJECT(authoriz(`${AppConfig.path}/TypeSpendings`, 'FIND'))
   @RESTRICT({
     query: {
       type: Number
@@ -33,7 +33,7 @@ export default class TypeSpendingsController {
   }
 
   @GET('/TypeSpendings/:_id')
-  @INJECT(authoriz(`${AppConfig.path}/TypeSpendings`, ['GET']))
+  @INJECT(authoriz(`${AppConfig.path}/TypeSpendings`, 'GET'))
   @RESTRICT({
     params: {
       _id: Mongo.uuid
@@ -45,7 +45,7 @@ export default class TypeSpendingsController {
   }
 
   @POST('/TypeSpendings')
-  @INJECT(authoriz(`${AppConfig.path}/TypeSpendings`, ['INSERT']))
+  @INJECT(authoriz(`${AppConfig.path}/TypeSpendings`, 'INSERT'))
   @BODYPARSER()
   @RESTRICT({
     body: {
@@ -62,7 +62,7 @@ export default class TypeSpendingsController {
   }
 
   @PUT('/TypeSpendings/:_id')
-  @INJECT(authoriz(`${AppConfig.path}/TypeSpendings`, ['UPDATE']))
+  @INJECT(authoriz(`${AppConfig.path}/TypeSpendings`, 'UPDATE'))
   @BODYPARSER()
   @RESTRICT({
     params: {
@@ -82,7 +82,7 @@ export default class TypeSpendingsController {
   }
 
   @DELETE('/TypeSpendings/:_id')
-  @INJECT(authoriz(`${AppConfig.path}/TypeSpendings`, ['DELETE']))
+  @INJECT(authoriz(`${AppConfig.path}/TypeSpendings`, 'DELETE'))
   @RESTRICT({
     params: {
       _id: Mongo.uuid

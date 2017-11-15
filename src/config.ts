@@ -5,7 +5,7 @@ import * as _ from 'lodash'
 declare let global: any
 
 const packageConfig = require('../package.json')
-const appconfig: IAppConfig = _.merge({}, packageConfig.config, {
+const appconfig: IAppConfig = _.merge({}, packageConfig.appconfig, {
   name: packageConfig.name
 })
 
@@ -51,6 +51,8 @@ if (appconfig.externalConfig) {
       let k = l.substr(0, l.indexOf('='))
       let v: any = l.substr(l.indexOf('=') + 1)
       if (v.indexOf('+') === 0) v = +v
+      else if (v === 'true') v = true
+      else if (v === 'false') v = false
       config[key] = loadNewVar(config[key], k, v)
     }
     _.merge(appconfig, config[externalGroup])

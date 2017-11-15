@@ -1,4 +1,4 @@
-import { Http } from 'hinos-common/Http'
+import axios from 'axios'
 import HttpError from '../common/HttpError'
 
 /************************************************
@@ -9,11 +9,10 @@ export class LogService {
 
   static async push(log, auth) {
     try {
-      await Http.post(`${AppConfig.services.log}/log`, {
+      await axios.post(`${AppConfig.services.log}/log`, log, {
         headers: {
           token: auth.token
-        },
-        data: log
+        }
       })
     } catch (e) {
       throw HttpError.CUSTOMIZE(e.status, e.error)
