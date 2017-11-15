@@ -29,6 +29,7 @@ interface IAppConfig {
     mode?: Array<'query' | 'body' | 'response'>
     type?: 'rsa' | 'blowfish'
     baseOnRequest?: boolean
+    helmet?: boolean
   }
   app: {
 

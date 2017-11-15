@@ -1,10 +1,5 @@
-import { helmet } from 'hinos-helmet'
-
 export default function env(Server) {
   console.log('Production mode')
-  Server.use(helmet.default())
-  if (AppConfig.encrypt && AppConfig.encrypt.pwd) {
-    const { hasher } = require('hinos-requesthasher')
-    Server.use(hasher(AppConfig.encrypt.pwd, AppConfig.encrypt))
-  }
+  if (AppConfig.encrypt.helmet) Server.use(require('hinos-helmet').helmet.default())
+  if (AppConfig.encrypt && AppConfig.encrypt.pwd) Server.use(require('hinos-requesthasher').hasher(AppConfig.encrypt.pwd, AppConfig.encrypt))
 }
