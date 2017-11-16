@@ -41,7 +41,7 @@ export class RoleService {
     api: [
       { path: '/gateway', actions: 'FIND|UPDATE|DELETE' },
       { path: '/monitor/Service', actions: 'SESSION|FIND|INSERT|UPDATE|DELETE' },
-      { path: '/monitor/Config', actions: 'GET|CONFIG|GET_MAIL_CONFIG' },
+      { path: '/monitor/Config', actions: 'GET|CONFIG' },
       { path: '/monitor/Log', actions: 'FIND' },
       { path: '/script', actions: 'FIND|GET|INSERT|UPDATE|DELETE' },
       { path: '/files/Config', actions: 'FIND|INSERT|UPDATE|DELETE' },
