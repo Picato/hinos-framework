@@ -1,6 +1,6 @@
 import * as _ from 'lodash'
 import { GET, POST, PUT, DELETE, HEAD, INJECT } from 'hinos-route'
-import { md5 } from 'hinos-common/Encrypt'
+import md5 from 'hinos-common/encrypt/md5'
 import { BODYPARSER } from 'hinos-bodyparser'
 import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { Mongo } from 'hinos-mongo'
@@ -77,7 +77,7 @@ export default class AccountController {
   })
   static async register({ body, headers }) {
     body = Mongo.autocast(body)
-    body = _.omit(body, ['_id', 'trying', 'secret_key', 'created_at', 'updated_at', 'token', 'native', 'status'])    
+    body = _.omit(body, ['_id', 'trying', 'secret_key', 'created_at', 'updated_at', 'token', 'native', 'status'])
     body.role_ids = headers.role ? [headers.role] : undefined
     const { plugins, projectId } = await ProjectService.getCachedPlugins(headers.pj)
     body.project_id = projectId

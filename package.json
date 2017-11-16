@@ -61,6 +61,7 @@
     "hinos-requesthasher": "^1.1.9",
     "hinos-route": "^1.1.12",
     "hinos-validation": "^1.1.2",
+    "hinos-common": "^2.0.2",
     "lodash": "^4.17.4",
     "rimraf": "^2.6.2"
   },
@@ -71,7 +72,7 @@
     "@types/chai": "^3.5.2",
     "@types/lodash": "^4.14.82",
     "@types/mocha": "^2.2.44",
-    "@types/node": "^7.0.46",
+    "@types/node": "^7.0.48",
     "mocha": "^3.5.3"
   }
 }
