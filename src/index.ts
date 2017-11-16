@@ -16,7 +16,7 @@ AppConfig.proxy = new httpProxy.createProxyServer({
 Mongo(AppConfig.mongo).debug(!Server.isProduction)
 
 Server.use(cors())
-Server.use(route(path.join(__dirname, 'controller'), { ignorecase: true, autoSort: false }))
+Server.use(route(path.join(__dirname, 'controller'), { ignorecase: true }))
 // For websocket with request querystring name is root path of service
 Server.server.on('upgrade', function (req, res) {
   const query = querystring.parse(req.url.split('?')[1])
