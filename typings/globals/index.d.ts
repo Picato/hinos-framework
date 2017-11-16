@@ -14,7 +14,7 @@ interface IAppConfig {
     pwd?: string
     mode?: Array<'query' | 'body' | 'response'>
     baseOnRequest?: boolean
-    helmet: boolean
+    helmet?: boolean
   }
   services: {
     oauth: string
