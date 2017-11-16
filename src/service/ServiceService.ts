@@ -3,7 +3,7 @@ import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import { SOCKETIO, Socketio } from 'hinos-socketio'
 import { REDIS, Redis } from 'hinos-redis'
 import HttpError from '../common/HttpError'
-import { Http } from 'hinos-common/Http'
+import axios from 'axios'
 import * as portscanner from 'portscanner'
 
 /************************************************
@@ -147,18 +147,19 @@ export class ServiceService {
 
         if (mailConfig && mailConfig.mailTemplateId && ((mailConfig.mailTo && mailConfig.mailTo.length > 0) || (s.email && s.email.length > 0)) && (!s.lastSent || (now - s.lastSent >= AppConfig.app.timeoutSpamMail))) {
           try {
-            await Http.put(`${AppConfig.services.mail}/mail/Send/${mailConfig.mailTemplateId}`, {
-              headers: {
-                token: mailConfig.secretKey
-              },
-              data: {
+            await axios.put(`${AppConfig.services.mail}/mail/Send/${mailConfig.mailTemplateId}`,
+              {
                 to: mailConfig.mailTo.concat(s.email as string[] || []),
                 _this: {
                   service: s,
                   error: error.toString()
                 }
+              }, {
+                headers: {
+                  token: mailConfig.secretKey
+                }
               }
-            })
+            )
           } catch (e) {
             log.error += '\n' + e.message || e.toString()
           } finally {
@@ -238,11 +239,10 @@ export class ServiceService {
   }
 
   private static async pushToLog(log: Log, secretKey: string) {
-    await Http.post(`${AppConfig.services.log}/log`, {
+    await axios.post(`${AppConfig.services.log}/log`, log, {
       headers: {
         token: secretKey
-      },
-      data: log
+      }
     })
   }
 }

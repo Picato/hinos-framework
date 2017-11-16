@@ -1,6 +1,6 @@
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
-import { Http } from 'hinos-common/Http'
+import axios from 'axios'
 import { REDIS, Redis } from 'hinos-redis'
 import { ServiceService, ServiceCached } from './ServiceService';
 
@@ -39,11 +39,6 @@ export class MonitorConfigService {
         mailTo: cf.mail_to,
         secretKey: cf.secret_key
       })
-      // AppConfig.app.configs[cf.project_id.toString()] = {
-      //   mailTemplateId: cf.mail_template_id,
-      //   mailTo: cf.mail_to,
-      //   secretKey: cf.secret_key
-      // }
       if (cf.enabled) {
         ServiceService.loadIntoCached(cf.project_id)
       }
@@ -52,26 +47,17 @@ export class MonitorConfigService {
     ServiceService.check()
   }
 
-  static async getMailConfig({ token }) {
-    const resp = await Http.get(`${AppConfig.services.mail}/Mail/Config`, {
-      headers: {
-        token
-      }
-    })
-    return resp.body
-  }
-
   static async config(data: MonitorConfig, { token }) {
-    const resp = await Http.get(`${AppConfig.services.oauth}/Oauth/Secretkey`, {
+    const resp = await axios.get(`${AppConfig.services.oauth}/oauth/Secretkey`, {
       headers: {
         token
       }
     })
-    if (!resp.body) throw HttpError.CONDITION('Need gen secret key before save configuration')
+    if (!resp.data) throw HttpError.CONDITION('Need gen secret key before save configuration')
     const config = await MonitorConfigService.mongo.get<MonitorConfig>(MonitorConfig, {
       project_id: data.project_id
     })
-    data.secret_key = resp.body
+    data.secret_key = resp.data
     if (config) {
       data._id = config._id
       await MonitorConfigService.mongo.update(MonitorConfig, data)
@@ -96,11 +82,6 @@ export class MonitorConfigService {
         secretKey: data.secret_key
       })
     })
-    // AppConfig.app.configs[data.project_id.toString()] = {
-    //   mailTemplateId: data.mail_template_id,
-    //   mailTo: data.mail_to,
-    //   secretKey: data.secret_key
-    // }
   }
 
   static async get(projectId: Uuid) {

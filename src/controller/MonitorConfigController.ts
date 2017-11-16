@@ -32,10 +32,4 @@ export class MonitorConfigController {
     await MonitorConfigService.config(body, state.auth)
   }
 
-  @GET('/MailConfig')
-  @INJECT(authoriz(`${AppConfig.path}/config`, 'GET_MAIL_CONFIG'))
-  static async getMailConfig({ state }) {
-    return await MonitorConfigService.getMailConfig(state.auth)
-  }
-
 }
