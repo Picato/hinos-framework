@@ -52,7 +52,10 @@ export class RoleService {
       { path: '/mail', actions: 'SEND_TEMPLATE|SEND|Test|RESEND|FIND|GET|DELETE' },
       { path: '/oauth/Role', actions: 'FIND|GET|INSERT|UPDATE|DELETE' },
       { path: '/oauth/Project', actions: 'GET|UPDATE_MINE' },
-      { path: '/oauth/Account', actions: 'FIND|GET|INSERT|UPDATE|DELETE|LOGOUT|PING|GEN_SECRETKEY|REMOVE_SECRETKEY|GET_SECRETKEY|GET_ME|UPDATE_ME|GET_MYROLES' }
+      { path: '/oauth/Account', actions: 'FIND|GET|INSERT|UPDATE|DELETE|LOGOUT|PING|GEN_SECRETKEY|REMOVE_SECRETKEY|GET_SECRETKEY|GET_ME|UPDATE_ME|GET_MYROLES' },
+      { path: '/dynamic/Object', actions: 'FIND|GET|INSERT|UPDATE|DELETE' },
+      { path: '/dynamic/Table', actions: 'FIND|INSERT|DELETE' },
+      { path: '.*', actions: 'EXPORT' }
     ],
     web: [
       { path: '/FileConfig', actions: 'ADD|EDIT|DELETE|UPLOAD' },
