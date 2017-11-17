@@ -5,7 +5,7 @@ import { Redis, REDIS } from 'hinos-redis'
 import md5 from 'hinos-common/encrypt/md5'
 import HttpError from '../common/HttpError'
 import { Role } from './RoleService'
-import { ProjectService, Plugin } from './ProjectService'
+import { ProjectService, Plugin, PluginCached } from './ProjectService'
 import { RoleService } from './RoleService'
 import axios from 'axios'
 
@@ -41,12 +41,16 @@ export class AccountCached {
   native: boolean
   /* tslint:enable */
 
-  // static cast(_this) {
-  //   return {
-  //     project_id: Mongo.uuid(_this.project_id),
-  //     role_ids: Mongo.uuid(_this.role_ids),
-  //     account_id: Mongo.uuid(_this.account_id)
-  //   } as AccountCached
+  // static castToCached(_e: Account) {
+  //   return JSON.stringify(_.pick(_e, ['_id', 'project_id', 'account_id', 'role_ids', 'native']))
+  // }
+  // static castToObject(_e) {
+  //   if (!_e) return _e
+  //   return JSON.parse(_e) as AccountCached
+  //   // e._id = Mongo.uuid(e._id)
+  //   // e.project_id = Mongo.uuid(e.project_id)
+  //   // e.account_id = Mongo.uuid(e.account_id)
+  //   // e.role_ids = (e.role_ids as string[]).map(e => Mongo.uuid(e)) as Uuid[]
   // }
 }
 
@@ -173,7 +177,7 @@ export class AccountService {
     if (!token) throw HttpError.AUTHEN()
     const accountCached = await AccountService.getCachedToken(token)
     if (!accountCached) throw HttpError.EXPIRED()
-    const { plugins } = await ProjectService.getCachedPlugins(accountCached.project_id)
+    const plugins = await ProjectService.getCached(accountCached.project_id, 'plugins') as PluginCached
     if (!plugins) throw HttpError.INTERNAL('Could not found plugin configuration')
     await AccountService.touchCachedToken(token, plugins.oauth.session_expired)
   }
@@ -202,7 +206,7 @@ export class AccountService {
     const cached = await AccountService.getCachedToken(token)
     if (!cached) throw HttpError.EXPIRED()
 
-    const roles = await RoleService.getCachedApiRole(cached.project_id)
+    const { roles } = await RoleService.getCachedApiRole(cached.project_id)
     const accRole = roles.filter(e => cached.role_ids.includes(e.role_id))
     for (const r of accRole) {
       if ((!r.isPathRegex && r.path === path) || (r.isPathRegex && new RegExp(`^${r.path}$`).test(path))) {
@@ -421,16 +425,16 @@ export class AccountService {
   ///////////////////// Cached
 
   static async touchCachedToken(token: string, time: number) {
-    await AccountService.redis.touch(`$token:${token}`, time)
+    await AccountService.redis.touch(`$tk:${token}`, time)
   }
 
   static async setCachedToken(token: string, cached?: AccountCached) {
-    if (!cached) return await AccountService.redis.del(`$token:${token}`)
-    await AccountService.redis.set(`$token:${token}`, cached)
+    if (!cached) return await AccountService.redis.del(`$tk:${token}`)
+    await AccountService.redis.set(`$tk:${token}`, cached)
   }
 
   static async getCachedToken(token: string) {
-    return await AccountService.redis.get(`$token:${token}`) as AccountCached
+    return await AccountService.redis.get(`$tk:${token}`) as AccountCached
   }
 
   private static generateToken() {

@@ -6,7 +6,7 @@ import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { Mongo } from 'hinos-mongo'
 import { AccountService } from '../service/AccountService'
 import { RoleService } from '../service/RoleService'
-import { ProjectService } from '../service/ProjectService'
+import { ProjectService, PluginCached } from '../service/ProjectService'
 import { authoriz } from '../service/Authoriz'
 import HttpError from '../common/HttpError'
 
@@ -35,8 +35,8 @@ export default class AccountController {
     }
   })
   static async login({ headers, ctx, body }) {
-    const { plugins, projectId } = await ProjectService.getCachedPlugins(headers.pj)
-    body.projectId = projectId
+    const plugins = await ProjectService.getCached(headers.pj, 'plugins') as PluginCached
+    body.projectId = Mongo.uuid(plugins.project_id)
     if (!plugins || !plugins.oauth) throw HttpError.INTERNAL('Project config got problem')
     const oauth = plugins.oauth
     if (oauth.app && oauth.app.length > 0 && body.app) {
@@ -79,8 +79,8 @@ export default class AccountController {
     body = Mongo.autocast(body)
     body = _.omit(body, ['_id', 'trying', 'secret_key', 'created_at', 'updated_at', 'token', 'native', 'status'])
     body.role_ids = headers.role ? [headers.role] : undefined
-    const { plugins, projectId } = await ProjectService.getCachedPlugins(headers.pj)
-    body.project_id = projectId
+    const plugins = await ProjectService.getCached(headers.pj, 'plugins') as PluginCached
+    body.project_id = Mongo.uuid(plugins.project_id)
     if (body.password) body.password = md5(body.password)
     if (!plugins || !plugins.oauth) throw HttpError.INTERNAL('Project config got problem')
     const oauth = plugins.oauth

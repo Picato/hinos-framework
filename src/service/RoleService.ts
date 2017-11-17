@@ -1,9 +1,9 @@
 import * as _ from 'lodash'
 import { VALIDATE, Checker } from 'hinos-validation'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
-import { REDIS, Redis } from 'hinos-redis'
 import HttpError from '../common/HttpError'
 import { AccountService } from './AccountService'
+import { ProjectService } from './ProjectService';
 
 /************************************************
  ** RoleService || 4/10/2017, 10:19:24 AM **
@@ -33,6 +33,61 @@ export class Role {
   native?: boolean
   created_at?: Date
   updated_at?: Date
+}
+/* tslint:enable */
+
+/* tslint:disable */
+export class RoleCached {
+  project_id: string
+  roles: {
+    _id?: Uuid
+    api?: Action[]
+    web?: Action[]
+    mob?: Action[]
+  }[]
+
+  static castToCached(projectId: any, roles: Role[]) {
+    return JSON.stringify({
+      project_id: projectId,
+      roles: roles.map(e => _.pick(e, ['_id', 'api', 'web', 'mob']))
+    })
+  }
+
+  static castToObject(str) {
+    return JSON.parse(str) as RoleCached
+  }
+}
+/* tslint:enable */
+
+/* tslint:disable */
+export class RoleApiCached {
+  project_id: string
+  roles: {
+    role_id: string
+    isPathRegex: boolean
+    isActionRegex: boolean
+    path: string
+    actions: string
+  }[]
+
+  static castToCached(projectId: any, roles: Role[]) {
+    return JSON.stringify({
+      project_id: projectId,
+      roles: roles.reduce((sum, n) => {
+        return sum.concat(n.api.map((e: ApiAction) => {
+          if ((e.actions as any) instanceof Array) e.actions = (e.actions as any).join('|')
+          e.role_id = n._id.toString()
+          e.isPathRegex = !/^[\w\s\/]+$/.test(e.path)
+          e.isActionRegex = !/^[\w\s\/]+$/.test(e.actions)
+          return e
+        }))
+      }, [])
+    })
+  }
+
+  static castToObject(str) {
+    return JSON.parse(str) as RoleCached
+  }
 }
 /* tslint:enable */
 
@@ -76,9 +131,6 @@ export class RoleService {
 
   @MONGO()
   private static mongo: Mongo
-
-  @REDIS()
-  private static redis: Redis
 
   static async createDefaultAdminRole(projectId: Uuid) {
     // Admin role
@@ -165,7 +217,7 @@ export class RoleService {
 
   static async getMyRole(type: string, { accountId, projectId }) {
     if (!type) throw HttpError.BAD_REQUEST('Role type is required')
-    const roles = await RoleService.getCachedRole(projectId)
+    const { roles } = await RoleService.getCachedRole(projectId)
     let myRoles = (await AccountService.getRoles({ accountId })).map(e => e.toString())
     myRoles = roles.filter(e => myRoles.includes(e._id.toString()))
     return myRoles.reduce((sum, n) => sum.concat(n[type]), [])
@@ -173,38 +225,22 @@ export class RoleService {
 
   ////////////// Cached
 
-  static async reloadCachedRole(projectId: Uuid, isRemoved?: boolean) {
-    if (isRemoved) {
-      const roles = await RoleService.redis.get(`$roles:${projectId}`)
-      await RoleService.redis.del(`$roles:${projectId}`)
-      await RoleService.redis.del(`$roles.api:${projectId}`)
-      return roles.length
-    }
+  static async reloadCachedRole(projectId: Uuid) {
     const roles = await RoleService.find({
-      $where: {
-        project_id: projectId
-      },
+      $where: { project_id: projectId },
       $recordsPerPage: 0
     })
-    await RoleService.redis.set(`$roles:${projectId}`, roles)
-    await RoleService.redis.set(`$roles.api:${projectId}`, roles.reduce((sum, n) => {
-      return sum.concat(n.api.map((e: ApiAction) => {
-        if ((e.actions as any) instanceof Array) e.actions = (e.actions as any).join('|')
-        e.role_id = n._id.toString()
-        e.isPathRegex = !/^[\w\s\/]+$/.test(e.path)
-        e.isActionRegex = !/^[\w\s\/]+$/.test(e.actions)
-        return e
-      }))
-    }, []))
+    const projectName = await ProjectService.getCached(projectId, 'name') as string
+    await ProjectService.reloadCachedPlugins(projectId, projectName, { roles })
     return roles.length
   }
 
   static async getCachedApiRole(projectId: Uuid) {
-    return await RoleService.redis.get(`$roles.api:${projectId}`) as ApiAction[]
+    return await ProjectService.getCached(projectId, 'apis') as RoleApiCached
   }
 
   static async getCachedRole(projectId: Uuid) {
-    return await RoleService.redis.get(`$roles:${projectId}`) as Role[]
+    return await ProjectService.getCached(projectId, 'roles') as RoleCached
   }
 
 }

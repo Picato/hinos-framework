@@ -1,8 +1,9 @@
+import * as _ from 'lodash'
 import { VALIDATE, Checker } from 'hinos-validation'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import { REDIS, Redis } from 'hinos-redis'
 import HttpError from '../common/HttpError'
-import { RoleService } from './RoleService'
+import { RoleService, RoleCached, RoleApiCached } from './RoleService'
 import { AccountService } from './AccountService'
 import Utils from '../common/Utils';
 
@@ -20,6 +21,19 @@ export type Plugin = {
   }
 }
 
+/* tslint:disable */
+export type PluginCached = {
+  project_id: string
+  oauth?: {
+    app?: string[]
+    mail_verify_template?: Uuid
+    session_expired?: number
+    single_mode?: boolean
+    trying?: number
+  }
+}
+/* tslint:enable */
+
 @Collection('Project')
 /* tslint:disable */
 export class Project {
@@ -32,6 +46,33 @@ export class Project {
   owner?: string
   created_at?: Date
   updated_at?: Date
+}
+/* tslint:enable */
+
+/* tslint:disable */
+export class ProjectCached {
+  _id: string
+  name: string
+  plugins?: PluginCached
+  roles: RoleCached
+  apis: RoleApiCached
+
+  static castToCached(projectId: any, _e: any | Plugin) {
+    _e.project_id = projectId
+    return JSON.stringify(_e)
+  }
+
+  static castToObject(plugins) {
+    return JSON.parse(plugins)
+  }
+  // static castToObject(_e) {
+  //   if (!_e) return _e
+  //   return JSON.parse(_e) as AccountCached
+  //   // e._id = Mongo.uuid(e._id)
+  //   // e.project_id = Mongo.uuid(e.project_id)
+  //   // e.account_id = Mongo.uuid(e.account_id)
+  //   // e.role_ids = (e.role_ids as string[]).map(e => Mongo.uuid(e)) as Uuid[]
+  // }
 }
 /* tslint:enable */
 
@@ -59,9 +100,8 @@ export class ProjectService {
         $recordsPerPage: -1
       })
       for (const cached of caches) {
-        await ProjectService.reloadCachedPlugins(cached._id, cached.uname, cached.plugins)
+        await ProjectService.reloadCachedPlugins(cached._id, cached.uname, { plugins: cached.plugins, roles: true })
       }
-      console.log(`Loaded ${caches.length} plugin configuration`)
     } else {
       const cached = await ProjectService.mongo.get<Project>(Project, {
         $where: {
@@ -69,7 +109,7 @@ export class ProjectService {
         },
         $fields: { plugins: 1, uname: 1 }
       })
-      await ProjectService.reloadCachedPlugins(cached._id, cached.uname, cached.status === Project.Status.ACTIVED ? cached.plugins : undefined)
+      await ProjectService.reloadCachedPlugins(cached._id, cached.uname, cached.status === Project.Status.ACTIVED ? { plugins: cached.plugins } : undefined)
     }
   }
 
@@ -111,7 +151,7 @@ export class ProjectService {
     // Create default admin account
     await AccountService.createDefaultAdminAccount(prj._id, role)
     // Reload cached
-    await ProjectService.reloadCachedPlugins(prj._id, prj.uname, prj.plugins)
+    await ProjectService.reloadCachedPlugins(prj._id, prj.uname, { plugins: prj.plugins })
     return prj
   }
 
@@ -133,11 +173,12 @@ export class ProjectService {
         return
       } else if (old.status !== body.status && body.status === Project.Status.ACTIVED) {
         // Reload cached
-        await ProjectService.reloadCachedPlugins(old._id, old.uname)
+        body = _.merge({}, old, body)
+        await ProjectService.reloadCachedPlugins(old._id, old.uname, { plugins: body.plugins, roles: true })
         return
       }
     }
-    if (body.plugins) await ProjectService.reloadCachedPlugins(old._id, old.uname, body.plugins)
+    if (body.plugins) await ProjectService.reloadCachedPlugins(old._id, old.uname, { plugins: body.plugins })
   }
 
   @VALIDATE((_id: Uuid) => {
@@ -154,44 +195,35 @@ export class ProjectService {
 
   ////////////// Cached
 
-  static async reloadCachedPlugins(projectId: Uuid, projectUName: string, plugins?: any) {
-    if (!plugins) {
-      if (projectId) {
-        await ProjectService.redis.del(`$plugins:${projectId}`)
-        const rs = await RoleService.reloadCachedRole(projectId, true)
-        console.log(`Removed ${rs} roles into cached`)
-      }
-      if (projectUName) {
-        await ProjectService.redis.del(`$plugins:${projectUName}`)
-        const rs = await RoleService.reloadCachedRole(projectUName, true)
-        console.log(`Removed ${rs} roles into cached`)
-      }
+  static async reloadCachedPlugins(projectId: Uuid, projectUName: string, values?: { plugins?: any, roles?: any }) {
+    if (!values) {
+      if (projectId) await ProjectService.redis.del(`$p:${projectId}`)
+      if (projectUName) await ProjectService.redis.del(`$p:${projectUName}`)
     } else {
-      if (projectId) {
-        await ProjectService.redis.hset(`$plugins:${projectId}`, {
-          projectId: projectId.toString(),
-          plugins: JSON.stringify(plugins)
-        })
-        const rs = await RoleService.reloadCachedRole(projectId)
-        console.log(`Loaded ${rs} roles into cached`)
+      let { plugins, roles } = values
+      let cached = {} as any
+      if (projectId) cached._id = projectId.toString()
+      if (projectUName) cached.name = projectUName
+      if (plugins) cached.plugins = ProjectCached.castToCached(projectId, plugins)
+      if (roles) {
+        if (roles === true) {
+          roles = await RoleService.find({
+            $where: { project_id: projectId },
+            $recordsPerPage: 0,
+            $fields: { _id: 1, api: 1, web: 1, mob: 1 }
+          })
+        }
+        cached.roles = RoleCached.castToCached(projectId, roles)
+        cached.apis = RoleApiCached.castToCached(projectId, roles)
       }
-      if (projectUName) {
-        await ProjectService.redis.hset(`$plugins:${projectUName}`, {
-          projectId: projectId.toString(),
-          plugins: JSON.stringify(plugins)
-        })
-        const rs = await RoleService.reloadCachedRole(projectUName)
-        console.log(`Loaded ${rs} roles into cached`)
-      }
+      if (projectId) await ProjectService.redis.hset(`$p:${projectId}`, cached)
+      if (projectUName) await ProjectService.redis.hset(`$p:${projectUName}`, cached)
     }
   }
 
-  static async getCachedPlugins(projectIdUname: Uuid | string) {
-    const rs = await ProjectService.redis.hget(`$plugins:${projectIdUname}`) as { projectId: string, plugins: string }
-    return {
-      projectId: Mongo.uuid(rs.projectId),
-      plugins: JSON.parse(rs.plugins) as Plugin
-    }
+  static async getCached(projectIdUname: Uuid | string, type?: 'plugins' | 'roles' | 'apis' | 'name' | '_id') {
+    const rs = await ProjectService.redis.hget(`$p:${projectIdUname}`, type)
+    return (!['name', '_id'].includes(type) ? ProjectCached.castToObject(rs) : rs) as PluginCached | RoleCached | RoleApiCached | ProjectCached | string
   }
 
 }
