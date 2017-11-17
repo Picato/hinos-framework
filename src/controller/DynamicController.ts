@@ -79,7 +79,7 @@ export class DynamicController {
   }
 
   @PUT('/Object/:table/:_id')
-  @INJECT(authoriz(`${AppConfig.path}/Object`, 'INSERT'))
+  @INJECT(authoriz(`${AppConfig.path}/Object`, 'UPDATE'))
   @BODYPARSER()
   @RESTRICT({
     params: {
