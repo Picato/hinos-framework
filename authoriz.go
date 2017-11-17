@@ -17,10 +17,6 @@ type accountCached struct {
 	RoleIDs   []string `json:"role_ids"`
 }
 
-type roleCached struct {
-	OptionA string `json:"option_A"`
-}
-
 type apiActionCached struct {
 	Path          string `json:"path"`
 	Actions       string `json:"actions"`
@@ -48,7 +44,7 @@ var client = redis.NewClient(&redis.Options{
 })
 
 func GetAccountCached(token string) (*accountCached, error) {
-	_accountCached, err := client.Get("$token:" + token).Result()
+	_accountCached, err := client.Get("$tk:" + token).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -60,8 +56,8 @@ func GetAccountCached(token string) (*accountCached, error) {
 	return accountCached, nil
 }
 
-func GetRoleApiCached(projectId string) (*[]apiActionCached, error) {
-	_roleCached, err := client.Get("$roles.api:" + projectId).Result()
+func getRoleApiCached(projectId string) (*[]apiActionCached, error) {
+	_roleCached, err := client.HGet("$p:"+projectId, "apis").Result()
 	if err != nil {
 		return nil, err
 	}
@@ -73,13 +69,13 @@ func GetRoleApiCached(projectId string) (*[]apiActionCached, error) {
 	return roleCached, nil
 }
 
-func GetPluginCached(projectId string) (*pluginCached, error) {
-	_pluginCached, err := client.HGetAll("$plugins:" + projectId).Result()
+func getPluginCached(projectId string) (*pluginCached, error) {
+	_pluginCached, err := client.HGet("$p:"+projectId, "plugins").Result()
 	if err != nil {
 		return nil, err
 	}
 	pluginCached := &pluginCached{}
-	err = json.Unmarshal([]byte(_pluginCached["plugins"]), pluginCached)
+	err = json.Unmarshal([]byte(_pluginCached), pluginCached)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +120,7 @@ func CheckAuthoriz(path string, action string, accountCached *accountCached, rol
 }
 
 func handleAuthoriz(token string, path string, action string, accountCached *accountCached) (bool, error) {
-	rolesCached, err := GetRoleApiCached(accountCached.ProjectID)
+	rolesCached, err := getRoleApiCached(accountCached.ProjectID)
 	if err != nil {
 		return false, err
 	}
@@ -160,16 +156,16 @@ func main() {
 			return
 		}
 
-		pluginCached, err := GetPluginCached(accountCached.ProjectID)
+		pluginCached, err := getPluginCached(accountCached.ProjectID)
 		if err != nil {
 			w.WriteHeader(500)
 			return
 		}
 		if pluginCached.Oauth.SessionExpired > 0 {
 			if pluginCached.Oauth.SessionExpired > 1800 {
-				client.ExpireAt("$token:"+token, time.Now().Add(time.Duration(pluginCached.Oauth.SessionExpired)*time.Second))
+				client.ExpireAt("$tk:"+token, time.Now().Add(time.Duration(pluginCached.Oauth.SessionExpired)*time.Second))
 			} else {
-				client.Expire("$token:"+token, time.Duration(pluginCached.Oauth.SessionExpired)*time.Second)
+				client.Expire("$tk:"+token, time.Duration(pluginCached.Oauth.SessionExpired)*time.Second)
 			}
 		}
 		w.WriteHeader(204)
