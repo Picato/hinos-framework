@@ -40,14 +40,14 @@
     "hinos-helmet": "^1.0.0"
   },
   "dependencies": {
-    "hinos": "^1.1.5",
-    "hinos-bodyparser": "^2.1.3",
-    "hinos-cors": "^1.0.1",
-    "hinos-mongo": "^1.1.9",
-    "hinos-route": "^1.1.13",
+    "axios": "^0.16.2",
+    "hinos": "^1.1.6",
+    "hinos-bodyparser": "^2.1.5",
+    "hinos-cors": "^1.0.2",
+    "hinos-mongo": "^1.1.10",
+    "hinos-route": "^1.1.14",
     "hinos-validation": "^1.1.2",
     "lodash": "^4.17.4",
-    "axios": "^0.16.2",
     "rimraf": "^2.6.2"
   },
   "author": "doanthuanthanh88@gmail.com",
