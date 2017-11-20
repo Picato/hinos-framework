@@ -24,9 +24,9 @@ export class MailController {
   static async test({ body }) {
     await MailService.test({
       from: body.name,
-      to: body.to,
-      subject: 'Test email sending',
-      text: ''
+      to: [body.to],
+      subject: 'Ping server',
+      text: 'Test email sending'
     }, body.config)
   }
 

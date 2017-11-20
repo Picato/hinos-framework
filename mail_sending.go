@@ -1,8 +1,12 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"log"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/go-redis/redis"
@@ -14,6 +18,7 @@ import (
 )
 
 var retrySending = int64(300000)
+var filesServicePath = "\\files\\assets\\"
 
 type authMailConfig struct {
 	User string `json:"user"`
@@ -34,6 +39,7 @@ type mailAttachment struct {
 	ContentType string `json:"contentType"`
 	Encoding    string `json:"encoding"`
 	Raw         string `json:"raw"`
+	FileServ    string `json:"fileserv"`
 }
 
 type mailCached struct {
@@ -79,15 +85,26 @@ func sendMail(mailCached *mailCached) error {
 	m.SetHeader("Subject", mailCached.Subject)
 	if len(mailCached.Text) > 0 {
 		m.SetBody("text/plain", mailCached.Text)
-		log.Println("Text", mailCached.Text)
 	} else if len(mailCached.HTML) > 0 {
 		m.SetBody("text/html", mailCached.HTML)
-		log.Println("HTML", mailCached.HTML)
 	}
-
-	//if *mailCached.Attachments != nil && len(*mailCached.Attachments) > 0 {
-	//	m.Attach("/home/Alex/lolcat.jpg")
-	//}
+	if mailCached.Attachments != nil && len(*mailCached.Attachments) > 0 {
+		for _, a := range *mailCached.Attachments {
+			if a.FileServ != "" {
+				filePath := strings.Split(a.FileServ, "?")
+				absPath := filesServicePath + filePath[0]
+				fileName := a.FileServ[strings.Index(a.FileServ, "name=")+5:]
+				if strings.Index(fileName, "&") != -1 {
+					fileName = fileName[0:strings.Index(fileName, "&")]
+				}
+				_, err := os.Stat(absPath)
+				if os.IsNotExist(err) {
+					return errors.New("File \"" + fileName + "\" is not existed: " + absPath)
+				}
+				m.Attach(absPath, gomail.Rename(fileName))
+			}
+		}
+	}
 	return d.DialAndSend(m)
 }
 
@@ -108,65 +125,82 @@ func updateMongo(id interface{}, obj interface{}) error {
 }
 
 func main() {
-	for {
-		now := time.Now().UnixNano() / int64(time.Millisecond)
-		_mails, err := client.LRange("mail.temp", 0, -1).Result()
+	if len(os.Args) > 0 {
+		data, err := base64.StdEncoding.DecodeString(os.Args[1])
 		if err != nil {
-			log.Println(err)
-			return
-		}
-		if len(_mails) > 0 {
-			for _, f := range _mails {
-				mailCached, err := getMailCached(f)
+			log.Fatal(err)
+		} else {
+			mailCached := &mailCached{}
+			err = json.Unmarshal(data, mailCached)
+			if err != nil {
+				log.Fatal(err)
+			} else {
+				err = sendMail(mailCached)
 				if err != nil {
-					log.Println(err)
-				} else {
-					if mailCached.RetryAt == 0 || mailCached.RetryAt < now {
-						errSending := sendMail(mailCached)
-						_, err := client.LRem("mail.temp", 1, f).Result()
-						if err != nil {
-							log.Println(err)
-						}
-						if errSending != nil {
-							mailCached.Status--
-							if mailCached.Status == -1 || mailCached.Status == -2 {
-								mailCached.RetryAt = time.Now().UnixNano()/int64(time.Millisecond) + retrySending
-								str, err := json.Marshal(mailCached)
-								if err == nil {
-									client.RPush("mail.temp", string(str))
+					log.Fatal(err)
+				}
+			}
+		}
+	} else {
+		for {
+			now := time.Now().UnixNano() / int64(time.Millisecond)
+			_mails, err := client.HGetAll("mail.temp").Result()
+			if err != nil {
+				log.Fatal(err)
+			}
+			if len(_mails) > 0 {
+				for id, f := range _mails {
+					mailCached, err := getMailCached(f)
+					if err != nil {
+						log.Fatal(err)
+					} else {
+						if mailCached.RetryAt == 0 || mailCached.RetryAt < now {
+							errSending := sendMail(mailCached)
+							_, err := client.HDel("mail.temp", id).Result()
+							if err != nil {
+								log.Fatal(err)
+							}
+							if errSending != nil {
+								mailCached.Status--
+								if mailCached.Status == -1 || mailCached.Status == -2 {
+									mailCached.RetryAt = time.Now().UnixNano()/int64(time.Millisecond) + retrySending
+									str, err := json.Marshal(mailCached)
+									if err == nil {
+										client.HSet("mail.temp", id, string(str))
+									}
+									err = updateMongo(bson.ObjectIdHex(mailCached.ID), bson.M{
+										"$set": bson.M{
+											"status":   mailCached.Status,
+											"error":    errSending.Error(),
+											"retry_at": mailCached.RetryAt,
+										},
+									})
+								} else {
+									err = updateMongo(bson.ObjectIdHex(mailCached.ID), bson.M{
+										"$set": bson.M{
+											"status":   mailCached.Status,
+											"error":    nil,
+											"retry_at": nil,
+										},
+									})
 								}
-								err = updateMongo(bson.ObjectIdHex(mailCached.ID), bson.M{
-									"$set": bson.M{
-										"status":   mailCached.Status,
-										"error":    errSending.Error(),
-										"retry_at": mailCached.RetryAt,
-									},
-								})
 							} else {
 								err = updateMongo(bson.ObjectIdHex(mailCached.ID), bson.M{
 									"$set": bson.M{
-										"status":   mailCached.Status,
+										"status":   1,
 										"error":    nil,
 										"retry_at": nil,
 									},
 								})
-							}
-						} else {
-							err = updateMongo(bson.ObjectIdHex(mailCached.ID), bson.M{
-								"$set": bson.M{
-									"status":   1,
-									"error":    nil,
-									"retry_at": nil,
-								},
-							})
-							if err != nil {
-								log.Println(err)
+								if err != nil {
+									log.Fatal(err)
+								}
 							}
 						}
 					}
 				}
 			}
+			time.Sleep(1 * time.Second)
 		}
-		time.Sleep(1 * time.Second)
 	}
 }
