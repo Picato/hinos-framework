@@ -63,16 +63,16 @@ export default class Utils {
       const archive = archiver('zip', {
         zlib: { level: 9 }
       })
-      const output = fs.createWriteStream(Utils.getAssetPath(outPath) as string)
+      const output = fs.createWriteStream(outPath as string)
       output.on('close', resolve)
       archive.on('error', reject)
       archive.pipe(output)
       if (inPath instanceof Array) {
         for (const p of inPath) {
-          archive.append(fs.createReadStream(Utils.getAssetPath(p.path) as string), { name: p.name })
+          archive.append(fs.createReadStream(p.path as string), { name: p.name })
         }
       } else {
-        archive.append(fs.createReadStream(Utils.getAssetPath(inPath.path) as string), { name: inPath.name })
+        archive.append(fs.createReadStream(inPath.path as string), { name: inPath.name })
       }
       archive.finalize()
     })
