@@ -17,6 +17,11 @@ type accountCached struct {
 	RoleIDs   []string `json:"role_ids"`
 }
 
+type apiRoleCached struct {
+	ProjectID string             `json:"project_id"`
+	Roles     *[]apiActionCached `json:"roles"`
+}
+
 type apiActionCached struct {
 	Path          string `json:"path"`
 	Actions       string `json:"actions"`
@@ -56,12 +61,12 @@ func GetAccountCached(token string) (*accountCached, error) {
 	return accountCached, nil
 }
 
-func getRoleApiCached(projectId string) (*[]apiActionCached, error) {
+func getRoleApiCached(projectId string) (*apiRoleCached, error) {
 	_roleCached, err := client.HGet("$p:"+projectId, "apis").Result()
 	if err != nil {
 		return nil, err
 	}
-	roleCached := &[]apiActionCached{}
+	roleCached := &apiRoleCached{}
 	err = json.Unmarshal([]byte(_roleCached), roleCached)
 	if err != nil {
 		return nil, err
@@ -82,7 +87,7 @@ func getPluginCached(projectId string) (*pluginCached, error) {
 	return pluginCached, nil
 }
 
-func CheckPath(path string, r apiActionCached) bool {
+func CheckPath(path string, r *apiActionCached) bool {
 	if !r.IsPathRegex && r.Path == path {
 		return true
 	} else if r.IsPathRegex {
@@ -94,7 +99,7 @@ func CheckPath(path string, r apiActionCached) bool {
 	return false
 }
 
-func CheckAction(action string, r apiActionCached) bool {
+func CheckAction(action string, r *apiActionCached) bool {
 	if r.IsActionRegex {
 		var b = regexp.MustCompile("^" + r.Actions + "$")
 		isOk := b.Match([]byte(action))
@@ -107,11 +112,11 @@ func CheckAction(action string, r apiActionCached) bool {
 	return false
 }
 
-func CheckAuthoriz(path string, action string, accountCached *accountCached, roleCached []apiActionCached) bool {
+func CheckAuthoriz(path string, action string, accountCached *accountCached, roleCached *[]apiActionCached) bool {
 	userRoles := strings.Join(accountCached.RoleIDs, ",")
-	for _, r := range roleCached {
+	for _, r := range *roleCached {
 		if strings.Contains(userRoles, r.RoleID) {
-			if CheckPath(path, r) && CheckAction(action, r) {
+			if CheckPath(path, &r) && CheckAction(action, &r) {
 				return true
 			}
 		}
@@ -124,7 +129,7 @@ func handleAuthoriz(token string, path string, action string, accountCached *acc
 	if err != nil {
 		return false, err
 	}
-	isOk := CheckAuthoriz(path, action, accountCached, *rolesCached)
+	isOk := CheckAuthoriz(path, action, accountCached, rolesCached.Roles)
 	return isOk, nil
 }
 
