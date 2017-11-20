@@ -37,17 +37,12 @@ export class ClientController {
       returnPath: '() => `upload/${ctx.state.auth.projectId}`',
       name: 'files',
       mimes: '() => `${ctx.state.config.ext}`',
-      limits: {
-        fileSize: '() => ctx.state.config.maxSize'
-      },
+      maxSize: '() => ctx.state.config.maxSize',
       uploadDir: '() => `assets/upload/${ctx.state.auth.projectId}`',
       maxCount: '() => ctx.state.config.maxFile'
       // resize: '() => ctx.state.config.resize'
     }
-  ], err => {
-    if (err.code && 'LIMIT_UNEXPECTED_FILE' === err.code) throw HttpError.BAD_REQUEST(`The maximum number of files is ${err.ctx.state.config.maxFile}`)
-    throw err
-  })
+  ])
   @RESTRICT({
     query: {
       store: Boolean,
