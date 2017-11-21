@@ -15,9 +15,10 @@ const host = "127.0.0.1:6011"
 const redisURL = "127.0.0.1:6379"
 
 type accountCached struct {
-	ProjectID string   `json:"project_id"`
-	ID        string   `json:"_id"`
-	RoleIDs   []string `json:"role_ids"`
+	ID        string    `json:"_id"`
+	ProjectID string    `json:"project_id"`
+	RoleIDs   *[]string `json:"role_ids"`
+	Native    bool      `json:"native"`
 }
 
 type apiRoleCached struct {
@@ -116,7 +117,7 @@ func checkAction(action string, r *apiActionCached) bool {
 }
 
 func checkAuthoriz(path string, action string, accountCached *accountCached, roleCached *[]apiActionCached) bool {
-	userRoles := strings.Join(accountCached.RoleIDs, ",")
+	userRoles := strings.Join(*accountCached.RoleIDs, ",")
 	for _, r := range *roleCached {
 		if strings.Contains(userRoles, r.RoleID) {
 			if checkPath(path, &r) && checkAction(action, &r) {

@@ -42,11 +42,11 @@ export class AccountCached {
   /* tslint:enable */
 
   static castToCached(_e: Account) {
-    return JSON.stringify(_.pick(_e, ['project_id', '_id', 'role_ids', 'native']))
+    return _.pick(_e, ['project_id', '_id', 'role_ids', 'native'])
   }
-  static castToObject(_e: string) {
-    return (_e ? JSON.parse(_e) : _e) as AccountCached
-  }
+  // static castToObject(_e: string) {
+  //   return (_e ? JSON.parse(_e) : _e) as AccountCached
+  // }
 }
 
 export namespace Account {
@@ -389,8 +389,7 @@ export class AccountService {
   ///////////////////// Cached
 
   static async getCachedToken(token: string) {
-    const rs = await AccountService.redis.get(`$tk:${token}`)
-    return (rs ? AccountCached.castToObject(rs as string) : rs) as AccountCached
+    return await AccountService.redis.get(`$tk:${token}`) as AccountCached
   }
 
   private static generateToken() {
