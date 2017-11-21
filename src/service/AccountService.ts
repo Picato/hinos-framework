@@ -35,23 +35,18 @@ export class Account {
 
 export class AccountCached {
   /* tslint:disable */
-  project_id: Uuid
-  account_id: Uuid
-  role_ids: Uuid[]
+  _id: string
+  project_id: string
+  role_ids: string[]
   native: boolean
   /* tslint:enable */
 
-  // static castToCached(_e: Account) {
-  //   return JSON.stringify(_.pick(_e, ['_id', 'project_id', 'account_id', 'role_ids', 'native']))
-  // }
-  // static castToObject(_e) {
-  //   if (!_e) return _e
-  //   return JSON.parse(_e) as AccountCached
-  //   // e._id = Mongo.uuid(e._id)
-  //   // e.project_id = Mongo.uuid(e.project_id)
-  //   // e.account_id = Mongo.uuid(e.account_id)
-  //   // e.role_ids = (e.role_ids as string[]).map(e => Mongo.uuid(e)) as Uuid[]
-  // }
+  static castToCached(_e: Account) {
+    return JSON.stringify(_.pick(_e, ['project_id', '_id', 'role_ids', 'native']))
+  }
+  static castToObject(_e: string) {
+    return (_e ? JSON.parse(_e) : _e) as AccountCached
+  }
 }
 
 export namespace Account {
@@ -76,15 +71,7 @@ export class AccountService {
       },
       $fields: { project_id: 1, _id: 1, role_ids: 1, secret_key: 1, native: 1 }
     })
-    for (const cached of caches) {
-      await AccountService.setCachedToken(cached.secret_key, {
-        project_id: cached.project_id,
-        account_id: cached._id,
-        role_ids: cached.role_ids,
-        native: cached.native
-      } as AccountCached)
-    }
-    console.log(`Loaded ${caches.length} accounts into cached`)
+    await Promise.all(caches.map(c => AccountService.redis.set(`$tk:${c.secret_key}`, AccountCached.castToCached(c))))
   }
 
   static async getMeFacebook(token: string): Promise<{ id: string, email: string, more: any }> {
@@ -134,19 +121,14 @@ export class AccountService {
     const acc = await AccountService.mongo.get<Account>(Account, {
       _id: accountId,
       project_id: projectId
-    }, { role_ids: 1, secret_key: 1, native: 1 })
+    }, { role_ids: 1, secret_key: 1, native: 1, project_id: 1, _id: 1 })
     const rs = await AccountService.mongo.update(Account, {
       _id: accountId,
       secret_key: secretKey
     })
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
-    await AccountService.setCachedToken(acc.secret_key)
-    await AccountService.setCachedToken(secretKey, {
-      project_id: projectId,
-      account_id: accountId,
-      role_ids: acc.role_ids,
-      native: acc.native
-    } as AccountCached)
+    if (acc.secret_key) await AccountService.redis.del(`$tk:${acc.secret_key}`)
+    await AccountService.redis.set(`$tk:${secretKey}`, AccountCached.castToCached(acc))
     return secretKey
   }
 
@@ -160,7 +142,7 @@ export class AccountService {
       secret_key: undefined
     })
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
-    await AccountService.setCachedToken(acc.secret_key)
+    if (acc.secret_key) await AccountService.redis.del(`$tk:${acc.secret_key}`)
   }
 
   static async getMe({ accountId }, fields?: any) {
@@ -179,7 +161,7 @@ export class AccountService {
     if (!accountCached) throw HttpError.EXPIRED()
     const plugins = await ProjectService.getCached(accountCached.project_id, 'plugins') as PluginCached
     if (!plugins) throw HttpError.INTERNAL('Could not found plugin configuration')
-    await AccountService.touchCachedToken(token, plugins.oauth.session_expired)
+    await AccountService.redis.touch(`$tk:${token}`, plugins.oauth.session_expired)
   }
 
   @VALIDATE(async (body: Account, { oauth }) => {
@@ -219,7 +201,7 @@ export class AccountService {
 
   static async logout(token) {
     if (!token) throw HttpError.AUTHEN()
-    await AccountService.setCachedToken(token)
+    await AccountService.redis.del(`$tk:${token}`)
   }
 
   static async login(user: { username: string, password: string, projectId: Uuid, app?: string }, { oauth }: Plugin) {
@@ -260,15 +242,13 @@ export class AccountService {
       })
     })
     if (oauth.single_mode === true) {
-      for (const tk of acc.token) {
-        await AccountService.setCachedToken(tk)
-      }
+      if (acc.token && acc.token.length > 0) await Promise.all(acc.token.map(tk => AccountService.redis.del(`$tk:${tk}`)))
       acc.token = []
-    } else {
+    } else if (acc.token && acc.token.length > 0) {
+      let cached
       for (let i = acc.token.length - 1; i >= 0; i--) {
-        if (!AccountService.getCachedToken(acc.token[i])) {
-          acc.token.splice(i, 1)
-        }
+        cached = await AccountService.getCachedToken(acc.token[i])
+        if (!cached) acc.token.splice(i, 1)
       }
     }
     const token = AccountService.generateToken()
@@ -279,13 +259,7 @@ export class AccountService {
       trying: 0,
       updated_at: new Date()
     })
-    await AccountService.setCachedToken(token, {
-      account_id: acc._id,
-      role_ids: acc.role_ids,
-      project_id: acc.project_id,
-      native: acc.native
-    } as AccountCached)
-    await AccountService.touchCachedToken(token, oauth.session_expired)
+    await AccountService.redis.set(`$tk:${token}`, AccountCached.castToCached(acc), oauth.session_expired)
     return `${token}?${oauth.session_expired}`
   }
 
@@ -391,19 +365,11 @@ export class AccountService {
     }
     // Clear cached if user is inactived
     if (old.status !== body.status && body.status === Account.Status.INACTIVED) {
-      if (old.secret_key) await AccountService.setCachedToken(old.secret_key)
-      for (const tk of old.token) {
-        await AccountService.setCachedToken(tk)
-      }
+      await Promise.all([old.secret_key, ...(old.token || [])].filter(e => e).map(tk => AccountService.redis.del(`$tk:${tk}`)))
     } else {
       // Reload scret key to cached when reactived
       if (old.status !== body.status && body.status === Account.Status.ACTIVED && old.secret_key) {
-        await AccountService.setCachedToken(old.secret_key, {
-          account_id: body._id,
-          role_ids: body.role_ids,
-          project_id: body.project_id,
-          native: old.native
-        } as AccountCached)
+        AccountService.redis.set(`$tk:${old.secret_key}`, AccountCached.castToCached(Object.assign({}, old, body)))
       }
     }
   }
@@ -417,24 +383,14 @@ export class AccountService {
     })
     if (!old) throw HttpError.NOT_FOUND('Could not found account to delete')
     // Remove cached
-    for (const tk of old.token) {
-      await AccountService.setCachedToken(tk)
-    }
+    if (old.token && old.token.length > 0) await Promise.all(old.token.map(tk => AccountService.redis.del(`$tk:${tk}`)))
   }
 
   ///////////////////// Cached
 
-  static async touchCachedToken(token: string, time: number) {
-    await AccountService.redis.touch(`$tk:${token}`, time)
-  }
-
-  static async setCachedToken(token: string, cached?: AccountCached) {
-    if (!cached) return await AccountService.redis.del(`$tk:${token}`)
-    await AccountService.redis.set(`$tk:${token}`, cached)
-  }
-
   static async getCachedToken(token: string) {
-    return await AccountService.redis.get(`$tk:${token}`) as AccountCached
+    const rs = await AccountService.redis.get(`$tk:${token}`)
+    return (rs ? AccountCached.castToObject(rs as string) : rs) as AccountCached
   }
 
   private static generateToken() {

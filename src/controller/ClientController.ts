@@ -144,7 +144,7 @@ export default class AccountController {
       path: query.path,
       action: query.action
     })
-    if (ac) ctx.set({ account_id: ac.account_id, project_id: ac.project_id })
+    if (ac) ctx.set({ account_id: ac._id, project_id: ac.project_id })
   }
 
   @PUT('/Secretkey')

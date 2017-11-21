@@ -40,7 +40,7 @@ export class Role {
 export class RoleCached {
   project_id: string
   roles: {
-    _id?: Uuid
+    _id?: string
     api?: Action[]
     web?: Action[]
     mob?: Action[]
@@ -215,11 +215,11 @@ export class RoleService {
     await RoleService.reloadCachedRole(key.project_id)
   }
 
-  static async getMyRole(type: string, { accountId, projectId }) {
+  static async getMyRole(type: string, { projectId, token }) {
     if (!type) throw HttpError.BAD_REQUEST('Role type is required')
     const { roles } = await RoleService.getCachedRole(projectId)
-    let myRoles = (await AccountService.getRoles({ accountId })).map(e => e.toString())
-    myRoles = roles.filter(e => myRoles.includes(e._id.toString()))
+    const me = await AccountService.getCachedToken(token.split('?')[0])
+    const myRoles = roles.filter(e => me.role_ids.includes(e._id))
     return myRoles.reduce((sum, n) => sum.concat(n[type]), [])
   }
 

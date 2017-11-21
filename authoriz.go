@@ -11,9 +11,12 @@ import (
 	"github.com/go-redis/redis"
 )
 
+const host = "127.0.0.1:6011"
+const redisURL = "127.0.0.1:6379"
+
 type accountCached struct {
 	ProjectID string   `json:"project_id"`
-	AccountID string   `json:"account_id"`
+	ID        string   `json:"_id"`
 	RoleIDs   []string `json:"role_ids"`
 }
 
@@ -43,12 +46,12 @@ type pluginOauthCached struct {
 }
 
 var client = redis.NewClient(&redis.Options{
-	Addr:     "127.0.0.1:6379",
+	Addr:     redisURL,
 	Password: "",
 	DB:       0,
 })
 
-func GetAccountCached(token string) (*accountCached, error) {
+func getAccountCached(token string) (*accountCached, error) {
 	_accountCached, err := client.Get("$tk:" + token).Result()
 	if err != nil {
 		return nil, err
@@ -61,8 +64,8 @@ func GetAccountCached(token string) (*accountCached, error) {
 	return accountCached, nil
 }
 
-func getRoleApiCached(projectId string) (*apiRoleCached, error) {
-	_roleCached, err := client.HGet("$p:"+projectId, "apis").Result()
+func getRoleAPICached(projectID string) (*apiRoleCached, error) {
+	_roleCached, err := client.HGet("$p:"+projectID, "apis").Result()
 	if err != nil {
 		return nil, err
 	}
@@ -74,8 +77,8 @@ func getRoleApiCached(projectId string) (*apiRoleCached, error) {
 	return roleCached, nil
 }
 
-func getPluginCached(projectId string) (*pluginCached, error) {
-	_pluginCached, err := client.HGet("$p:"+projectId, "plugins").Result()
+func getPluginCached(projectID string) (*pluginCached, error) {
+	_pluginCached, err := client.HGet("$p:"+projectID, "plugins").Result()
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +90,7 @@ func getPluginCached(projectId string) (*pluginCached, error) {
 	return pluginCached, nil
 }
 
-func CheckPath(path string, r *apiActionCached) bool {
+func checkPath(path string, r *apiActionCached) bool {
 	if !r.IsPathRegex && r.Path == path {
 		return true
 	} else if r.IsPathRegex {
@@ -99,7 +102,7 @@ func CheckPath(path string, r *apiActionCached) bool {
 	return false
 }
 
-func CheckAction(action string, r *apiActionCached) bool {
+func checkAction(action string, r *apiActionCached) bool {
 	if r.IsActionRegex {
 		var b = regexp.MustCompile("^" + r.Actions + "$")
 		isOk := b.Match([]byte(action))
@@ -112,11 +115,11 @@ func CheckAction(action string, r *apiActionCached) bool {
 	return false
 }
 
-func CheckAuthoriz(path string, action string, accountCached *accountCached, roleCached *[]apiActionCached) bool {
+func checkAuthoriz(path string, action string, accountCached *accountCached, roleCached *[]apiActionCached) bool {
 	userRoles := strings.Join(accountCached.RoleIDs, ",")
 	for _, r := range *roleCached {
 		if strings.Contains(userRoles, r.RoleID) {
-			if CheckPath(path, &r) && CheckAction(action, &r) {
+			if checkPath(path, &r) && checkAction(action, &r) {
 				return true
 			}
 		}
@@ -125,11 +128,11 @@ func CheckAuthoriz(path string, action string, accountCached *accountCached, rol
 }
 
 func handleAuthoriz(token string, path string, action string, accountCached *accountCached) (bool, error) {
-	rolesCached, err := getRoleApiCached(accountCached.ProjectID)
+	rolesCached, err := getRoleAPICached(accountCached.ProjectID)
 	if err != nil {
 		return false, err
 	}
-	isOk := CheckAuthoriz(path, action, accountCached, rolesCached.Roles)
+	isOk := checkAuthoriz(path, action, accountCached, rolesCached.Roles)
 	return isOk, nil
 }
 
@@ -155,7 +158,7 @@ func main() {
 
 		token = strings.Split(token, "?")[0]
 
-		accountCached, err := GetAccountCached(token)
+		accountCached, err := getAccountCached(token)
 		if err != nil {
 			w.WriteHeader(440)
 			return
@@ -205,7 +208,7 @@ func main() {
 
 		token = strings.Split(token, "?")[0]
 
-		accountCached, err := GetAccountCached(token)
+		accountCached, err := getAccountCached(token)
 		if err != nil {
 			w.WriteHeader(440)
 			return
@@ -221,10 +224,10 @@ func main() {
 			return
 		}
 		w.Header().Set("project_id", accountCached.ProjectID)
-		w.Header().Set("account_id", accountCached.AccountID)
+		w.Header().Set("account_id", accountCached.ID)
 		w.WriteHeader(204)
 	})
 
-	log.Fatal(http.ListenAndServe("127.0.0.1:6011", nil))
+	log.Fatal(http.ListenAndServe(host, nil))
 
 }
