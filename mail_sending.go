@@ -10,15 +10,15 @@ import (
 	"time"
 
 	"github.com/go-redis/redis"
-
+	"gopkg.in/gomail.v2"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-
-	"gopkg.in/gomail.v2"
 )
 
-var retrySending = int64(300000)
-var filesServicePath = "\\files\\assets\\"
+const retrySending = int64(5 * 60 * 1000)
+const filesServicePath = "\\files\\assets\\"
+const redisURL = "127.0.0.1:6379"
+const mongoURL = "127.0.0.1"
 
 type authMailConfig struct {
 	User string `json:"user"`
@@ -57,7 +57,7 @@ type mailCached struct {
 }
 
 var client = redis.NewClient(&redis.Options{
-	Addr:     "127.0.0.1:6379",
+	Addr:     redisURL,
 	Password: "",
 	DB:       0,
 })
@@ -109,7 +109,7 @@ func sendMail(mailCached *mailCached) error {
 }
 
 func updateMongo(id interface{}, obj interface{}) error {
-	session, err := mgo.Dial("localhost")
+	session, err := mgo.Dial(mongoURL)
 	if err != nil {
 		return err
 	}
@@ -146,19 +146,19 @@ func main() {
 			now := time.Now().UnixNano() / int64(time.Millisecond)
 			_mails, err := client.HGetAll("mail.temp").Result()
 			if err != nil {
-				log.Fatal(err)
+				log.Println(err)
 			}
 			if len(_mails) > 0 {
 				for id, f := range _mails {
 					mailCached, err := getMailCached(f)
 					if err != nil {
-						log.Fatal(err)
+						log.Println(err)
 					} else {
 						if mailCached.RetryAt == 0 || mailCached.RetryAt < now {
 							errSending := sendMail(mailCached)
 							_, err := client.HDel("mail.temp", id).Result()
 							if err != nil {
-								log.Fatal(err)
+								log.Println(err)
 							}
 							if errSending != nil {
 								mailCached.Status--
@@ -193,7 +193,7 @@ func main() {
 									},
 								})
 								if err != nil {
-									log.Fatal(err)
+									log.Println(err)
 								}
 							}
 						}
