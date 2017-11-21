@@ -125,7 +125,7 @@ func updateMongo(id interface{}, obj interface{}) error {
 }
 
 func main() {
-	if len(os.Args) > 0 {
+	if len(os.Args) > 1 {
 		data, err := base64.StdEncoding.DecodeString(os.Args[1])
 		if err != nil {
 			log.Fatal(err)
