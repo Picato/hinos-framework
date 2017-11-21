@@ -12,6 +12,9 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+const mongoURL = "127.0.0.1"
+const redisURL = "127.0.0.1:6379"
+
 type fileCached struct {
 	ID        string   `json:"_id"`
 	ExpiredAt int64    `json:"expired_at"`
@@ -19,7 +22,7 @@ type fileCached struct {
 }
 
 var client = redis.NewClient(&redis.Options{
-	Addr:     "127.0.0.1:6379",
+	Addr:     redisURL,
 	Password: "",
 	DB:       0,
 })
@@ -33,10 +36,10 @@ func getFileCached(_fileCached string) (*fileCached, error) {
 	return fileCached, nil
 }
 
-func removeFile(fileCached *fileCached) (bool, error) {
-	session, err := mgo.Dial("localhost")
+func removeFile(fileCached *fileCached) error {
+	session, err := mgo.Dial(mongoURL)
 	if err != nil {
-		return false, err
+		return err
 	}
 	defer session.Close()
 	session.SetMode(mgo.Monotonic, true)
@@ -44,7 +47,7 @@ func removeFile(fileCached *fileCached) (bool, error) {
 	c := session.DB("files").C("Files")
 	err = c.RemoveId(bson.ObjectIdHex(fileCached.ID))
 	if err != nil {
-		return false, err
+		return err
 	}
 	for _, f := range fileCached.Files {
 		absPath, _err := filepath.Abs("./assets/" + f)
@@ -57,7 +60,7 @@ func removeFile(fileCached *fileCached) (bool, error) {
 			log.Println(_err)
 		}
 	}
-	return true, nil
+	return nil
 }
 
 func main() {
@@ -75,9 +78,9 @@ func main() {
 					log.Println(err)
 				} else {
 					if fileCached.ExpiredAt < now {
-						isOk, _err := removeFile(fileCached)
-						if !isOk {
-							log.Println(_err)
+						err = removeFile(fileCached)
+						if err != nil {
+							log.Println(err)
 						} else {
 							_, err := client.LRem("files.temp", 1, f).Result()
 							if err != nil {

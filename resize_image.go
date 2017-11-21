@@ -22,13 +22,11 @@ type sizeImages struct {
 	Sizes *[]sizeImage `json:"sizes"`
 }
 
-func resizeImage(sizeImages sizeImages) {
+func resizeImage(sizeImages *sizeImages) {
 	file, err := os.Open(sizeImages.Path)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// decode jpeg into image.Image
 	img, err := jpeg.Decode(file)
 	if err != nil {
 		log.Fatal(err)
@@ -37,7 +35,7 @@ func resizeImage(sizeImages sizeImages) {
 	for _, p := range *sizeImages.Sizes {
 		var w, h uint
 		imgW, imgH := uint(img.Bounds().Dx()), uint(img.Bounds().Dy())
-		var isCrop = false
+		isCrop := false
 		if p.W > 0 && p.H > 0 {
 			w = p.W
 			h = w * imgH / imgW
@@ -69,7 +67,6 @@ func resizeImage(sizeImages sizeImages) {
 		}
 		defer out.Close()
 		jpeg.Encode(out, m, nil)
-
 	}
 }
 
@@ -81,6 +78,6 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		resizeImage(*_sizeImages)
+		resizeImage(_sizeImages)
 	}
 }
