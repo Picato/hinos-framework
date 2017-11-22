@@ -140,6 +140,7 @@ export class ClientController {
     }
   })
   static async storeFiles({ state, body }) {
+    if (!body.files) throw HttpError.BAD_REQUEST('files is required')
     await FilesService.store({
       _id: {
         files: {
@@ -150,15 +151,10 @@ export class ClientController {
       }
     })
     if (body.oldFiles) {
-      for (const file of body.oldFiles) {
-        try {
-          await FilesService.delete({
-            files: file,
-            project_id: state.auth.projectId
-          })
-          // tslint:disable-next-line:no-empty
-        } catch (e) { }
-      }
+      await Promise.all(body.oldFiles.map(file => FilesService.delete({
+        files: file,
+        project_id: state.auth.projectId
+      })))
     }
   }
 
@@ -171,12 +167,11 @@ export class ClientController {
     }
   })
   static async delFiles({ state, body }) {
-    for (const file of body.files) {
-      await FilesService.delete({
-        files: file,
-        project_id: state.auth.projectId
-      })
-    }
+    if (!body.files) throw HttpError.BAD_REQUEST('files is required')
+    await Promise.all(body.files.map(file => FilesService.delete({
+      files: file,
+      project_id: state.auth.projectId
+    })))
   }
 
 }
