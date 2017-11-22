@@ -97,10 +97,7 @@ export class ClientController {
           }
           if (!state.config.zip && resize && resize.length > 0) {
             if (vl instanceof Array) {
-              if (vl.length <= 0) return vl
-              await Promise.all(vl.map(async (e) => {
-                return await resizeImage(e)
-              }))
+              if (vl.length > 0) await Promise.all(vl.map(resizeImage))
             } else {
               await resizeImage(vl)
             }
