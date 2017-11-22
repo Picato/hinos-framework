@@ -48,12 +48,11 @@ export class FileConfigService {
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
     Checker.required(body, 'name', String)
-    Checker.option(body, 'config', Object, {
-      maxSize: 2046,
-      maxFile: 1,
-      expiredTime: 5*60,
-      ext: '.*'
-    })
+    Checker.required(body, 'config', Object)
+    Checker.required(body.config, 'maxSize', Number)
+    Checker.required(body.config, 'maxFile', Number)
+    Checker.required(body.config, 'expiredTime', Number)
+    Checker.required(body.config, 'ext', String)
     body.created_at = new Date()
     body.updated_at = new Date()
   })
@@ -66,7 +65,12 @@ export class FileConfigService {
 
   @VALIDATE((body: FileConfig) => {
     Checker.required(body, '_id', Object)
-    Checker.option(body, 'config', Object)
+    Checker.option(body, 'config', Object, () => {
+      Checker.required(body.config, 'maxSize', Number)
+      Checker.required(body.config, 'maxFile', Number)
+      Checker.required(body.config, 'expiredTime', Number)
+      Checker.required(body.config, 'ext', String)
+    })
     Checker.option(body, 'name', String)
   })
   static async update(body: FileConfig) {
