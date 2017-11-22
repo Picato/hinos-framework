@@ -118,11 +118,16 @@ export class ClientController {
     body.sizes = state.config.resize
     const files = _.clone(body.files)
     if (body.files instanceof Array) {
-      for (const f of files) {
-        body.files = f
-        await FilesService.insert(body, state.config)
-      }
+      await Promise.all(files.map(f => {
+        const meta = f.split('?')
+        body.files = meta[0]
+        body.meta = meta[1]
+        return FilesService.insert(body, state.config)
+      }))
     } else {
+      const meta = body.files.split('?')
+      body.files = meta[0]
+      body.meta = meta[1]
       await FilesService.insert(body, state.config)
     }
     return files
@@ -133,8 +138,8 @@ export class ClientController {
   @BODYPARSER()
   @RESTRICT({
     body: {
-      oldFiles: vl => vl instanceof Array ? vl : [vl],
-      files: vl => vl instanceof Array ? vl : [vl]
+      oldFiles: vl => vl instanceof Array ? vl.map(e => e.split('?')[0]) : [vl.split('?')[0]],
+      files: vl => vl instanceof Array ? vl.map(e => e.split('?')[0]) : [vl.split('?')[0]]
     }
   })
   static async storeFiles({ state, body }) {
@@ -165,7 +170,7 @@ export class ClientController {
   @BODYPARSER()
   @RESTRICT({
     body: {
-      files: vl => vl instanceof Array ? vl : [vl]
+      files: vl => vl instanceof Array ? vl.map(e => e.split('?')[0]) : [vl.split('?')[0]]
     }
   })
   static async delFiles({ state, body }) {

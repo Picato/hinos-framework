@@ -19,6 +19,7 @@ export class Files {
   status?: number
   sizes?: ImageResize[]
   files?: string | string[]
+  meta?: string
   expired_at?: Date
   created_at?: Date
   updated_at?: Date
@@ -36,15 +37,13 @@ export class FilesCached {
     e.expired_at = !_e.expired_at ? new Date().getTime() : _e.expired_at.getTime()
     e._id = _e._id.toString()
     let files = _e.files instanceof Array ? _e.files : [_e.files]
-    files = files.map(e => e.split('?')[0])
+    // files = files.map(e => e.split('?')[0])
     files.forEach(f => {
-      f = f.split('?')[0]
+      // f = f.split('?')[0]
       if (_e.sizes && _e.sizes.length > 0) {
-        for (let s of _e.sizes) {
-          if (s.ext) {
-            files.push(f.substr(0, f.lastIndexOf('.')) + s.ext + f.substr(f.lastIndexOf('.')))
-          }
-        }
+        _e.sizes.forEach(s => {
+          if (s.ext) files.push(f.substr(0, f.lastIndexOf('.')) + s.ext + f.substr(f.lastIndexOf('.')))
+        })
       }
     })
     return JSON.stringify({
@@ -53,11 +52,11 @@ export class FilesCached {
       files
     })
   }
-  static castToObject(_e) {
-    const e = JSON.parse(_e) as FilesCached
-    e._id = Mongo.uuid(e._id)
-    return e
-  }
+  // static castToObject(_e) {
+  //   const e = JSON.parse(_e) as FilesCached
+  //   e._id = Mongo.uuid(e._id)
+  //   return e
+  // }
 }
 /* tslint:enable */
 
@@ -121,6 +120,7 @@ export class FilesService {
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
     Checker.required(body, 'files', [String, Array])
+    Checker.required(body, 'meta', String)
     Checker.option(body, 'status', Number, Files.Status.TEMP)
     Checker.option(body, 'sizes', Array)
     body.created_at = new Date()
