@@ -2,7 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
+	"image"
+	"image/gif"
 	"image/jpeg"
+	"image/png"
+
 	"log"
 	"os"
 	"strings"
@@ -27,7 +32,16 @@ func resizeImage(sizeImages *sizeImages) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	img, err := jpeg.Decode(file)
+	var img image.Image
+	if strings.HasSuffix(sizeImages.Path, ".jpg") || strings.HasSuffix(sizeImages.Path, ".jpeg") {
+		img, err = jpeg.Decode(file)
+	} else if strings.HasSuffix(sizeImages.Path, ".png") {
+		img, err = png.Decode(file)
+	} else if strings.HasSuffix(sizeImages.Path, ".gif") {
+		img, err = gif.Decode(file)
+	} else {
+		log.Fatal(errors.New("Not support image type"))
+	}
 	if err != nil {
 		log.Fatal(err)
 	}
