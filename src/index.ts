@@ -5,6 +5,7 @@ import { API, Part } from './lib/Api'
 import { DOC } from './lib/ApiDoc'
 import { INCLUDE } from './lib/Testcase'
 import * as chalk from 'chalk'
+import { DELAY } from './lib/Delay';
 
 (global as any).Part = Part;
 (global as any).INCLUDE = INCLUDE;
@@ -17,6 +18,7 @@ import * as chalk from 'chalk'
 (global as any).DELETE = DELETE;
 (global as any).HEAD = HEAD;
 (global as any).PATCH = PATCH;
+(global as any).DELAY = DELAY;
 
 (async () => {
   let isOk = true
@@ -29,3 +31,4 @@ import * as chalk from 'chalk'
   else console.log(`${chalk.bgYellow.red.bold(` EXECUTED TIME: ${new Date().getTime() - startTime} ms `)}`)
   console.log('')
 })()
+

@@ -61,7 +61,7 @@ export default [
     i18doc,
     url: GET(`${HOST.MAIL}/mail/Template/:mailTemplateId*`, $var('newmailtemplate._id'))
   }, { extends: '#authRequestByToken' }),
-  
+
   ...INCLUDE('doc/mail/mail.part'),
 
   DOC('Remove mail template', GROUP, TAG.ADMIN, {

@@ -71,8 +71,10 @@ export async function runner(config: Config) {
           api.error = e.message || e || 'Run api error'
         }
         if (!api.error) {
-          console.log(' ', c, chalk.green.bold(api.title), chalk.black.bold(api.method), chalk.black.underline.italic(api.url.requestPath), chalk.blue(`(${api.executeTime} ms)`))
+          console.log(' ', c, chalk.green.bold(api.title), api.method ? chalk.black.bold(api.method) : '', (api.url && api.url.requestPath) ? chalk.black.underline.italic(api.url.requestPath) : '', api.executeTime !== undefined ? chalk.blue(`(${api.executeTime} ms)`) : '')
           result.summary.api.passed++
+        } else if (api.nvm) {
+          tc.apiIndexes.splice(i, 1)
         } else {
           if (tc.status === TestcaseImpl.Status.PASSED) tc.status = TestcaseImpl.Status.FAILED
           result.summary.api.failed++

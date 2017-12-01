@@ -35,6 +35,34 @@ export default [
       'newmail': $var('this.$body')
     }
   }, { extends: '#authRequestByToken' }),
+  API('Add file config', {
+    url: POST(`${HOST.FILE}/files/Config`),
+    body: {
+      'config': {
+        'maxSize': 512,
+        'maxFile': 1,
+        'ext': '.*',
+        'expiredTime': 300,
+        'zip': false
+      },
+      'name': 'testSendmail'
+    },
+    var: {
+      'newfileconfig': $var('this.$body')
+    }
+  }, { extends: '#authRequestByToken' }),
+  API('Upload file', {
+    url: POST(`${HOST.FILE}/files/Upload/:fileConfigId*`, $var('newfileconfig._id')),
+    headers: {
+      'content-type': 'multipart/form-data'
+    },
+    body: {
+      files: Part(`C:\\test.jpg`)
+    },
+    var: {
+      'newfile': $var('this.$body')
+    }
+  }, { extends: '#authRequestByToken', key: '#uploadFile' }),
   DOC('Send an email via mail template', GROUP, TAG.ADMIN, {
     i18doc,
     note: [
@@ -44,12 +72,27 @@ export default [
     ],
     url: PUT(`${HOST.MAIL}/mail/Send/:mailTemplateId*`, $var('newmailtemplate._id')),
     body: {
-      to: ['user1@abc.com'],
-      cc: ['user2@abc.com']
+      to: ['doanthuanthanh88@gmail.com'],
+      cc: ['thanhdt611@gmail.com'],
+      attachments: [
+        { fileserv: $var('newfile') }
+      ]
     },
     var: {
       'newmail1': $var('this.$body')
     }
+  }, { extends: '#authRequestByToken' }),
+  
+  DELAY(10000, 'Delay to sending mail'),
+
+  API('Remove file', {
+    url: PUT(`${HOST.FILE}/files/Remove`),
+    body: {
+      files: $var('newfile')
+    }
+  }, { extends: '#authRequestByToken' }),
+  API('Remove files config', {
+    url: DELETE(`${HOST.FILE}/files/Config/:fileConfigId*`, $var('newfileconfig._id'))
   }, { extends: '#authRequestByToken' }),
   DOC('Resend an existed email', GROUP, TAG.ADMIN, {
     i18doc,
