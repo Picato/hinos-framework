@@ -1,66 +1,79 @@
 import { VALIDATE, Checker } from 'hinos-validation'
-import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
+import { Mongo, Uuid } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
-import { DynamicService } from './DynamicService'
 
 /************************************************
  ** TableService || 4/10/2017, 10:19:24 AM **
  ************************************************/
 
-@Collection('Table')
-/* tslint:disable */
-export class Table {
-  _id?: Uuid
-  project_id?: Uuid
-  account_id?: Uuid
-  name?: string
-  created_at?: Date
-  updated_at?: Date
-}
-/* tslint:enable */
-
 export class TableService {
-  @MONGO()
-  private static mongo: Mongo
 
-  static async find(fil = {}) {
-    const rs = await TableService.mongo.find<Table>(Table, fil)
+  static async find(projectId: Uuid) {
+    const mongo = Mongo.pool(Object.assign({}, AppConfig.mongo, {
+      url: AppConfig.mongo.url.replace(/\/\w+$/, `/${projectId}`)
+    }))
+    const rs = await mongo.manual(TableService.getListTables)
     return rs
   }
 
-  @VALIDATE((body: Table) => {
-    body._id = Mongo.uuid() as Uuid
-    Checker.required(body, 'project_id', Uuid)
-    Checker.required(body, 'account_id', Uuid)
-    Checker.required(body, 'name', String)
-    if (!/^[a-zA-Z][a-zA-Z0-9_]+$/.test(body.name)) throw HttpError.BAD_REQUEST('Table name must be alphabetic')
-    body.created_at = new Date()
-    body.updated_at = new Date()
+  @VALIDATE((name: string, projectId: Uuid) => {
+    Checker.required(name, [, 'name'], String)
+    Checker.required(projectId, [, 'project_id'], Uuid)
+    if (!/^[a-zA-Z][a-zA-Z0-9_]+$/.test(name)) throw HttpError.BAD_REQUEST('Table name must be alphabetic')
+    if(name.toLowerCase() === 'object') throw HttpError.BAD_REQUEST('Table name must be not "object"')
   })
-  static async insert(body: Table) {
-    const existed = await TableService.mongo.get<Table>(Table, {
-      project_id: body.project_id,
-      name: body.name
+  static async insert(name: string, projectId: Uuid) {
+    const mongo = Mongo.pool(Object.assign({}, AppConfig.mongo, {
+      url: AppConfig.mongo.url.replace(/\/\w+$/, `/${projectId}`)
+    }))
+    const tables = await mongo.manual(TableService.getListTables)
+    const idx = tables.findIndex(e => e.toLowerCase() === name.toLowerCase())
+    if (idx !== -1) throw HttpError.BAD_REQUEST(`Table ${name} was existed`)
+    await mongo.manual(async (db) => {
+      await TableService.addTable(name, db)
     })
-    if (existed) return existed
-    const rs = await TableService.mongo.insert<Table>(Table, body)
-    return rs
+    return name
   }
 
-  @VALIDATE((projectId: Uuid, _id: Uuid) => {
+  @VALIDATE((projectId: Uuid, name: String) => {
     Checker.required(projectId, [, 'projectId'], Uuid)
-    Checker.required(_id, [, '_id'], Uuid)
+    Checker.required(name, [, 'name'], String)
   })
-  static async delete(projectId: Uuid, _id: Uuid) {
-    const rs = await TableService.mongo.delete<Table>(Table, _id, { return: true })
-    if (!rs) throw HttpError.NOT_FOUND('Could not found item to delete')
-    try {
-      const isDroped = await TableService.mongo.manual(async (db) => {
-        return await db.dropCollection(DynamicService.getTableDynamic(projectId, rs.name))
+  static async delete(projectId: Uuid, name: String) {
+    const mongo = Mongo.pool(Object.assign({}, AppConfig.mongo, {
+      url: AppConfig.mongo.url.replace(/\/\w+$/, `/${projectId}`)
+    }))
+    const tables = await mongo.manual(TableService.getListTables)
+    if (tables.findIndex(e => e.toLowerCase() === name.toLowerCase()) === -1) throw HttpError.BAD_REQUEST('Table not found')
+    await mongo.manual(async (db) => {
+      await TableService.removeTable(name, db)
+    })
+  }
+
+  private static getListTables(db) {
+    return new Promise((resolve, reject) => {
+      db.listCollections().toArray((err, rs) => {
+        if (err) return reject(err)
+        resolve(rs.map(e => e.name))
       })
-      if (!isDroped) throw HttpError.INTERNAL('Could not drop table')
-    } catch (e) {
-      console.error(e)
-    }
+    })
+  }
+
+  private static addTable(tblName, db) {
+    return new Promise((resolve, reject) => {
+      db.createCollection(tblName, (err) => {
+        if (err) return reject(err)
+        resolve()
+      })
+    })
+  }
+
+  private static removeTable(tblName, db) {
+    return new Promise((resolve, reject) => {
+      db.dropCollection(tblName, (err) => {
+        if (err) return reject(err)
+        resolve()
+      })
+    })
   }
 }

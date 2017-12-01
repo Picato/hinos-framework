@@ -1,7 +1,6 @@
 import { GET, POST, DELETE, INJECT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
 import { RESTRICT } from 'hinos-bodyparser/restrict'
-import { Mongo } from 'hinos-mongo'
 import { TableService } from '../service/TableService'
 import { authoriz } from '../service/Authoriz'
 
@@ -13,21 +12,8 @@ export class TableController {
 
   @GET('/Table')
   @INJECT(authoriz(`${AppConfig.path}/Table`, 'FIND'))
-  @RESTRICT({
-    query: {
-      page: Number,
-      recordsPerPage: Number
-    }
-  })
-  static async find({ query, state }) {
-    let where = {} as any
-    where.project_id = state.auth.projectId
-    const rs = await TableService.find({
-      $where: where,
-      $page: query.page,
-      $recordsPerPage: query.recordsPerPage,
-      $fields: { project_id: 0 }
-    })
+  static async find({ state }) {
+    const rs = await TableService.find(state.auth.projectId)
     return rs
   }
 
@@ -40,23 +26,19 @@ export class TableController {
     }
   })
   static async add({ body, state }) {
-    body.account_id = state.auth.accountId
-    body.project_id = state.auth.projectId
-    const rs = await TableService.insert(body)
-    delete body.account_id
-    delete body.project_id
+    const rs = await TableService.insert(body.name, state.auth.projectId)
     return rs
   }
 
-  @DELETE('/Table/:_id')
+  @DELETE('/Table/:name')
   @INJECT(authoriz(`${AppConfig.path}/Table`, 'DELETE'))
   @RESTRICT({
     params: {
-      _id: Mongo.uuid
+      name: String
     }
   })
   static async del({ params, state }) {
-    await TableService.delete(state.auth.projectId, params._id)
+    await TableService.delete(state.auth.projectId, params.name)
   }
 
 }
