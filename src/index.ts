@@ -1,7 +1,7 @@
 // import * as path from 'path'
 import { Server } from 'hinos'
 // import { route } from 'hinos-route'
-import { Mongo } from 'hinos-mongo'
+// import { Mongo } from 'hinos-mongo'
 import { Redis } from 'hinos-redis'
 // import { serve } from 'hinos-serve'
 // import { cors } from 'hinos-cors'
@@ -11,7 +11,7 @@ import { CoinService } from './service/CoinService';
 
 require(`./env.${Server.env}`).default(Server)
 
-Mongo(AppConfig.mongo).debug(!Server.isProduction)
+// Mongo(AppConfig.mongo).debug(!Server.isProduction)
 Redis(AppConfig.redis).debug(!Server.isProduction)
 // Server.use(serve({
 //   '/images': path.join(__dirname, '..', 'assets', 'images')
