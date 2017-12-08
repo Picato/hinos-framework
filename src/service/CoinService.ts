@@ -9,7 +9,8 @@ import * as bittrex from 'node-bittrex-api'
  ************************************************/
 
 bittrex.options({
-  
+  apikey: AppConfig.app.bittrex.apikey,
+  apisecret: AppConfig.app.bittrex.apisecret,
   inverse_callback_arguments: true
 })
 

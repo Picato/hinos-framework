@@ -34,6 +34,8 @@ interface IAppConfig {
   app: {
     bittrex: {
       scanCurrency: number
+      apikey: string
+      apisecret: string
     },
     gold: {
       scanTimeout: number
