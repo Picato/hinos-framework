@@ -45,6 +45,14 @@
         "response"
       ],
       "baseOnRequest": true
+    },
+    "app": {
+      "bittrex": {
+        "scanCurrency": 15000
+      },
+      "gold": {
+        "scanTimeout": 5000
+      }
     }
   },
   "dependencies": {
@@ -63,7 +71,9 @@
     "hinos-socketio": "^2.0.8",
     "hinos-validation": "^1.1.2",
     "lodash": "^4.17.4",
-    "typescript": "^2.6.1"
+    "node-bittrex-api": "^0.8.1",
+    "typescript": "^2.6.1",
+    "xml2js": "^0.4.19"
   },
   "author": "doanthuanthanh88@gmail.com",
   "license": "ISC",

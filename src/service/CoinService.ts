@@ -1,8 +1,6 @@
 import * as _ from 'lodash'
-import { VALIDATE, Checker } from 'hinos-validation'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import { REDIS, Redis } from 'hinos-redis'
-import HttpError from '../common/HttpError'
 import axios from 'axios'
 import * as bittrex from 'node-bittrex-api'
 
@@ -11,8 +9,7 @@ import * as bittrex from 'node-bittrex-api'
  ************************************************/
 
 bittrex.options({
-  apikey: 'edbf5c878ebc4de3a8d617d1d5a29eaf',
-  apisecret: '8098c0c0883944f19e93394370e6af10',
+  
   inverse_callback_arguments: true
 })
 
@@ -44,9 +41,6 @@ class Bittrex {
   }
 
   static async getNewCoin() {
-    if (Bittrex.oldCoins === undefined) {
-      Bittrex.oldCoins = JSON.parse(await Bittrex.redis.get('bittrex.currencies') as string || '[]')
-    }
     const coins = await Bittrex.getCurrencies() as string[]
     const newCoins = _.difference(coins, Bittrex.oldCoins)
     if (newCoins.length > 0) {
@@ -54,7 +48,7 @@ class Bittrex {
       Bittrex.oldCoins = _.uniq(coins.concat(Bittrex.oldCoins))
       Bittrex.redis.set('bittrex.currencies', JSON.stringify(Bittrex.oldCoins))
     }
-    setTimeout(Bittrex.getNewCoin, 5000)
+    setTimeout(Bittrex.getNewCoin, AppConfig.app.bittrex.scanCurrency)
   }
 }
 
@@ -74,6 +68,7 @@ export class CoinService {
 
   static async autoSync() {
     console.log('Auto sync coin')
+    Bittrex.oldCoins = JSON.parse(await Bittrex.redis.get('bittrex.currencies') as string || '[]')
     Bittrex.getNewCoin()
   }
 
