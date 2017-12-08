@@ -53,7 +53,7 @@
         "scanCurrency": 15000
       },
       "gold": {
-        "scanTimeout": 5000
+        "scanTimeout": 900000
       }
     }
   },
