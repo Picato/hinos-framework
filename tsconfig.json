@@ -1,12 +1,16 @@
 {
     "compilerOptions": {
         "module": "commonjs",
-        "target": "ESNext",
+        "target": "esnext",
         "declaration": false,
         "sourceMap": false,
+        "preserveConstEnums": true,
         "removeComments": true,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "newLine": "lf",
         "typeRoots": [
             "node_modules/@types",
             "typings"

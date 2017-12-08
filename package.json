@@ -4,42 +4,78 @@
   "description": "hinos project which is built for APIs",
   "main": ".build/index.js",
   "scripts": {
+    "once": "npm install -g typescript && npm install -g cross-var && npm install -g tslint-config-standard",
     "start": "node .",
-    "preinstall": "npm install -g typescript",
-    "postinstall": "npm install -g typescript-formatter",
-    "build:clean": "rimraf .build .spec",
-    "build": "npm run build:clean && tsc",
-    "dev": "npm run build:clean && tsc --watch --pretty --sourceMap",
+    "prebuild": "rimraf .build .spec",
+    "build": "tsc",
     "pretest": "rimraf .spec && tsc -p src/test/tsconfig.json",
     "test": "mocha --opts src/test/mocha.opts \".spec/test/spec/*.js\"",
-    "gen": "tsc -p gen_code/tsconfig.json && node ./gen_code/.build",
-    "pm2": "npm run build && pm2 start pm2.config.js"
+    "dev": "tsc --watch --pretty --sourceMap",
+    "pm2": "cross-var \"pm2 start . --env production --name $npm_package_name\"",
+    "hinosgen": "git clone https://github.com/doanthuanthanh88/quickstart.git -b hinos@gencode --single-branch @gencode && cd @gencode && npm install",
+    "gen": "cd @gencode && npm start"
+  },
+  "appconfig": {
+    "externalConfig": "./appconfig.cfg#api",
+    "url": "http://localhost:1009",
+    "path": "",
+    "mongo": {
+      "url": "mongodb://localhost:27017/test",
+      "releaseTimeout": 50000
+    },
+    "redis": {
+      "host": "localhost",
+      "port": 6379,
+      "releaseTimeout": 50000
+    },
+    "rabbitmq": {
+      "url": "amqp://127.0.0.1",
+      "releaseTimeout": 50000,
+      "queue": {
+        "API_SENDER": "backend",
+        "API_RECEIVER": "api",
+        "LOG_RECEIVER": "log"
+      }
+    },
+    "encrypt": {
+      "pwd": ")^!!!(**",
+      "mode": [
+        "query",
+        "body",
+        "response"
+      ],
+      "baseOnRequest": true
+    }
   },
   "dependencies": {
-    "hinos": "^1.0.6",
-    "hinos-bodyparser": "^1.0.6",
-    "hinos-common": "^1.0.4",
-    "hinos-cors": "^1.0.0",
-    "hinos-mongo": "^1.0.4",
-    "hinos-rabbitmq": "^1.0.4",
-    "hinos-redis": "^1.0.4",
-    "hinos-requestmatcher": "^1.0.3",
-    "hinos-route": "^1.0.6",
-    "hinos-serve": "^1.0.4",
-    "hinos-socketio": "^1.0.3",
-    "hinos-validation": "^1.0.5",
+    "hinos": "^1.1.5",
+    "hinos-bodyparser": "^2.1.2",
+    "hinos-common": "^1.0.8",
+    "hinos-cors": "^1.0.1",
+    "hinos-helmet": "^1.0.0",
+    "hinos-mongo": "^1.1.7",
+    "hinos-rabbitmq": "^2.0.5",
+    "hinos-redis": "^1.0.25",
+    "hinos-requesthasher": "^1.1.9",
+    "hinos-requestmatcher": "^1.0.7",
+    "hinos-route": "^1.1.12",
+    "hinos-serve": "^1.1.1",
+    "hinos-socketio": "^2.0.8",
+    "hinos-validation": "^1.1.2",
     "lodash": "^4.17.4",
-    "xml2js": "^0.4.17"
+    "typescript": "^2.6.1"
   },
   "author": "doanthuanthanh88@gmail.com",
   "license": "ISC",
   "devDependencies": {
+    "@types/axios": "^0.14.0",
     "@types/chai": "^3.5.2",
-    "@types/lodash": "^4.14.64",
-    "@types/mocha": "^2.2.41",
-    "@types/node": "^7.0.23",
+    "@types/lodash": "^4.14.74",
+    "@types/mocha": "^2.2.43",
+    "@types/node": "^7.0.43",
+    "axios": "^0.16.2",
     "chai": "^3.5.0",
-    "mocha": "^3.3.0",
-    "rimraf": "^2.6.1"
+    "mocha": "^3.5.3",
+    "rimraf": "^2.6.2"
   }
 }

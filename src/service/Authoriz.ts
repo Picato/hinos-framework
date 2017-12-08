@@ -1,10 +1,8 @@
-import { Context } from 'hinos';
-import HttpError from '../common/HttpError';
-import MicroService from './MicroService';
-import { Mongo } from 'hinos-mongo';
+import { Context } from 'hinos'
 
 export function authoriz(pathCode: string, actions: string[]) {
-    return async (ctx: Context, next: Function) => {
-        await next();
-    }
+  return async ({ ctx, headers }: Context, next: Function) => {
+    console.log(pathCode, actions, ctx, headers)
+    await next()
+  }
 }
