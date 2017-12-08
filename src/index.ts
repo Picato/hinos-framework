@@ -4,12 +4,15 @@ import { route } from 'hinos-route';
 import { Mongo } from 'hinos-mongo';
 import { serve } from 'hinos-serve';
 import { cors } from 'hinos-cors';
+import { Redis } from 'hinos-redis'
 import { GoldService } from './service/GoldService';
 import './config';
+import { CoinService } from './service/CoinService';
 
 require(`./env.${Server.env}`).default(Server);
 
-Mongo(AppConfig.mongo);
+Mongo(AppConfig.mongo).debug(!Server.isProduction)
+Redis(AppConfig.redis).debug(!Server.isProduction)
 Server.use(serve({
     '/images': path.join(__dirname, '..', 'assets', 'images')
 }));
@@ -26,4 +29,5 @@ Server.listen(AppConfig.port, () => {
       
 `);
     GoldService.autoSync();
+    CoinService.autoSync();
 });
