@@ -1,5 +1,5 @@
 {
-  "name": "hinos-framework",
+  "name": "blaz-app",
   "version": "1.0.0",
   "description": "hinos project which is built for APIs",
   "main": ".build/index.js",
