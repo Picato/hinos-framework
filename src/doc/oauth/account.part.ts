@@ -66,6 +66,20 @@ export default [
   DOC('Ping to server to extends login timeout', GROUP, {
     extends: '#ping'
   }),
+  DOC('Turn ON 2-step vertification', GROUP, {
+    i18doc: {
+      '$body': 'Secret token key. Use it to make call to api service which never is expired'
+    },
+    extends: '#authRequestByToken',
+    url: POST(`${HOST.OAUTH}/oauth/TwoFactor`)
+  }, { extends: '#authRequestByToken' }),
+  DOC('Turn OFF 2-step vertification', GROUP, {
+    i18doc: {
+      '$body': 'Secret token key. Use it to make call to api service which never is expired'
+    },
+    extends: '#authRequestByToken',
+    url: DELETE(`${HOST.OAUTH}/oauth/TwoFactor`)
+  }, { extends: '#authRequestByToken' }),
   DOC('Generate secret key which allow access api without login', GROUP, {
     i18doc: {
       '$body': 'Secret token key. Use it to make call to api service which never is expired'
