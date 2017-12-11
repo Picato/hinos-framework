@@ -34,7 +34,8 @@
       "releaseTimeout": 50000
     },
     "app": {
-      "suid": "123456789"
+      "suid": "123456789",
+      "twoStepVerificationTimeout": 60000
     },
     "encrypt": {
       "pwd": "a!b@=;",
@@ -48,6 +49,8 @@
     }
   },
   "dependencies": {
+    "qrcode": "^1.0.0",
+    "speakeasy": "^2.0.0",
     "zip-folder": "^1.0.0"
   },
   "peerDependencies": {
