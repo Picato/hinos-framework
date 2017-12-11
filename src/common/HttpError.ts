@@ -5,6 +5,7 @@ export default class HttpError extends Error {
     super()
   }
 
+  static ACCEPTED = (msg?) => new HttpError(202, msg)
   static BAD_REQUEST = (msg?) => new HttpError(400, msg)
   static NOT_FOUND = (msg?) => new HttpError(404, msg)
   static EXPIRED = (msg?) => new HttpError(440, msg)

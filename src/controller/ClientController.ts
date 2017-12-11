@@ -16,6 +16,21 @@ import HttpError from '../common/HttpError'
 
 export default class AccountController {
 
+  @POST('/Login2')
+  @BODYPARSER()
+  @RESTRICT({
+    headers: {
+      token: String
+    },
+    body: {
+      code: String
+    }
+  })
+  static async login2({ headers, body, ctx }) {
+    const token = await AccountService.login2(headers.token, body.code)
+    ctx.set('token', token)
+  }
+
   @POST('/Login')
   @BODYPARSER()
   @RESTRICT({
@@ -55,8 +70,14 @@ export default class AccountController {
         throw HttpError.BAD_REQUEST(`This app not supported to login via social network ${body.app}`)
       }
     }
-    const token = await AccountService.login(body, plugins)
-    ctx.set('token', token)
+    try {
+      const token = await AccountService.login(body, plugins)
+      ctx.set('token', token)
+    } catch (e) {
+      if (e.status !== 202) throw e
+      ctx.set('token', e.message)
+      ctx.status = 202
+    }
   }
 
   @POST('/Register')
@@ -77,7 +98,7 @@ export default class AccountController {
   })
   static async register({ body, headers }) {
     body = Mongo.autocast(body)
-    body = _.omit(body, ['_id', 'trying', 'secret_key', 'created_at', 'updated_at', 'token', 'native', 'status'])
+    body = _.omit(body, ['_id', 'trying', 'secret_key', 'created_at', 'updated_at', 'token', 'native', 'status', 'two_factor_secret_img', 'two_factor_secret_base32'])
     body.role_ids = headers.role ? [headers.role] : undefined
     const plugins = await ProjectService.getCached(headers.pj, 'plugins') as PluginCached
     body.project_id = Mongo.uuid(plugins.project_id)
@@ -109,6 +130,7 @@ export default class AccountController {
   }
 
   @GET('/Logout')
+  @INJECT(authoriz(`${AppConfig.path}/Account`, undefined))
   @RESTRICT({
     headers: {
       token: vl => vl.split('?')[0]
@@ -147,37 +169,50 @@ export default class AccountController {
     if (ac) ctx.set({ account_id: ac._id, project_id: ac.project_id })
   }
 
+  @POST('/TwoFactor')
+  @INJECT(authoriz(`${AppConfig.path}/Account`, undefined))
+  static async enableTwoFactor({ state }) {
+    const qcodeURI = await AccountService.enableTwoFactor(state.auth)
+    return qcodeURI
+  }
+
+  @DELETE('/TwoFactor')
+  @INJECT(authoriz(`${AppConfig.path}/Account`, undefined))
+  static async disabledTwoFactor({ state }) {
+    await AccountService.disableTwoFactor(state.auth)
+  }
+
   @PUT('/Secretkey')
-  @INJECT(authoriz(`${AppConfig.path}/Account`, 'GEN_SECRETKEY'))
+  @INJECT(authoriz(`${AppConfig.path}/Account`, undefined))
   static async genSecretKey({ state }) {
     const secretKey = await AccountService.genSecretKey(state.auth)
     return secretKey
   }
 
   @DELETE('/Secretkey')
-  @INJECT(authoriz(`${AppConfig.path}/Account`, 'REMOVE_SECRETKEY'))
+  @INJECT(authoriz(`${AppConfig.path}/Account`, undefined))
   static async clearSecretKey({ state }) {
     await AccountService.clearSecretKey(state.auth)
   }
 
   @GET('/Secretkey')
-  @INJECT(authoriz(`${AppConfig.path}/Account`, 'GET_SECRETKEY'))
+  @INJECT(authoriz(`${AppConfig.path}/Account`, undefined))
   static async getSecretKey({ state }) {
     const secretKey = await AccountService.getSecretKey(state.auth)
     return secretKey
   }
 
   @GET('/Me')
-  @INJECT(authoriz(`${AppConfig.path}/Account`, 'GET_ME'))
+  @INJECT(authoriz(`${AppConfig.path}/Account`, undefined))
   static async getMe({ state, query }) {
     let fields: any = query.fields
-    _.merge(fields, { token: 0, password: 0, project_id: 0, trying: 0, secret_key: 0 })
+    _.merge(fields, { token: 0, password: 0, project_id: 0, trying: 0, secret_key: 0, two_factor_secret_base32: 0 })
     const me = await AccountService.getMe(state.auth, fields)
     return me
   }
 
   @PUT('/Me')
-  @INJECT(authoriz(`${AppConfig.path}/Account`, 'UPDATE_ME'))
+  @INJECT(authoriz(`${AppConfig.path}/Account`, undefined))
   @BODYPARSER()
   // @RESTRICT({
   //   body: {
@@ -188,14 +223,14 @@ export default class AccountController {
   // })
   static async updateMe({ body, state }) {
     body = Mongo.autocast(body)
-    body = _.omit(body, ['_id', 'project_id', 'app', 'username', 'trying', 'secret_key', 'created_at', 'updated_at', 'token', 'native', 'status', 'role_ids'])
+    body = _.omit(body, ['_id', 'project_id', 'app', 'username', 'trying', 'secret_key', 'created_at', 'updated_at', 'token', 'native', 'status', 'role_ids', 'two_factor_secret_img', 'two_factor_secret_base32'])
     body._id = state.auth.accountId
     if (body.password) body.password = md5(body.password)
     await AccountService.update(body)
   }
 
   @GET('/MyRoles')
-  @INJECT(authoriz(`${AppConfig.path}/Account`, 'GET_MYROLES'))
+  @INJECT(authoriz(`${AppConfig.path}/Account`, undefined))
   @RESTRICT({
     query: {
       type: String

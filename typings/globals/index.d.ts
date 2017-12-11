@@ -28,6 +28,7 @@ interface IAppConfig {
   }
   app: {
     suid: string
+    twoStepVerificationTimeout: number
   }
 }
 

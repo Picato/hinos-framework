@@ -8,6 +8,8 @@ import { Role } from './RoleService'
 import { ProjectService, Plugin, PluginCached } from './ProjectService'
 import { RoleService } from './RoleService'
 import axios from 'axios'
+import * as speakeasy from 'speakeasy'
+import * as qrcode from 'qrcode'
 
 /************************************************
  ** AccountService || 4/10/2017, 10:19:24 AM **
@@ -30,6 +32,8 @@ export class Account {
   updated_at?: Date
   token?: string[]
   native?: boolean
+  two_factor_secret_img?: string // login via google authenticator
+  two_factor_secret_base32?: string // login via google authenticator
 }
 /* tslint:enable */
 
@@ -97,6 +101,42 @@ export class AccountService {
         avatar: data.picture
       }
     }
+  }
+
+  static async enableTwoFactor({ accountId = undefined as Uuid, projectId = undefined as Uuid }) {
+    const project = await ProjectService.get(projectId, { name: 1 })
+    const me = await AccountService.mongo.get<Account>(Account, accountId, { username: 1 })
+    const secret = speakeasy.generateSecret({
+      name: `/${project.name}/${me.username}`
+    })
+    return new Promise((resolve, reject) => {
+      qrcode.toDataURL(secret.otpauth_url, (err, data_url) => {
+        if (err) return reject(err)
+        AccountService.mongo.update(Account, {
+          _id: {
+            _id: accountId,
+            project_id: projectId
+          },
+          two_factor_secret_base32: secret.base32,
+          two_factor_secret_img: data_url
+        }).then((rs) => {
+          if (rs === 0) return reject(HttpError.INTERNAL('Not found this user'))
+          resolve(data_url)
+        }).catch(reject)
+      });
+    })
+  }
+
+  static async disableTwoFactor({ accountId = undefined as Uuid, projectId = undefined as Uuid }) {
+    const rs = await AccountService.mongo.update(Account, {
+      _id: {
+        _id: accountId,
+        project_id: projectId
+      },
+      two_factor_secret_img: undefined,
+      two_factor_secret_base32: undefined
+    })
+    if (rs === 0) throw HttpError.INTERNAL('Could not disable')
   }
 
   static async getSecretKey({ accountId = undefined as Uuid }) {
@@ -179,7 +219,7 @@ export class AccountService {
   })
   static async register(body, { oauth }) {
     const acc = await AccountService.insert(body, oauth)
-    return _.omit(acc, ['role_ids', 'project_id', 'trying', 'token', 'secret_key', 'password'])
+    return _.omit(acc, ['role_ids', 'project_id', 'trying', 'token', 'secret_key', 'password', 'two_factor_secret_img', 'two_factor_secret_base32'])
   }
 
   static async authoriz({ token = undefined as string, path = undefined as string, action = undefined as string }) {
@@ -192,6 +232,7 @@ export class AccountService {
     const accRole = roles.filter(e => cached.role_ids.includes(e.role_id))
     for (const r of accRole) {
       if ((!r.isPathRegex && r.path === path) || (r.isPathRegex && new RegExp(`^${r.path}$`).test(path))) {
+        if (!action) return cached
         if (r.isActionRegex && new RegExp(`^${r.actions}$`).test(action)) return cached
         else if (r.actions === action) return cached
       }
@@ -204,11 +245,30 @@ export class AccountService {
     await AccountService.redis.del(`$tk:${token}`)
   }
 
+  static async login2(tempToken: string, code: string) {
+    const temp = await AccountService.redis.get(`$2factor:${tempToken}`) as string
+    if (!temp) throw HttpError.NOT_FOUND("Could not found this token")
+    const tempAcc = JSON.parse(temp) as {
+      two_factor_secret_base32: string,
+      pj: string,
+      _id: string
+    }
+    const verified = speakeasy.totp.verify({
+      secret: tempAcc.two_factor_secret_base32,
+      encoding: 'base32',
+      token: code
+    })
+    if (!verified) throw HttpError.BAD_REQUEST("Code verification is not valid")
+    const plugins = await ProjectService.getCached(tempAcc.pj, 'plugins') as PluginCached
+    const acc = await AccountService.mongo.get<Account>(Account, Mongo.uuid(tempAcc._id), { password: 1, app: 1, token: 1, status: 1, _id: 1, project_id: 1, role_ids: 1, trying: 1, native: 1, two_factor_secret_img: 1, two_factor_secret_base32: 1 })
+    return await AccountService.loginPassed(acc, plugins)
+  }
+
   static async login(user: { username: string, password: string, projectId: Uuid, app?: string }, { oauth }: Plugin) {
     const acc = await AccountService.mongo.get<Account>(Account, {
       username: new RegExp(`^${user.username}$`, 'i'),
       project_id: user.projectId
-    }, { password: 1, app: 1, token: 1, status: 1, _id: 1, project_id: 1, role_ids: 1, trying: 1, native: 1 })
+    }, { password: 1, app: 1, token: 1, status: 1, _id: 1, project_id: 1, role_ids: 1, trying: 1, native: 1, two_factor_secret_base32: 1 })
     if (!acc) throw HttpError.NOT_FOUND(`Could not found username ${user.username}`)
     if (acc.status === Account.Status.LOCKED) throw HttpError.BAD_REQUEST('Account was locked')
     if (acc.status !== Account.Status.ACTIVED) throw HttpError.BAD_REQUEST('Account not actived')
@@ -241,6 +301,19 @@ export class AccountService {
         await wrongPass('Password not match')
       })
     })
+    if (acc.two_factor_secret_base32) {
+      const tempToken = `${Mongo.uuid()}`
+      await AccountService.redis.set(`$2factor:${tempToken}`, JSON.stringify({
+        two_factor_secret_base32: acc.two_factor_secret_base32,
+        pj: acc.project_id,
+        _id: acc._id
+      }), AppConfig.app.twoStepVerificationTimeout / 1000)
+      throw HttpError.ACCEPTED(tempToken)
+    }
+    return await AccountService.loginPassed(acc, { oauth })
+  }
+
+  static async loginPassed(acc: Account, { oauth }: Plugin) {
     if (oauth.single_mode === true) {
       if (acc.token && acc.token.length > 0) await Promise.all(acc.token.map(tk => AccountService.redis.del(`$tk:${tk}`)))
       acc.token = []
@@ -288,7 +361,7 @@ export class AccountService {
   }
 
   static async get(_id: any) {
-    const rs = await AccountService.mongo.get<Account>(Account, _id, { token: 0, password: 0, project_id: 0, trying: 0, secret_key: 0 })
+    const rs = await AccountService.mongo.get<Account>(Account, _id, { token: 0, password: 0, project_id: 0, trying: 0, secret_key: 0, two_factor_secret_base32: 0 })
     return rs
   }
 
@@ -336,7 +409,7 @@ export class AccountService {
     }
 
     const rs = await AccountService.mongo.insert<Account>(Account, body) as Account
-    return _.omit(rs, ['trying', 'token', 'project_id', 'role_ids'])
+    return _.omit(rs, ['trying', 'token', 'project_id', 'role_ids', 'two_factor_secret_base32'])
   }
 
   @VALIDATE((body: Account) => {
