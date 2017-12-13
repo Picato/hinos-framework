@@ -148,8 +148,8 @@ export class ClientController {
           $in: body.files
         },
         project_id: state.auth.projectId,
-        // account_id: state.auth.accountId
-      }
+      },
+      account_id: state.auth.accountId
     })
     if (body.oldFiles) {
       await FilesService.delete({

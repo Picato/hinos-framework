@@ -143,8 +143,8 @@ export class FilesService {
 
   @VALIDATE((body: Files) => {
     Checker.required(body._id, 'files', Object)
-    Checker.required(body._id, 'project_id', Uuid)
-    Checker.required(body._id, 'account_id', Uuid)
+    Checker.required(body._id, 'project_id', Uuid)    
+    Checker.required(body, 'account_id', Uuid)
     body.status = Files.Status.SAVED
     body.updated_at = new Date()
     body.expired_at = undefined
