@@ -116,17 +116,16 @@ export class ClientController {
     const files = _.clone(body.files)
     if (body.files instanceof Array) {
       await Promise.all(files.map(f => {
+        let _body = _.cloneDeep(body)
         const meta = f.split('?')
-        body.files = meta[0]
-        body.meta = meta[1]
-        body._id = Mongo.uuid()
-        return FilesService.insert(body, state.config)
+        _body.files = meta[0]
+        _body.meta = meta[1]
+        return FilesService.insert(_body, state.config)
       }))
     } else {
       const meta = body.files.split('?')
       body.files = meta[0]
       body.meta = meta[1]
-      body._id = Mongo.uuid()
       await FilesService.insert(body, state.config)
     }
     return files

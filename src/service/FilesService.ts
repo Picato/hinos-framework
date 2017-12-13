@@ -114,7 +114,8 @@ export class FilesService {
     return rs
   }
 
-  @VALIDATE((body: Files, config) => {    
+  @VALIDATE((body: Files, config) => {
+    body._id = Mongo.uuid() as Uuid    
     Checker.required(body, 'config_id', Uuid)
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
