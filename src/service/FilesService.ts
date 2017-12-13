@@ -150,9 +150,11 @@ export class FilesService {
     body.expired_at = undefined
   })
   static async store(body: Files) {
-    const old = await FilesService.mongo.update<Files>(Files, body, { return: true, multiple: true })
-    if (!old) throw HttpError.NOT_FOUND('Could not found item to store')
-    await FilesService.redis.lrem('files.temp', FilesCached.castToCached(old))
+    const olds = await FilesService.mongo.update<Files>(Files, body, { return: true, multiple: true }) as Files[]
+    if (!olds || olds.length === 0) throw HttpError.NOT_FOUND('Could not found item to store')
+    await Promise.all(olds.map(async (old) => {
+      await FilesService.redis.lrem('files.temp', FilesCached.castToCached(old))
+    }))
   }
 
   @VALIDATE((key: Object) => {

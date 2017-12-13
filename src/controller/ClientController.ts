@@ -172,7 +172,9 @@ export class ClientController {
   static async delFiles({ state, body }) {
     if (!body.files) throw HttpError.BAD_REQUEST('files is required')
     await FilesService.delete({
-      files: body.files,
+      files: {
+        $in: body.files
+      },
       project_id: state.auth.projectId
     })
   }
