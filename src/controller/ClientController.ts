@@ -119,12 +119,14 @@ export class ClientController {
         const meta = f.split('?')
         body.files = meta[0]
         body.meta = meta[1]
+        body._id = Mongo.uuid()
         return FilesService.insert(body, state.config)
       }))
     } else {
       const meta = body.files.split('?')
       body.files = meta[0]
       body.meta = meta[1]
+      body._id = Mongo.uuid()
       await FilesService.insert(body, state.config)
     }
     return files
