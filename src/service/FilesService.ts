@@ -115,7 +115,7 @@ export class FilesService {
   }
 
   @VALIDATE((body: Files, config) => {
-    body._id = Mongo.uuid() as Uuid    
+    body._id = Mongo.uuid() as Uuid
     Checker.required(body, 'config_id', Uuid)
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
@@ -159,12 +159,14 @@ export class FilesService {
     Checker.required(key, [, 'key'], Object)
   })
   static async delete(key: Object) {
-    const old = await FilesService.mongo.delete<Files>(Files, key, {
+    const olds = await FilesService.mongo.delete<Files>(Files, key, {
       return: true,
       multiple: true
-    })
-    if (!old) throw HttpError.NOT_FOUND('Could not found item to delete')
-    await FilesService.redis.lrem('files.temp', FilesCached.castToCached(old))
-    Utils.deleteUploadFiles(old.files, old.sizes)
+    }) as Files[]
+    if (!olds || olds.length === 0) throw HttpError.NOT_FOUND('Could not found item to delete')
+    await Promise.all(olds.map(async (old) => {
+      await FilesService.redis.lrem('files.temp', FilesCached.castToCached(old))
+      await Utils.deleteUploadFiles(old.files, old.sizes)
+    }))
   }
 }

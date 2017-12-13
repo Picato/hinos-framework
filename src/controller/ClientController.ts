@@ -147,15 +147,17 @@ export class ClientController {
         files: {
           $in: body.files
         },
-        account_id: state.auth.accountId,
-        project_id: state.auth.projectId
+        project_id: state.auth.projectId,
+        // account_id: state.auth.accountId
       }
     })
     if (body.oldFiles) {
-      await Promise.all(body.oldFiles.map(file => FilesService.delete({
-        files: file,
+      await FilesService.delete({
+        files: {
+          $in: body.oldFiles
+        },
         project_id: state.auth.projectId
-      })))
+      })
     }
   }
 
@@ -169,10 +171,10 @@ export class ClientController {
   })
   static async delFiles({ state, body }) {
     if (!body.files) throw HttpError.BAD_REQUEST('files is required')
-    await Promise.all(body.files.map(file => FilesService.delete({
-      files: file,
+    await FilesService.delete({
+      files: body.files,
       project_id: state.auth.projectId
-    })))
+    })
   }
 
 }
