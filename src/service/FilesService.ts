@@ -150,7 +150,7 @@ export class FilesService {
     body.expired_at = undefined
   })
   static async store(body: Files) {
-    const old = await FilesService.mongo.update<Files>(Files, body, { return: true })
+    const old = await FilesService.mongo.update<Files>(Files, body, { return: true, multiple: true })
     if (!old) throw HttpError.NOT_FOUND('Could not found item to store')
     await FilesService.redis.lrem('files.temp', FilesCached.castToCached(old))
   }
@@ -160,7 +160,8 @@ export class FilesService {
   })
   static async delete(key: Object) {
     const old = await FilesService.mongo.delete<Files>(Files, key, {
-      return: true
+      return: true,
+      multiple: true
     })
     if (!old) throw HttpError.NOT_FOUND('Could not found item to delete')
     await FilesService.redis.lrem('files.temp', FilesCached.castToCached(old))
