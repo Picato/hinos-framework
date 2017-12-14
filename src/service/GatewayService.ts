@@ -76,7 +76,7 @@ export class GatewayService {
   static async delete(where) {
     const rs = await GatewayService.mongo.delete<Service>(Service, where, {
       return: true
-    })
+    }) as Service
     if (!rs) throw HttpError.NOT_FOUND('Could not found item to delete')
     delete AppConfig.app.gateway[rs.name]
   }
