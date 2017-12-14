@@ -427,7 +427,7 @@ export class AccountService {
   static async update(body: Account) {
     const old = await AccountService.mongo.update<Account>(Account, body, {
       return: true
-    })
+    }) as Account
     if (!old) throw HttpError.NOT_FOUND('Could not found item to update')
     // Check if password was updated
     if (body.password && old.password !== body.password) {
@@ -453,7 +453,7 @@ export class AccountService {
   static async delete(_id: Uuid) {
     const old = await AccountService.mongo.delete<Account>(Account, _id, {
       return: true
-    })
+    }) as Account
     if (!old) throw HttpError.NOT_FOUND('Could not found account to delete')
     // Remove cached
     if (old.token && old.token.length > 0) await Promise.all(old.token.map(tk => AccountService.redis.del(`$tk:${tk}`)))

@@ -164,7 +164,7 @@ export class ProjectService {
   })
   static async update(body: Project) {
     body._id = body._id
-    const old = await ProjectService.mongo.update<Project>(Project, body, { return: true })
+    const old = await ProjectService.mongo.update<Project>(Project, body, { return: true }) as Project
     if (!old) throw HttpError.NOT_FOUND('Could not found item to update')
     if (body.status !== undefined) {
       if (old.status !== body.status && body.status === Project.Status.INACTIVED) {
@@ -185,7 +185,7 @@ export class ProjectService {
     Checker.required(_id, [undefined, '_id'], Uuid)
   })
   static async delete(_id: Uuid) {
-    const old = await ProjectService.mongo.delete<Project>(Project, _id, { return: true })
+    const old = await ProjectService.mongo.delete<Project>(Project, _id, { return: true }) as Project
     if (!old) throw HttpError.NOT_FOUND('Could not found project to delete')
     await RoleService.delete({
       project_id: _id
