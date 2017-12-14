@@ -97,7 +97,7 @@ export class ProjectService {
           status: Project.Status.ACTIVED
         },
         $fields: { plugins: 1, uname: 1 },
-        $recordsPerPage: -1
+        $recordsPerPage: 0
       })
       for (const cached of caches) {
         await ProjectService.reloadCachedPlugins(cached._id, cached.uname, { plugins: cached.plugins, roles: true })

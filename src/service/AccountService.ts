@@ -73,6 +73,7 @@ export class AccountService {
       $where: {
         secret_key: { $exists: true }
       },
+      $recordsPerPage: 0,
       $fields: { project_id: 1, _id: 1, role_ids: 1, secret_key: 1, native: 1 }
     })
     await Promise.all(caches.map(c => AccountService.redis.set(`$tk:${c.secret_key}`, AccountCached.castToCached(c))))
