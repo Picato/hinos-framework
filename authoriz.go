@@ -104,6 +104,9 @@ func checkPath(path string, r *apiActionCached) bool {
 }
 
 func checkAction(action string, r *apiActionCached) bool {
+	if len(action) == 0 {
+		return true
+	}
 	if r.IsActionRegex {
 		var b = regexp.MustCompile("^" + r.Actions + "$")
 		isOk := b.Match([]byte(action))
@@ -202,7 +205,7 @@ func main() {
 			return
 		}
 
-		if len(path) == 0 || len(action) == 0 {
+		if len(path) == 0 {
 			w.WriteHeader(400)
 			return
 		}
