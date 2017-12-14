@@ -227,7 +227,7 @@ export class ServiceService {
     Checker.required(where, 'project_id', Uuid)
   })
   static async delete(where) {
-    const old = await ServiceService.mongo.delete<Service>(Service, where, { return: true })
+    const old = await ServiceService.mongo.delete<Service>(Service, where, { return: true }) as Service
     if (!old) throw HttpError.NOT_FOUND('Could not found item to delete')
     const sers = await ServiceService.redis.lrange("monitor.temp") as string[]
     for (let s of sers.map(e => ServiceCached.castToObject(e)) as ServiceCached[]) {
