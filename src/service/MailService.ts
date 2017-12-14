@@ -187,7 +187,7 @@ export class MailService {
     body.retry_at = undefined
   })
   static async resend(body: Mail) {
-    const rs = await MailService.mongo.update<Mail>(Mail, body, { return: true })
+    const rs = await MailService.mongo.update<Mail>(Mail, body, { return: true }) as Mail
     if (!rs) throw HttpError.NOT_FOUND('Could not found item to update')
     await MailService.redis.hdel('mail.temp', [rs._id.toString()])
     rs.retry_at = undefined
@@ -218,7 +218,7 @@ export class MailService {
     Checker.required(_id, [, '_id'], Object)
   })
   static async delete(_id: any) {
-    const old = await MailService.mongo.delete<Mail>(Mail, _id, { return: true })
+    const old = await MailService.mongo.delete<Mail>(Mail, _id, { return: true }) as Mail
     if (!old) throw HttpError.NOT_FOUND('Could not found item to delete')
     await MailService.redis.hdel('mail.temp', [old._id.toString()])
   }
