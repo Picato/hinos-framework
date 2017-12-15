@@ -19,6 +19,7 @@ type accountCached struct {
 	ProjectID string    `json:"project_id"`
 	RoleIDs   *[]string `json:"role_ids"`
 	Native    bool      `json:"native"`
+	IsSecret  bool      `json:"is_secret"`
 }
 
 type apiRoleCached struct {
@@ -167,17 +168,18 @@ func main() {
 			w.WriteHeader(440)
 			return
 		}
-
-		pluginCached, err := getPluginCached(accountCached.ProjectID)
-		if err != nil {
-			w.WriteHeader(500)
-			return
-		}
-		if pluginCached.Oauth.SessionExpired > 0 {
-			if pluginCached.Oauth.SessionExpired > 1800 {
-				client.ExpireAt("$tk:"+token, time.Now().Add(time.Duration(pluginCached.Oauth.SessionExpired)*time.Second))
-			} else {
-				client.Expire("$tk:"+token, time.Duration(pluginCached.Oauth.SessionExpired)*time.Second)
+		if accountCached.IsSecret == false {
+			pluginCached, err := getPluginCached(accountCached.ProjectID)
+			if err != nil {
+				w.WriteHeader(500)
+				return
+			}
+			if pluginCached.Oauth.SessionExpired > 0 {
+				if pluginCached.Oauth.SessionExpired > 1800 {
+					client.ExpireAt("$tk:"+token, time.Now().Add(time.Duration(pluginCached.Oauth.SessionExpired)*time.Second))
+				} else {
+					client.Expire("$tk:"+token, time.Duration(pluginCached.Oauth.SessionExpired)*time.Second)
+				}
 			}
 		}
 		w.WriteHeader(204)

@@ -43,10 +43,13 @@ export class AccountCached {
   project_id: string
   role_ids: string[]
   native: boolean
+  is_secret: boolean
   /* tslint:enable */
 
-  static castToCached(_e: Account) {
-    return _.pick(_e, ['project_id', '_id', 'role_ids', 'native'])
+  static castToCached(_e: Account, isSecret = false) {
+    const r = _.pick(_e, ['project_id', '_id', 'role_ids', 'native']) as AccountCached
+    r.is_secret = isSecret
+    return r
   }
   // static castToObject(_e: string) {
   //   return (_e ? JSON.parse(_e) : _e) as AccountCached
@@ -76,7 +79,7 @@ export class AccountService {
       $recordsPerPage: 0,
       $fields: { project_id: 1, _id: 1, role_ids: 1, secret_key: 1, native: 1 }
     })
-    await Promise.all(caches.map(c => AccountService.redis.set(`$tk:${c.secret_key}`, AccountCached.castToCached(c))))
+    await Promise.all(caches.map(c => AccountService.redis.set(`$tk:${c.secret_key}`, AccountCached.castToCached(c, true))))
   }
 
   static async getMeFacebook(token: string): Promise<{ id: string, email: string, more: any }> {
@@ -169,7 +172,7 @@ export class AccountService {
     })
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
     if (acc.secret_key) await AccountService.redis.del(`$tk:${acc.secret_key}`)
-    await AccountService.redis.set(`$tk:${secretKey}`, AccountCached.castToCached(acc))
+    await AccountService.redis.set(`$tk:${secretKey}`, AccountCached.castToCached(acc, true))
     return secretKey
   }
 
@@ -200,9 +203,11 @@ export class AccountService {
     if (!token) throw HttpError.AUTHEN()
     const accountCached = await AccountService.getCachedToken(token)
     if (!accountCached) throw HttpError.EXPIRED()
-    const plugins = await ProjectService.getCached(accountCached.project_id, 'plugins') as PluginCached
-    if (!plugins) throw HttpError.INTERNAL('Could not found plugin configuration')
-    await AccountService.redis.touch(`$tk:${token}`, plugins.oauth.session_expired)
+    if (!accountCached.is_secret) {
+      const plugins = await ProjectService.getCached(accountCached.project_id, 'plugins') as PluginCached
+      if (!plugins) throw HttpError.INTERNAL('Could not found plugin configuration')
+      await AccountService.redis.touch(`$tk:${token}`, plugins.oauth.session_expired)
+    }
   }
 
   @VALIDATE(async (body: Account, { oauth }) => {
@@ -443,7 +448,7 @@ export class AccountService {
     } else {
       // Reload scret key to cached when reactived
       if (old.status !== body.status && body.status === Account.Status.ACTIVED && old.secret_key) {
-        AccountService.redis.set(`$tk:${old.secret_key}`, AccountCached.castToCached(Object.assign({}, old, body)))
+        AccountService.redis.set(`$tk:${old.secret_key}`, AccountCached.castToCached(Object.assign({}, old, body), true))
       }
     }
   }
