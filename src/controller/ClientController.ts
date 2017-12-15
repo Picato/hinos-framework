@@ -21,7 +21,8 @@ export class ClientController {
       recordsPerPage: Number,
       where: Object,
       sort: Object,
-      fields: Object
+      fields: Object,
+      distinct: String
     }
   })
   static async find({ query, state }) {
