@@ -50,16 +50,17 @@ func resizeImage(sizeImages *sizeImages) {
 		var w, h uint
 		imgW, imgH := uint(img.Bounds().Dx()), uint(img.Bounds().Dy())
 		isCrop := false
-		if p.W > 0 || p.H > 0 {
-			if p.W > 0 {
-				w = p.W
-				h = w * imgH / imgW
-			}
-			if p.H > 0 || h < p.H {
+		if p.W > 0 && p.H > 0 {
+			w = p.W
+			h = w * imgH / imgW
+			if h < p.H {
 				h = p.H
 				w = h * imgW / imgH
 			}
 			isCrop = h != p.H || w != p.W
+		} else {
+			w = p.W
+			h = p.H
 		}
 		m := resize.Resize(w, h, img, resize.Lanczos3)
 		if isCrop {
