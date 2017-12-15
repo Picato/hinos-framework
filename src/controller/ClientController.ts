@@ -90,7 +90,7 @@ export class ClientController {
               await Utils.executeCmd(`go run ${path.resolve('resize_image.go')} ` + `${JSON.stringify(JSON.stringify({ path: fileOut, sizes: resize }))}`)
             } catch (e) {
               await Utils.deleteUploadFiles(vl.path, state.config.resize)
-              throw HttpError.INTERNAL('Could not resize image')
+              throw HttpError.INTERNAL(e && e.message ? e.message : 'Could not resize image')
             }
             const httpPath = path.join(httpName.dir, `${httpName.name}${httpName.ext}`)
             return `${httpPath}?name=${fileName.name}${httpName.ext}`
