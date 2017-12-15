@@ -24,8 +24,13 @@ export class LogService {
   @MONGO()
   private static mongo: Mongo
 
-  static async find(fil = {}) {
-    const rs = await LogService.mongo.find<Log>(Log, fil)
+  static async find(fil = {} as any) {
+    let rs
+    if (fil.$distinct) {
+      rs = await LogService.mongo.distinct(Log, fil.$distinct, fil.$where)
+    } else {
+      rs = await LogService.mongo.find<Log>(Log, fil)
+    }
     return rs
   }
 

@@ -26,6 +26,7 @@ export class ClientController {
   })
   static async find({ query, state }) {
     let where: any = Mongo.autocast(query.where || {})
+    let distinct: any = query.distinct
     let sort: any = query.sort || { updated_at: -1 }
     let fields: any = query.fields || {}
 
@@ -33,6 +34,7 @@ export class ClientController {
     if (query.mine) where.account_id = state.auth.accountId
 
     const rs = await LogService.find({
+      $distinct: distinct,
       $where: where,
       $page: query.page,
       $recordsPerPage: query.recordsPerPage,
