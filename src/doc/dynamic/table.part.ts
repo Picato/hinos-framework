@@ -13,7 +13,7 @@ export default [
     }),
     url: POST(`${HOST.DYNAMIC}/dynamic/Table`),
     body: {
-      name: 'Pref'
+      name: 'PrefTesting'
     },
     var: {
       'newtable': $var('this.$body')
@@ -27,6 +27,6 @@ export default [
   ...INCLUDE('doc/dynamic/dynamic.part'),
 
   DOC('Remove table', GROUP, TAG.ADMIN, {
-    url: DELETE(`${HOST.DYNAMIC}/dynamic/Table/:tableId*`, $var('newtable._id'))
+    url: DELETE(`${HOST.DYNAMIC}/dynamic/Table/:tableName*`, $var('newtable'))
   }, { extends: '#authRequestByToken' })
 ]

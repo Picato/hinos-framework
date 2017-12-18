@@ -7,10 +7,10 @@ import * as path from 'path'
 import { Config } from '../config'
 
 export async function runner(config: Config) {
-  const c0 = chalk.black('┌')
-  const c1 = chalk.black('├')
-  const c2 = chalk.black('└')
-  const ce = chalk.black('│')
+  const c0 = chalk.gray('┌')
+  const c1 = chalk.gray('├')
+  const c2 = chalk.gray('└')
+  const ce = chalk.gray('│')
   const result = {
     title: config.title,
     des: config.des,
@@ -66,19 +66,19 @@ export async function runner(config: Config) {
         const api = apis[i]
         const c = i === 0 ? c0 : (i === len - 1 ? c2 : c1)
         try {
-          await api.run()
+          await api.run({ c })
         } catch (e) {
           api.error = e.message || e || 'Run api error'
         }
-        if (!api.error) {
-          console.log(' ', c, chalk.green.bold(api.title), api.method ? chalk.black.bold(api.method) : '', (api.url && api.url.requestPath) ? chalk.black.underline.italic(api.url.requestPath) : '', api.executeTime !== undefined ? chalk.blue(`(${api.executeTime} ms)`) : '')
-          result.summary.api.passed++
-        } else if (api.nvm) {
+        if (api.nvm) {
           tc.apiIndexes.splice(i, 1)
+        } else if (!api.error) {
+          console.log(' ', c, chalk.green.bold(api.title), api.method ? chalk.gray.bold(api.method) : '', (api.url && api.url.requestPath) ? chalk.gray.underline.italic(api.url.requestPath) : '', api.executeTime !== undefined ? chalk.blue(`(${api.executeTime} ms)`) : '')
+          result.summary.api.passed++
         } else {
           if (tc.status === TestcaseImpl.Status.PASSED) tc.status = TestcaseImpl.Status.FAILED
           result.summary.api.failed++
-          console.log(' ', c, chalk.red.bold(api.title), chalk.black.bold(api.method), chalk.black.underline.italic(api.url.requestPath), chalk.blue(`(${api.executeTime} ms)`))
+          console.log(' ', c, chalk.red.bold(api.title), chalk.gray.bold(api.method), chalk.gray.underline.italic(api.url.requestPath), chalk.blue(`(${api.executeTime} ms)`))
           console.log(' ', ce, chalk.red.italic(` > ${api.error}`))
           // throw new Error(api.error)
         }
@@ -109,13 +109,13 @@ export async function runner(config: Config) {
   else console.log(`${chalk.bgGreen.bold(' SUMMARY ')}`)
 
   console.log('')
-  console.log(chalk.black('  ┌'), chalk.bold.cyan('Time'), `\t${chalk.blue(`${executeTime}ms`)}`)
-  console.log(chalk.black('  ├'), chalk.bold.cyan('Testcase'), `\t${chalk.green(`${result.summary.testcase.passed}`)}/${chalk.red(`${result.summary.testcase.failed}`)}/${chalk.yellow(`${result.summary.testcase.tested}`)}`)
-  console.log(chalk.black('  ├'), chalk.bold.cyan('Api'), `\t${chalk.green(`${result.summary.api.passed}`)}/${chalk.red(`${result.summary.api.failed}`)}/${chalk.yellow(`${result.summary.api.tested}`)}`)
-  console.log(chalk.black('  └'), chalk.bold.cyan('Saved to'), `\t${chalk.black.underline.italic(fout)}`)
+  console.log(chalk.gray('  ┌'), chalk.bold.cyan('Time'), `\t${chalk.blue(`${executeTime}ms`)}`)
+  console.log(chalk.gray('  ├'), chalk.bold.cyan('Testcase'), `\t${chalk.green(`${result.summary.testcase.passed}`)}/${chalk.red(`${result.summary.testcase.failed}`)}/${chalk.yellow(`${result.summary.testcase.tested}`)}`)
+  console.log(chalk.gray('  ├'), chalk.bold.cyan('Api'), `\t${chalk.green(`${result.summary.api.passed}`)}/${chalk.red(`${result.summary.api.failed}`)}/${chalk.yellow(`${result.summary.api.tested}`)}`)
+  console.log(chalk.gray('  └'), chalk.bold.cyan('Saved to'), `\t${chalk.gray.underline.italic(fout)}`)
   console.log('')
   console.log('')
-  console.log(chalk.black('-----------------------------------------------------------------------------------'))
+  console.log(chalk.gray('-----------------------------------------------------------------------------------'))
   console.log('')
 
   return result

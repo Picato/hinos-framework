@@ -1,13 +1,16 @@
+import * as chalk from 'chalk'
+
 export function DELAY(time: number, des?: string) {
   return {
     url: '',
     method: '',
     requestPath: '',
     executeTime: time,
-    title: `******* DELAYED ${des ? `: ${des} ` : ''}*******`,
+    title: `******* WAITING ${des ? `: ${des} ` : ''}*******`,
     nvm: true,
     load() { },
-    run() {
+    run({ c }) {
+      console.log(' ', c, chalk.yellow.bold(this.title), chalk.blue(`(${this.executeTime} ms)`))
       return new Promise((resolve) => {
         setTimeout(resolve, time)
       })

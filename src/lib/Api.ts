@@ -39,7 +39,7 @@ export class ApiImpl extends Api {
     return this.disabled || !this.url
   }
 
-  async run() {
+  async run(_prms) {
     const vars = ApiImpl.vars
     this.install(vars)
     await this.call()

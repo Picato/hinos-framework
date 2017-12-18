@@ -27,7 +27,7 @@ import { DELAY } from './lib/Delay';
     const rs = await runner(config)
     isOk = isOk && rs.status > 0
   }
-  if (isOk) console.log(`${chalk.bgYellow.black.bold(` EXECUTED TIME: ${new Date().getTime() - startTime} ms `)}`)
+  if (isOk) console.log(`${chalk.bgYellow.green.bold(` EXECUTED TIME: ${new Date().getTime() - startTime} ms `)}`)
   else console.log(`${chalk.bgYellow.red.bold(` EXECUTED TIME: ${new Date().getTime() - startTime} ms `)}`)
   console.log('')
 })()

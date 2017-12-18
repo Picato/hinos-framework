@@ -1,0 +1,177 @@
+{
+  "var get": {
+    "prefix": "var.get",
+    "body": [
+      "\\$var('${0}')"
+    ],
+    "description": "Get variable value"
+  },
+  "var get headers": {
+    "prefix": "var.get.headers",
+    "body": [
+      "\\$var('this.\\$headers$0')"
+    ],
+    "description": "Get variable value in response headers"
+  },
+  "var get body": {
+    "prefix": "var.get.body",
+    "body": [
+      "\\$var('this.\\$body$0')"
+    ],
+    "description": "Get variable value in response body"
+  },
+
+  "API DELAY": {
+    "prefix": "api.delay",
+    "body": [
+      "DELAY(${1:miliseconds}, '${0:Description}'),"
+    ],
+    "description": "Get variable value in response body"
+  },  
+  "API INCLUDE": {
+    "prefix": "api.include",
+    "body": [
+      "...INCLUDE('doc/$0.part.ts')"
+    ],
+    "description": "Include a new .part.ts file"
+  },
+
+  "API HEAD": {
+    "prefix": "api.head",
+    "body": [
+      "API('$1', {",
+      "  url: HEAD(`${2:\\${HOST\\}}`),",
+      "  headers: {$0}",
+      "}),"
+    ],
+    "description": "Auto create call API by HEAD method"
+  },
+  "API GET": {
+    "prefix": "api.get",
+    "body": [
+      "API('$1', {",
+      "  url: GET(`${2:\\${HOST\\}}`),",
+      "  headers: {$0}",
+      "}),"
+    ],
+    "description": "Auto create call API by GET method"
+  },
+  "API DELETE": {
+    "prefix": "api.delete",
+    "body": [
+      "API('$1', {",
+      "  url: DELETE(`${2:\\${HOST\\}}`),",
+      "  headers: {$0}",
+      "}),"
+    ],
+    "description": "Auto create call API by DELETE method"
+  },  
+  "API PUT": {
+    "prefix": "api.put",
+    "body": [
+      "API('$1', {",
+      "  url: PUT(`${2:\\${HOST\\}}`),",
+      "  headers: {$3}",
+      "  body: {$0}",
+      "}),"
+    ],
+    "description": "Auto create call API by PUT method"
+  },
+  "API POST": {
+    "prefix": "api.post",
+    "body": [
+      "API('$1', {",
+      "  url: POST(`${2:\\${HOST\\}}`),",
+      "  headers: {$3}",
+      "  body: {$0}",
+      "}),"
+    ],
+    "description": "Auto create call API by POST method"
+  },
+  "API PATCH": {
+    "prefix": "api.patch",
+    "body": [
+      "API('$1', {",
+      "  url: PATCH(`${2:\\${HOST\\}}`),",
+      "  headers: {$3}",
+      "  body: {$0}",
+      "}),"
+    ],
+    "description": "Auto create call API by PATCH method"
+  },
+
+  "DOC HEAD": {
+    "prefix": "doc.head",
+    "body": [
+      "DOC('$1', ${2:GROUP}, ${3:TAG.GUEST, }{",
+      "  i18doc: {$4},",
+      "  note: [$5],",
+      "  url: HEAD(`${6:\\${HOST\\}}`),",
+      "  headers: {$0}",
+      "}),"
+    ],
+    "description": "Auto create call API and export to DOC by HEAD method"
+  },
+  "DOC GET": {
+    "prefix": "doc.get",
+    "body": [
+      "DOC('$1', ${2:GROUP}, ${3:TAG.GUEST, }{",
+      "  i18doc: {$4},",
+      "  note: [$5],",
+      "  url: GET(`${6:\\${HOST\\}}`),",
+      "  headers: {$0}",
+      "}),"
+    ],
+    "description": "Auto create call API by GET method"
+  },
+  "DOC POST": {
+    "prefix": "doc.post",
+    "body": [
+      "DOC('$1', ${2:GROUP}, ${3:TAG.GUEST, }{",
+      "  i18doc: {$4},",
+      "  note: [$5],",
+      "  url: POST(`${6:\\${HOST\\}}`),",
+      "  headers: {$7}",
+      "  body: {$0}",
+      "}),"
+    ],
+    "description": "Auto create call API by POST method"
+  },
+  "DOC PUT": {
+    "prefix": "doc.put",
+    "body": [
+      "DOC('$1', ${2:GROUP}, ${3:TAG.GUEST, }{",
+      "  i18doc: {$4},",
+      "  note: [$5],",
+      "  url: HEAD(`${6:\\${HOST\\}}`),",
+      "  headers: {$7}",
+      "  body: {$0}",
+      "}),"
+    ],
+    "description": "Auto create call API by PUT method"
+  },
+  "DOC DELETE": {
+    "prefix": "doc.delete",
+    "body": [
+      "DOC('$1', ${2:GROUP}, ${3:TAG.GUEST, }{",
+      "  i18doc: {$4},",
+      "  note: [$5],",
+      "  url: HEAD(`${6:\\${HOST\\}}`),",
+      "  headers: {$0}",
+      "}),"
+    ],
+    "description": "Auto create call API by DELETE method"
+  },
+  "DOC PATCH": {
+    "prefix": "doc.patch",
+    "body": [
+      "DOC('$1', ${2:GROUP}, ${3:TAG.GUEST, }{",
+      "  i18doc: {$4},",
+      "  note: [$5],",
+      "  url: HEAD(`${6:\\${HOST\\}}`),",
+      "  headers: {$7}",
+      "}),"
+    ],
+    "description": "Auto create call API by PATCH method"
+  }
+}

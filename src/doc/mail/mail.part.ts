@@ -82,7 +82,7 @@ export default [
       'newmail1': $var('this.$body')
     }
   }, { extends: '#authRequestByToken' }),
-  
+
   DELAY(10000, 'Delay to sending mail'),
 
   API('Remove file', {
