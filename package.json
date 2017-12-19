@@ -42,7 +42,8 @@
       "bittrex": {
         "apikey": "",
         "apisecret": "",
-        "scanCurrency": 15000
+        "scanCurrency": 15000,
+        "scanChecking": 30000
       },
       "gold": {
         "scanTimeout": 900000
@@ -66,6 +67,8 @@
     "hinos-validation": "^1.1.2",
     "lodash": "^4.17.4",
     "node-bittrex-api": "^0.8.1",
+    "qrcode": "^1.0.0",
+    "speakeasy": "^2.0.0",
     "typescript": "^2.6.1",
     "xml2js": "^0.4.19"
   },

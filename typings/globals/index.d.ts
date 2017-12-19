@@ -24,6 +24,7 @@ interface IAppConfig {
   }
   app: {
     bittrex: {
+      scanChecking: number
       scanCurrency: number
       apikey: string
       apisecret: string

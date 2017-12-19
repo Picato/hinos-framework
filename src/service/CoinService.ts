@@ -25,7 +25,7 @@ export class Coin {
   updated_at?: Date
 }
 
-class Bittrex {
+export class Bittrex {
   @REDIS()
   static redis: Redis
 
@@ -51,6 +51,52 @@ class Bittrex {
     }
     setTimeout(Bittrex.getNewCoin, AppConfig.app.bittrex.scanCurrency)
   }
+
+  static async checkingMarket() {
+    const rs = await axios.get('https://bittrex.com/api/v1.1/public/getmarketsummaries')
+    const data = rs.data.result
+    const caches = {}
+    for (let e of data) {
+      e.TimeStamp = new Date(e.TimeStamp)
+      let cached = await Bittrex.redis.hget('bittrex.trace', e.MarketName)
+      if (cached) {
+        cached = JSON.parse(cached)
+        cached.time = new Date(cached.time)
+      } else {
+        cached = {
+          time: undefined,
+          status: 0
+        }
+      }
+      const status = e.PrevDay - e.Last > 0 ? -1 : 1
+      if (status > 0 && cached.status < 0) {
+        cached.status = 1
+      } else if (status < 0 && cached.status > 0) {
+        cached.status = -1
+      } else {
+        cached.status += status
+      }
+      if (!cached.time || (cached.time.getFullYear() === e.TimeStamp.getFullYear() && cached.time.getMonth() === e.TimeStamp.getMonth() && cached.time.getDate() !== e.TimeStamp.getDate())) {
+        cached.prev = e.PrevDay
+        cached.last = e.Last
+        cached.time = e.TimeStamp
+        caches[e.MarketName] = JSON.stringify(cached)
+      }
+    }
+    await Bittrex.redis.hset('bittrex.trace', caches)
+    setTimeout(Bittrex.getNewCoin, AppConfig.app.bittrex.scanChecking)
+  }
+
+  static async getCoinChecking() {
+    const rs = await Bittrex.redis.hget('bittrex.trace')
+    if (rs) {
+      for (let k in rs) {
+        rs[k] = JSON.parse(rs[k])
+      }
+      return rs
+    }
+    return {}
+  }
 }
 
 export class CoinService {
@@ -71,6 +117,11 @@ export class CoinService {
     console.log('Auto sync coin')
     Bittrex.oldCoins = JSON.parse(await Bittrex.redis.get('bittrex.currencies') as string || '[]')
     Bittrex.getNewCoin()
+    Bittrex.checkingMarket()
+  }
+
+  static async getCoinChecking() {
+    return await Bittrex.getCoinChecking()
   }
 
 }
