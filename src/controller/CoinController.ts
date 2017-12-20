@@ -8,8 +8,8 @@ import { CoinService } from '../service/CoinService';
 export default class CoinController {
 
   @GET('/checking-coin')
-  static async sync() {
-    return await CoinService.getCoinChecking();
+  static async sync({ query }) {
+    return await CoinService.getCoinChecking(query.type);
   }
 
 }

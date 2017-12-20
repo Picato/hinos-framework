@@ -42,8 +42,8 @@
       "bittrex": {
         "apikey": "",
         "apisecret": "",
-        "scanCurrency": 15000,
-        "scanChecking": 30000
+        "scanCurrency": 300000,
+        "scanChecking": 15000
       },
       "gold": {
         "scanTimeout": 900000

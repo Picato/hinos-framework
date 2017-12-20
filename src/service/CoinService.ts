@@ -30,6 +30,18 @@ export class Bittrex {
   static redis: Redis
 
   static oldCoins = undefined as string[]
+  static coinCheckingCached = [] as any[]
+  static rate = {
+    'BTC-ETH': 0,
+    'BTC-USDT': 0,
+    'BTC-BTC': 1,
+    'USDT-BTC': 0,
+    'USDT-ETH': 0,
+    'USDT-USDT': 1,
+    'ETH-BTC': 0,
+    'ETH-USDT': 0,
+    'ETH-ETH': 1
+  }
 
   static getCurrencies() {
     return new Promise((resolve, reject) => {
@@ -53,49 +65,70 @@ export class Bittrex {
   }
 
   static async checkingMarket() {
+    // await Bittrex.redis.del('bittrex.trace')
     const rs = await axios.get('https://bittrex.com/api/v1.1/public/getmarketsummaries')
     const data = rs.data.result
     const caches = {}
+    const listData = []
     for (let e of data) {
+      if (e.MarketName === 'USDT-BTC') {
+        Bittrex.rate['BTC-USDT'] = e.Last
+        Bittrex.rate['USDT-BTC'] = 1 / e.Last
+      } else if (e.MarketName === 'BTC-ETH') {
+        Bittrex.rate['BTC-ETH'] = 1 / e.Last
+        Bittrex.rate['ETH-BTC'] = e.Last
+      } else if (e.MarketName === 'USDT-ETH') {
+        Bittrex.rate['ETH-USDT'] = e.Last
+        Bittrex.rate['USDT-ETH'] = 1 / e.Last
+      }
       e.TimeStamp = new Date(e.TimeStamp)
       let cached = await Bittrex.redis.hget('bittrex.trace', e.MarketName)
+      let lastUpdated
       if (cached) {
         cached = JSON.parse(cached)
         cached.time = new Date(cached.time)
+        lastUpdated = new Date(cached.time)
       } else {
         cached = {
           time: undefined,
-          status: 0
+          status: undefined
         }
       }
-      const status = e.PrevDay - e.Last > 0 ? -1 : 1
-      if (status > 0 && cached.status < 0) {
-        cached.status = 1
-      } else if (status < 0 && cached.status > 0) {
-        cached.status = -1
-      } else {
-        cached.status += status
+      if (cached.status !== undefined) {
+        const status = e.PrevDay - e.Last > 0 ? -1 : 1
+        if (status > 0 && cached.status < 0) {
+          cached.status = 1
+        } else if (status < 0 && cached.status > 0) {
+          cached.status = -1
+        } else {
+          cached.status += status
+        }
       }
-      if (!cached.time || (cached.time.getFullYear() === e.TimeStamp.getFullYear() && cached.time.getMonth() === e.TimeStamp.getMonth() && cached.time.getDate() !== e.TimeStamp.getDate())) {
-        cached.prev = e.PrevDay
-        cached.last = e.Last
+      if (!lastUpdated || lastUpdated.toDateString() !== e.TimeStamp.toDateString()) {
         cached.time = e.TimeStamp
+        cached.status = 0
         caches[e.MarketName] = JSON.stringify(cached)
       }
+      cached.prev = e.PrevDay
+      cached.last = e.Last
+      cached.low = e.Low
+      cached.high = e.High
+      cached.bid = e.Bid
+      cached.ask = e.Ask
+      cached.baseVolume = e.BaseVolume
+      cached.volume = e.Volume
+      cached.market = e.MarketName.split('-')[0]
+      cached.name = e.MarketName.split('-')[1]
+      listData.push(cached)
     }
     await Bittrex.redis.hset('bittrex.trace', caches)
+    listData.sort((a, b) => {
+      const as = (a.status < 0 ? -1 : 1) * a.status
+      const bs = (b.status < 0 ? -1 : 1) * b.status
+      return bs - as
+    })
+    Bittrex.coinCheckingCached = listData
     setTimeout(Bittrex.getNewCoin, AppConfig.app.bittrex.scanChecking)
-  }
-
-  static async getCoinChecking() {
-    const rs = await Bittrex.redis.hget('bittrex.trace')
-    if (rs) {
-      for (let k in rs) {
-        rs[k] = JSON.parse(rs[k])
-      }
-      return rs
-    }
-    return {}
   }
 }
 
@@ -120,8 +153,16 @@ export class CoinService {
     Bittrex.checkingMarket()
   }
 
-  static async getCoinChecking() {
-    return await Bittrex.getCoinChecking()
+  static async getCoinChecking(type) {
+    const rs = {
+      rate: Bittrex.rate,
+      data: []
+    }
+    if (type === 'tangmanh') rs.data = Bittrex.coinCheckingCached.filter(e => e.status > 1)
+    else if (type === 'giammanh') rs.data = Bittrex.coinCheckingCached.filter(e => e.status < -1)
+    else if (type === 'binhthuong') rs.data = Bittrex.coinCheckingCached.filter(e => [0, 1, -1].includes(e.status))
+    else rs.data = Bittrex.coinCheckingCached
+    return rs
   }
 
 }
