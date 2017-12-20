@@ -158,8 +158,8 @@ export class CoinService {
       rate: Bittrex.rate,
       data: []
     }
-    if (type === 'tangmanh') rs.data = Bittrex.coinCheckingCached.filter(e => e.status > 1)
-    else if (type === 'giammanh') rs.data = Bittrex.coinCheckingCached.filter(e => e.status < -1)
+    if (type === 'tangmanh') rs.data = Bittrex.coinCheckingCached.filter(e => e.status > 0)
+    else if (type === 'giammanh') rs.data = Bittrex.coinCheckingCached.filter(e => e.status < 0)
     else if (type === 'binhthuong') rs.data = Bittrex.coinCheckingCached.filter(e => [0, 1, -1].includes(e.status))
     else rs.data = Bittrex.coinCheckingCached
     return rs
