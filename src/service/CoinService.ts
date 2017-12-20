@@ -128,7 +128,7 @@ export class Bittrex {
       return bs - as
     })
     Bittrex.coinCheckingCached = listData
-    setTimeout(Bittrex.getNewCoin, AppConfig.app.bittrex.scanChecking)
+    setTimeout(Bittrex.checkingMarket, AppConfig.app.bittrex.scanChecking)
   }
 }
 
