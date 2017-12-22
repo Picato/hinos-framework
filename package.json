@@ -17,7 +17,7 @@
   },
   "appconfig": {
     "externalConfig": "./appconfig.cfg#api",
-    "url": "http://localhost:1009",
+    "url": "http://localhost:10009",
     "path": "",
     "mongo": {
       "url": "mongodb://localhost:27017/test",
