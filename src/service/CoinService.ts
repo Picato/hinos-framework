@@ -178,9 +178,9 @@ export class CoinService {
           txt.push(`------------------------`)
           txt.push(`| Market ${c.market}`)
           txt.push(`------------------------`)
-          if (c.market !== 'USDT') txt.push(`- ${CoinService.formatNumber(CoinService.toUSDT(c.last, c.market, Bittrex.rate))} USDT`)
-          if (c.market !== 'BTC') txt.push(`- ${CoinService.formatNumber(CoinService.toBTC(c.last, c.market, Bittrex.rate))} BTC`)
-          if (c.market !== 'ETH') txt.push(`- ${CoinService.formatNumber(CoinService.toETH(c.last, c.market, Bittrex.rate))} ETH`)
+          if (c.name !== 'USDT') txt.push(`- ${CoinService.formatNumber(CoinService.toUSDT(c.last, c.market, Bittrex.rate))} USDT`)
+          if (c.name !== 'BTC') txt.push(`- ${CoinService.formatNumber(CoinService.toBTC(c.last, c.market, Bittrex.rate))} BTC`)
+          if (c.name !== 'ETH') txt.push(`- ${CoinService.formatNumber(CoinService.toETH(c.last, c.market, Bittrex.rate))} ETH`)
           txt.push(``)
         }
       }
