@@ -3,6 +3,7 @@ import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import { REDIS, Redis } from 'hinos-redis'
 import axios from 'axios'
 import * as bittrex from 'node-bittrex-api'
+import { BotCommand } from './Telegram'
 
 /************************************************
  ** ChartService || 4/10/2017, 10:19:24 AM **
@@ -118,8 +119,8 @@ export class Bittrex {
       cached.baseVolume = e.BaseVolume
       cached.volume = e.Volume
       cached.market = e.MarketName.split('-')[0]
-      cached.name = e.MarketName.split('-')[1]
       listData.push(cached)
+      cached.name = e.MarketName.split('-')[1]
     }
     await Bittrex.redis.hset('bittrex.trace', caches)
     listData.sort((a, b) => {
@@ -146,23 +147,55 @@ export class CoinService {
       })
   }
 
+  static toETH(price, market, rate) {
+    return price * (rate[`${market}-ETH`] || 1)
+  }
+  static toBTC(price, market, rate) {
+    return price * (rate[`${market}-BTC`] || 1)
+  }
+  static toUSDT(price, market, rate) {
+    return price * (rate[`${market}-USDT`] || 1)
+  }
+  static formatNumber(value) {
+    return Number(value).toLocaleString(undefined, { maximumFractionDigits: 8 })
+  }
   static async autoSync() {
     console.log('Auto sync coin')
-    Bittrex.oldCoins = JSON.parse(await Bittrex.redis.get('bittrex.currencies') as string || '[]')
-    Bittrex.getNewCoin()
+    // Bittrex.oldCoins = JSON.parse(await Bittrex.redis.get('bittrex.currencies') as string || '[]')
+    // Bittrex.getNewCoin()
     Bittrex.checkingMarket()
+    const bot = new BotCommand('452842559:AAFys0h9BQbDVFlhTmPPrZjzy3DjBFPI0TU') as any
+    bot.hears('rate', (ctx) => ctx.reply(`1 BTC = ${CoinService.formatNumber(Bittrex.rate['BTC-USDT'])} USDT
+1 ETH = ${CoinService.formatNumber(Bittrex.rate['ETH-USDT'])} USDT
+1 BTC = ${CoinService.formatNumber(Bittrex.rate['BTC-ETH'])} USDT`
+    ))
+    bot.hears(/coin .+/i, (ctx) => {
+      const coin = ctx.message.text.split(' ').filter((_e, i) => i > 0).join('').toUpperCase()
+      const txt = []
+      for (const c of Bittrex.coinCheckingCached) {
+        if (c.name === coin) {
+          if (txt.length === 0) txt.push(`#${c.name} at ${c.time.toLocaleString()}`)
+          txt.push(`------------------------`)
+          txt.push(`| Market ${c.market}`)
+          txt.push(`------------------------`)
+          if (c.market !== 'USDT') txt.push(`- ${CoinService.formatNumber(CoinService.toUSDT(c.last, c.market, Bittrex.rate))} USDT`)
+          if (c.market !== 'BTC') txt.push(`- ${CoinService.formatNumber(CoinService.toBTC(c.last, c.market, Bittrex.rate))} BTC`)
+          if (c.market !== 'ETH') txt.push(`- ${CoinService.formatNumber(CoinService.toETH(c.last, c.market, Bittrex.rate))} ETH`)
+          txt.push(``)
+        }
+      }
+      if (txt.length > 0) return ctx.reply(txt.join('\n'))
+      return ctx.reply('Could not found this coin')
+    })
+    bot.startPolling()
   }
 
-  static async getCoinChecking(type) {
-    const rs = {
-      rate: Bittrex.rate,
-      data: []
-    }
-    if (type === 'tangmanh') rs.data = Bittrex.coinCheckingCached.filter(e => e.status > 0)
-    else if (type === 'giammanh') rs.data = Bittrex.coinCheckingCached.filter(e => e.status < 0)
-    else if (type === 'binhthuong') rs.data = Bittrex.coinCheckingCached.filter(e => [0, 1, -1].includes(e.status))
-    else rs.data = Bittrex.coinCheckingCached
-    return rs
+  static async getMarket() {
+    return Bittrex.coinCheckingCached
+  }
+
+  static async getRate() {
+    return Bittrex.rate
   }
 
 }

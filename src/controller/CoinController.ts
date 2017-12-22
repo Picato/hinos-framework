@@ -7,9 +7,14 @@ import { CoinService } from '../service/CoinService';
 
 export default class CoinController {
 
-  @GET('/checking-coin')
-  static async sync({ query }) {
-    return await CoinService.getCoinChecking(query.type);
+  @GET('/market')
+  static async getMarket() {
+    return await CoinService.getMarket();
+  }
+
+  @GET('/rate')
+  static async getRate() {
+    return await CoinService.getRate();
   }
 
 }
