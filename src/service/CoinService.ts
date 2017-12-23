@@ -164,10 +164,10 @@ export class CoinService {
     // Bittrex.oldCoins = JSON.parse(await Bittrex.redis.get('bittrex.currencies') as string || '[]')
     // Bittrex.getNewCoin()
     Bittrex.checkingMarket()
-    const bot = new BotCommand('452842559:AAFys0h9BQbDVFlhTmPPrZjzy3DjBFPI0TU') as any
+    const bot = new BotCommand('496750797:AAE-e3MsQXVQZsPWRtnP9-DcldnX43GgG0A') as any
     bot.hears('rate', (ctx) => ctx.reply(`1 BTC = ${CoinService.formatNumber(Bittrex.rate['BTC-USDT'])} USDT
 1 ETH = ${CoinService.formatNumber(Bittrex.rate['ETH-USDT'])} USDT
-1 BTC = ${CoinService.formatNumber(Bittrex.rate['BTC-ETH'])} USDT`
+1 BTC = ${CoinService.formatNumber(Bittrex.rate['BTC-ETH'])} ETH`
     ))
     bot.hears(/coin .+/i, (ctx) => {
       const coin = ctx.message.text.split(' ').filter((_e, i) => i > 0).join('').toUpperCase()
