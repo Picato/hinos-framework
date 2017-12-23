@@ -28,16 +28,20 @@ export class ObjectService {
     return await mongo.get<MObject>(table, _id)
   }
 
-  @VALIDATE((table: string, projectId: Uuid, body: MObject) => {
-    body._id = Mongo.uuid() as Uuid
+  @VALIDATE((table: string, projectId: Uuid, body: MObject | MObject[]) => {
+    if (body instanceof Array) body = body.map(b => {
+      b._id = Mongo.uuid() as Uuid
+      return b
+    })
+    else body._id = Mongo.uuid() as Uuid
     Checker.required(table, [, 'table'], String)
     Checker.required(projectId, [, 'project_id'], Uuid)
   })
-  static async insert(table: string, projectId: Uuid, body: MObject) {
+  static async insert(table: string, projectId: Uuid, body: MObject | MObject[]) {
     const mongo = Mongo.pool(Object.assign({}, AppConfig.mongo, {
       url: AppConfig.mongo.url.replace(/\/\w+$/, `/${projectId}`)
     }))
-    return await mongo.insert<MObject>(table, body)
+    return await mongo.insert<MObject>(table, body as any)
   }
 
   @VALIDATE((table: string, projectId: Uuid, body: MObject) => {
