@@ -100,6 +100,11 @@ export class Bittrex {
     for (let e of data) {
       let cached = {} as any
       cached.time = new Date(e.TimeStamp)
+      cached.date = cached.time.getDate()
+      cached.month = cached.time.getMonth()
+      cached.year = cached.time.getFullYear()
+      cached.hours = cached.time.getHours()
+      cached.minutes = cached.time.getMinutes()
       // let cached = await Bittrex.redis.hget('bittrex.trace', e.MarketName)
       e.MarketName.split('-').forEach((e, i) => {
         if (i === 0) cached.market = e
