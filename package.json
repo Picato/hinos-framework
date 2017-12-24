@@ -43,6 +43,7 @@
       "bittrex": {
         "apikey": "",
         "apisecret": "",
+        "updateDBAfterMins": 5,
         "scanCurrency": 300000,
         "scanChecking": 15000
       },

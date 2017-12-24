@@ -32,6 +32,7 @@ export class Bittrex {
 
   static oldCoins = undefined as string[]
   static coinCheckingCached = [] as any[]
+  static lastUpdateDB
   static rate = {
     'BTC-ETH': 0,
     'BTC-USDT': 0,
@@ -155,11 +156,13 @@ export class Bittrex {
       }
       // await Bittrex.redis.hset('bittrex.trace', caches)
       const now = new Date()
-      if (now.getMinutes() % 5 === 0) {
+      if (!Bittrex.lastUpdateDB || (Bittrex.lastUpdateDB.getMinutes() !== now.getMinutes() && now.getMinutes() % AppConfig.app.bittrex.updateDBAfterMins === 0)) {
         await Mongo.pool('coin').insert('BittrexTrading', listData.map(e => {
           e.updated_at = now
           return e
         }))
+        Bittrex.lastUpdateDB = now
+        await Bittrex.redis.set('bittrex.lastUpdateDB', Bittrex.lastUpdateDB)
       }
       Bittrex.coinCheckingCached = listData
     } catch (e) {
@@ -200,6 +203,8 @@ export class CoinService {
     console.log('Auto sync coin')
     // Bittrex.oldCoins = JSON.parse(await Bittrex.redis.get('bittrex.currencies') as string || '[]')
     // Bittrex.getNewCoin()
+    Bittrex.lastUpdateDB = await Bittrex.redis.get('bittrex.lastUpdateDB')
+    if (Bittrex.lastUpdateDB) Bittrex.lastUpdateDB = new Date(Bittrex.lastUpdateDB)
     Bittrex.checkingMarket()
     const bot = new BotCommand('496750797:AAE-e3MsQXVQZsPWRtnP9-DcldnX43GgG0A') as any
     bot.hears('help', async ({ reply }) => {

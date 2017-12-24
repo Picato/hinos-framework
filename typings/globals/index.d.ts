@@ -24,6 +24,7 @@ interface IAppConfig {
   }
   app: {
     bittrex: {
+      updateDBAfterMins: number
       scanChecking: number
       scanCurrency: number
       apikey: string
