@@ -33,6 +33,7 @@ export class Bittrex {
   static oldCoins = undefined as string[]
   static coinCheckingCached = [] as any[]
   static lastUpdateDB
+  static lastOpenPrice
   static rate = {
     'BTC-ETH': 0,
     'BTC-USDT': 0,
@@ -112,11 +113,12 @@ export class Bittrex {
           if (i === 0) cached.market = e
           else if (i === 1) cached.name = e
         })
-        cached.prev = {
+        cached.prevDay = {
           usdt: CoinService.toUSDT(e.PrevDay, cached.market, Bittrex.rate),
           btc: CoinService.toBTC(e.PrevDay, cached.market, Bittrex.rate),
           eth: CoinService.toETH(e.PrevDay, cached.market, Bittrex.rate)
         }
+
         cached.last = {
           usdt: CoinService.toUSDT(e.Last, cached.market, Bittrex.rate),
           btc: CoinService.toBTC(e.Last, cached.market, Bittrex.rate),
@@ -152,6 +154,13 @@ export class Bittrex {
           btc: e.market === 'BTC' ? e.Volume : undefined,
           eth: e.market === 'ETH' ? e.Volume : undefined
         }
+        cached.prev = Bittrex.coinCheckingCached.find(e => e.market === cached.market && e.name === cached.name)
+        if (cached.prev) {
+          cached.prev = cached.prev.last
+          cached.trends = {
+            usdt: cached.last.usdt - cached.prev.usdt
+          }
+        }
         listData.push(cached)
       }
       // await Bittrex.redis.hset('bittrex.trace', caches)
@@ -159,6 +168,11 @@ export class Bittrex {
       if (!Bittrex.lastUpdateDB || (Bittrex.lastUpdateDB.getMinutes() !== now.getMinutes() && now.getMinutes() % AppConfig.app.bittrex.updateDBAfterMins === 0)) {
         await Mongo.pool('coin').insert('BittrexTrading', listData.map(e => {
           e.updated_at = now
+          e.date = now.getDate()
+          e.month = now.getMonth() + 1
+          e.year = now.getFullYear()
+          e.hours = now.getHours()
+          e.minutes = now.getMinutes()
           return e
         }))
         Bittrex.lastUpdateDB = now
@@ -204,7 +218,14 @@ export class CoinService {
     // Bittrex.oldCoins = JSON.parse(await Bittrex.redis.get('bittrex.currencies') as string || '[]')
     // Bittrex.getNewCoin()
     Bittrex.lastUpdateDB = await Bittrex.redis.get('bittrex.lastUpdateDB')
-    if (Bittrex.lastUpdateDB) Bittrex.lastUpdateDB = new Date(Bittrex.lastUpdateDB)
+    if (Bittrex.lastUpdateDB) {
+      Bittrex.lastUpdateDB = new Date(Bittrex.lastUpdateDB)
+      Bittrex.coinCheckingCached = await Mongo.pool('coin').find('BittrexTrading', {
+        $where: {
+          updated_at: Bittrex.lastUpdateDB
+        }
+      })
+    }
     Bittrex.checkingMarket()
     const bot = new BotCommand('496750797:AAE-e3MsQXVQZsPWRtnP9-DcldnX43GgG0A') as any
     bot.hears('help', async ({ reply }) => {
