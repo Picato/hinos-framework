@@ -84,84 +84,89 @@ export class Bittrex {
   }
 
   static async checkingMarket() {
-    // await Bittrex.redis.del('bittrex.trace')
-    const data = await Bittrex.getMarketSummaries()
-    // const caches = {}
-    const listData = []
-    let rate = data.find(e => e.MarketName === 'USDT-BTC')
-    Bittrex.rate['BTC-USDT'] = rate.Last
-    Bittrex.rate['USDT-BTC'] = 1 / rate.Last
-    rate = data.find(e => e.MarketName === 'BTC-ETH')
-    Bittrex.rate['BTC-ETH'] = 1 / rate.Last
-    Bittrex.rate['ETH-BTC'] = rate.Last
-    rate = data.find(e => e.MarketName === 'USDT-ETH')
-    Bittrex.rate['ETH-USDT'] = rate.Last
-    Bittrex.rate['USDT-ETH'] = 1 / rate.Last
-    for (let e of data) {
-      let cached = {} as any
-      cached.time = new Date(e.TimeStamp)
-      cached.date = cached.time.getDate()
-      cached.month = cached.time.getMonth()
-      cached.year = cached.time.getFullYear()
-      cached.hours = cached.time.getHours()
-      cached.minutes = cached.time.getMinutes()
-      // let cached = await Bittrex.redis.hget('bittrex.trace', e.MarketName)
-      e.MarketName.split('-').forEach((e, i) => {
-        if (i === 0) cached.market = e
-        else if (i === 1) cached.name = e
-      })
-      cached.prev = {
-        usdt: CoinService.toUSDT(e.PrevDay, cached.market, Bittrex.rate),
-        btc: CoinService.toBTC(e.PrevDay, cached.market, Bittrex.rate),
-        eth: CoinService.toETH(e.PrevDay, cached.market, Bittrex.rate)
+    try {
+      // await Bittrex.redis.del('bittrex.trace')
+      const data = await Bittrex.getMarketSummaries()
+      // const caches = {}
+      const listData = []
+      let rate = data.find(e => e.MarketName === 'USDT-BTC')
+      Bittrex.rate['BTC-USDT'] = rate.Last
+      Bittrex.rate['USDT-BTC'] = 1 / rate.Last
+      rate = data.find(e => e.MarketName === 'BTC-ETH')
+      Bittrex.rate['BTC-ETH'] = 1 / rate.Last
+      Bittrex.rate['ETH-BTC'] = rate.Last
+      rate = data.find(e => e.MarketName === 'USDT-ETH')
+      Bittrex.rate['ETH-USDT'] = rate.Last
+      Bittrex.rate['USDT-ETH'] = 1 / rate.Last
+      for (let e of data) {
+        let cached = {} as any
+        cached.time = new Date(e.TimeStamp)
+        cached.date = cached.time.getDate()
+        cached.month = cached.time.getMonth()
+        cached.year = cached.time.getFullYear()
+        cached.hours = cached.time.getHours()
+        cached.minutes = cached.time.getMinutes()
+        // let cached = await Bittrex.redis.hget('bittrex.trace', e.MarketName)
+        e.MarketName.split('-').forEach((e, i) => {
+          if (i === 0) cached.market = e
+          else if (i === 1) cached.name = e
+        })
+        cached.prev = {
+          usdt: CoinService.toUSDT(e.PrevDay, cached.market, Bittrex.rate),
+          btc: CoinService.toBTC(e.PrevDay, cached.market, Bittrex.rate),
+          eth: CoinService.toETH(e.PrevDay, cached.market, Bittrex.rate)
+        }
+        cached.last = {
+          usdt: CoinService.toUSDT(e.Last, cached.market, Bittrex.rate),
+          btc: CoinService.toBTC(e.Last, cached.market, Bittrex.rate),
+          eth: CoinService.toETH(e.Last, cached.market, Bittrex.rate)
+        }
+        cached.low = {
+          usdt: CoinService.toUSDT(e.Low, cached.market, Bittrex.rate),
+          btc: CoinService.toBTC(e.Low, cached.market, Bittrex.rate),
+          eth: CoinService.toETH(e.Low, cached.market, Bittrex.rate)
+        }
+        cached.high = {
+          usdt: CoinService.toUSDT(e.High, cached.market, Bittrex.rate),
+          btc: CoinService.toBTC(e.High, cached.market, Bittrex.rate),
+          eth: CoinService.toETH(e.High, cached.market, Bittrex.rate)
+        }
+        cached.bid = {
+          usdt: CoinService.toUSDT(e.Bid, cached.market, Bittrex.rate),
+          btc: CoinService.toBTC(e.Bid, cached.market, Bittrex.rate),
+          eth: CoinService.toETH(e.Bid, cached.market, Bittrex.rate)
+        }
+        cached.ask = {
+          usdt: CoinService.toUSDT(e.Ask, cached.market, Bittrex.rate),
+          btc: CoinService.toBTC(e.Ask, cached.market, Bittrex.rate),
+          eth: CoinService.toETH(e.Ask, cached.market, Bittrex.rate)
+        }
+        cached.baseVolume = {
+          usdt: CoinService.toUSDT(e.BaseVolume, e.market, Bittrex.rate),
+          btc: e.market === 'BTC' ? e.BaseVolume : undefined,
+          eth: e.market === 'ETH' ? e.BaseVolume : undefined
+        }
+        cached.volume = {
+          usdt: CoinService.toUSDT(e.Volume, e.market, Bittrex.rate),
+          btc: e.market === 'BTC' ? e.Volume : undefined,
+          eth: e.market === 'ETH' ? e.Volume : undefined
+        }
+        listData.push(cached)
       }
-      cached.last = {
-        usdt: CoinService.toUSDT(e.Last, cached.market, Bittrex.rate),
-        btc: CoinService.toBTC(e.Last, cached.market, Bittrex.rate),
-        eth: CoinService.toETH(e.Last, cached.market, Bittrex.rate)
+      // await Bittrex.redis.hset('bittrex.trace', caches)
+      const now = new Date()
+      if (now.getMinutes() % 5 === 0) {
+        await Mongo.pool('coin').insert('BittrexTrading', listData.map(e => {
+          e.updated_at = now
+          return e
+        }))
       }
-      cached.low = {
-        usdt: CoinService.toUSDT(e.Low, cached.market, Bittrex.rate),
-        btc: CoinService.toBTC(e.Low, cached.market, Bittrex.rate),
-        eth: CoinService.toETH(e.Low, cached.market, Bittrex.rate)
-      }
-      cached.high = {
-        usdt: CoinService.toUSDT(e.High, cached.market, Bittrex.rate),
-        btc: CoinService.toBTC(e.High, cached.market, Bittrex.rate),
-        eth: CoinService.toETH(e.High, cached.market, Bittrex.rate)
-      }
-      cached.bid = {
-        usdt: CoinService.toUSDT(e.Bid, cached.market, Bittrex.rate),
-        btc: CoinService.toBTC(e.Bid, cached.market, Bittrex.rate),
-        eth: CoinService.toETH(e.Bid, cached.market, Bittrex.rate)
-      }
-      cached.ask = {
-        usdt: CoinService.toUSDT(e.Ask, cached.market, Bittrex.rate),
-        btc: CoinService.toBTC(e.Ask, cached.market, Bittrex.rate),
-        eth: CoinService.toETH(e.Ask, cached.market, Bittrex.rate)
-      }
-      cached.baseVolume = {
-        usdt: CoinService.toUSDT(e.BaseVolume, e.market, Bittrex.rate),
-        btc: e.market === 'BTC' ? e.BaseVolume : undefined,
-        eth: e.market === 'ETH' ? e.BaseVolume : undefined
-      }
-      cached.volume = {
-        usdt: CoinService.toUSDT(e.Volume, e.market, Bittrex.rate),
-        btc: e.market === 'BTC' ? e.Volume : undefined,
-        eth: e.market === 'ETH' ? e.Volume : undefined
-      }
-      listData.push(cached)
+      Bittrex.coinCheckingCached = listData
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setTimeout(Bittrex.checkingMarket, AppConfig.app.bittrex.scanChecking)
     }
-    // await Bittrex.redis.hset('bittrex.trace', caches)
-    const now = new Date()
-    if (now.getMinutes() % 5 === 0) {
-      await Mongo.pool('coin').insert('BittrexTrading', listData.map(e => {
-        e.updated_at = now
-        return e
-      }))
-    }
-    Bittrex.coinCheckingCached = listData
-    setTimeout(Bittrex.checkingMarket, AppConfig.app.bittrex.scanChecking)
   }
 }
 
@@ -206,7 +211,15 @@ export class CoinService {
     })
     bot.hears(/^wallet(id)?$/i, async ({ reply, message }) => {
       const balances = await Bittrex.getMyBalances()
-      const rs = balances.filter(e => e.Available).map(e => `#${e.Currency}: ${message.text.indexOf('id') !== -1 ? e.CryptoAddress : e.Available}`).join('\n')
+      let rs
+      if (message.text.indexOf('id') !== -1) {
+        rs = balances.filter(e => e.Available).map(e => `#${e.Currency}
+${e.CryptoAddress}`).join('\n---------------------------------------------\n')
+      } else {
+        rs = balances.filter(e => e.Available).map(e => `#${e.Currency}
+- Available: ${CoinService.formatNumber(e.Available)}
+- Total: ${CoinService.formatNumber(e.Balance)}`).join('\n---------------------------------------------\n')
+      }
       reply(rs)
     })
     bot.hears('rate', ({ reply }) => reply(`1 BTC = ${CoinService.formatNumber(Bittrex.rate['BTC-USDT'])} USDT
@@ -218,14 +231,12 @@ export class CoinService {
       const txt = []
       for (const c of Bittrex.coinCheckingCached) {
         if (c.name === coin) {
-          if (txt.length === 0) txt.push(`#${c.name} at ${c.time.toLocaleString()}`)
-          txt.push(`------------------------`)
-          txt.push(`| Market ${c.market}`)
-          txt.push(`------------------------`)
+          if (txt.length === 0) txt.push(`#${c.name}`)
+          txt.push(`${c.market} market`)
           if (c.name !== 'USDT') txt.push(`- ${CoinService.formatNumber(c.last.usdt)} USDT`)
           if (c.name !== 'BTC') txt.push(`- ${CoinService.formatNumber(c.last.btc)} BTC`)
           if (c.name !== 'ETH') txt.push(`- ${CoinService.formatNumber(c.last.eth)} ETH`)
-          txt.push(``)
+          txt.push(`---------------------------------------------`)
         }
       }
       if (txt.length > 0) return reply(txt.join('\n'))
