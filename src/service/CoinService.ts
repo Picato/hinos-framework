@@ -154,6 +154,11 @@ export class Bittrex {
       // await Bittrex.redis.del('bittrex.trace')
       const data = await Bittrex.getMarketSummaries()
       const tradings = await Bittrex.mongo.find<BittrexTrading>(BittrexTrading, {
+        $fields: {
+          histories: {
+            $slice: [0, 10]
+          }
+        },
         $recordsPerPage: 0
       })
       // const caches = {}
@@ -243,7 +248,12 @@ export class Bittrex {
         if (prev) {
           cached.buf = {
             usdt: cached.last.usdt - prev.last.usdt,
-            percent: Math.round(cached.last.usdt - prev.last.usdt)
+            percent: (cached.last.usdt - prev.last.usdt) * 100 / prev.last.usdt
+          }
+          history.prev = prev.last
+          history.buf = {
+            usdt: history.last.usdt - history.prev.usdt,
+            percent: (history.last.usdt - history.prev.usdt) * 100 / history.prev.usdt
           }
         }
       }
