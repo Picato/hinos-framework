@@ -6,8 +6,8 @@ import { Redis } from 'hinos-redis'
 // import { serve } from 'hinos-serve'
 import { cors } from 'hinos-cors'
 import './config'
-import { GoldService } from './service/GoldService';
-import { CoinService } from './service/CoinService';
+// import { GoldService } from './service/GoldService';
+import { CoinService } from './service/CoinService'
 
 require(`./env.${Server.env}`).default(Server)
 
@@ -30,5 +30,5 @@ Server.listen(AppConfig.port, () => {
   `)
 })
 
-GoldService.autoSync();
-CoinService.autoSync();
+// GoldService.autoSync();
+CoinService.autoSync()
