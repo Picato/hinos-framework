@@ -7,7 +7,9 @@ import { Redis } from 'hinos-redis'
 import { cors } from 'hinos-cors'
 import './config'
 // import { GoldService } from './service/GoldService';
-import { CoinService } from './service/CoinService'
+import StoreMin from './service/Coin/StoreMin'
+import { StoreTrading } from './service/Coin/StoreTrading'
+import { TelegramCommand } from './service/Coin/TelegramCommand'
 
 require(`./env.${Server.env}`).default(Server)
 
@@ -31,4 +33,11 @@ Server.listen(AppConfig.port, () => {
 })
 
 // GoldService.autoSync();
-CoinService.autoSync()
+// CoinService.autoSync()
+StoreTrading.init().then(() => {
+  StoreTrading.execute().then(() => {
+    TelegramCommand.bindCmdTelegram()
+    StoreMin.trends()
+  })
+})
+

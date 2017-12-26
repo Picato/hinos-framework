@@ -24,6 +24,7 @@ interface IAppConfig {
   }
   app: {
     bittrex: {
+      telegramBot: string
       updateDBAfterMins: number
       scanChecking: number
       scanCurrency: number
