@@ -94,7 +94,7 @@ export default class StoreMin {
         }
       },
       $recordsPerPage: 0,
-      $fields: { _id: 1, name: 1, market: 1, key: 1, last: 1, percent: 1 },
+      $fields: { _id: 1, name: 1, market: 1, key: 1, last: 1, percent: 1, time: 1 },
       $sort: {
         key: 1,
         time: 1
@@ -109,15 +109,25 @@ export default class StoreMin {
           _id: e._id,
           name: e.name,
           market: e.market,
+          time: e.time,
           score: 0,
           percent: 0,
-          histories: []
+          histories: [],
+          note: []
         }
       }
       rs[key].last = e.last
       rs[key].score += i + 1 + ((i + 1) * e.percent)
       rs[key].percent += e.percent
       rs[key].histories.splice(0, 0, e)
+
+      if (i === data.length - 1) {
+        if (e.percent >= 50) {
+          rs[key].note.push(`Sắp tới có thể sẽ tăng`)
+        } else if (e.percent <= -50) {
+          rs[key].note.push(`Sắp tới có thể sẽ giảm`)
+        }
+      }
     })
     const out = []
     for (let k in rs) {
