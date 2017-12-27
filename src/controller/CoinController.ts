@@ -2,6 +2,8 @@ import { GET } from 'hinos-route'
 import { RESTRICT } from 'hinos-bodyparser/restrict'
 import BittrexApi from '../service/Coin/BittrexApi';
 import StoreMin from '../service/Coin/StoreMin';
+import StoreHour from '../service/Coin/StoreHour';
+import StoreDay from '../service/Coin/StoreDay';
 
 /************************************************
  ** GoldController || 4/10/2017, 10:19:24 AM **
@@ -19,19 +21,14 @@ export default class CoinController {
     return BittrexApi.rate
   }
 
-  @GET('/trends-min')
-  static async getTrendsMin() {
-    return StoreMin.trendsMin
-  }
-
-  @GET('/trends-min/:key')
+  @GET('/trends')
   @RESTRICT({
-    params: {
-      key: String
+    query: {
+      type: String
     }
   })
-  static async getTrendsMinHistory({ params }) {
-    return StoreMin.trendsMin.find(e => e.key = params.key)
+  static async getTrends({ query }) {
+    return query.type === 'day' ? StoreDay.trending : (query.type === 'hour' ? StoreHour.trending : StoreMin.trending)
   }
 
   // @GET('/bittrex-trading')

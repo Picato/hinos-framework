@@ -7,7 +7,6 @@ import { Redis } from 'hinos-redis'
 import { cors } from 'hinos-cors'
 import './config'
 // import { GoldService } from './service/GoldService';
-import StoreMin from './service/Coin/StoreMin'
 import { StoreTrading } from './service/Coin/StoreTrading'
 import { TelegramCommand } from './service/Coin/TelegramCommand'
 
@@ -21,7 +20,10 @@ Redis(AppConfig.redis).debug(!Server.isProduction)
 Server.use(cors())
 Server.use(route(path.join(__dirname, 'controller'), { ignorecase: true, root: AppConfig.path }))
 
-Server.listen(AppConfig.port, () => {
+Server.listen(AppConfig.port, async () => {
+  await StoreTrading.init()
+  setInterval(StoreTrading.execute, AppConfig.app.bittrex.scanChecking)
+  await TelegramCommand.bindCmdTelegram()
   console.info(`
     _     _
   | |__ (_)_ __   ___  ___  ${AppConfig.name}
@@ -34,10 +36,4 @@ Server.listen(AppConfig.port, () => {
 
 // GoldService.autoSync();
 // CoinService.autoSync()
-StoreTrading.init().then(() => {
-  StoreTrading.execute().then(() => {
-    TelegramCommand.bindCmdTelegram()
-    StoreMin.trends()
-  })
-})
 

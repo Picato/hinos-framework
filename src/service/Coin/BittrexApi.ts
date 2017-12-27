@@ -61,4 +61,5 @@ export default class BittrexApi {
       });
     })
   }
+
 }

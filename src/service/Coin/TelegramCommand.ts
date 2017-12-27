@@ -5,7 +5,7 @@ export class TelegramCommand {
   static async bindCmdTelegram() {
     console.log('Bind Bittrex telegram BOT')
     const bot = new BotCommand(AppConfig.app.bittrex.telegramBot) as any
-    bot.hears('help', async ({ reply }) => {
+    bot.command('help', async ({ reply }) => {
       reply(`"rate": Show btc, eth, usdt price at current time
   "coin COIN_NAME": Show coin price at current time
   "walletid": Show the wallet IDs
@@ -19,9 +19,11 @@ export class TelegramCommand {
         rs = balances.filter(e => e.Available).map(e => `#${e.Currency}
   ${e.CryptoAddress}`).join('\n---------------------------------------------\n')
       } else {
-        rs = balances.filter(e => e.Available).map(e => `#${e.Currency}
-  - Available: ${BittrexApi.formatNumber(e.Available)}
-  - Total: ${BittrexApi.formatNumber(e.Balance)}`).join('\n---------------------------------------------\n')
+        rs = balances.filter(e => e.Available || e.Balance).map(e => {
+          let msgs = [`#${e.Currency}: ${BittrexApi.formatNumber(e.Balance)}`]
+          if (e.Available && e.Available !== e.Balance) msgs.push(`  - Available: ${BittrexApi.formatNumber(e.Available)}`)
+          return msgs.join('\n')
+        }).join('\n')
       }
       reply(rs)
     })

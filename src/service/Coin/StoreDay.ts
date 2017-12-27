@@ -4,8 +4,8 @@ import { Redis, REDIS } from "hinos-redis/lib/redis"
 import { BittrexCachedTrading } from './StoreTrading'
 import { MatrixTrends } from './MatrixTrends';
 
-@Collection('BittrexMinTrading')
-export class BittrexMinTrading {
+@Collection('BittrexDayTrading')
+export class BittrexDayTrading {
   _id?: Uuid
   name: string
   market: string
@@ -15,8 +15,6 @@ export class BittrexMinTrading {
   date: number
   month: number
   year: number
-  hours: number
-  minutes: number
   prev: {
     usdt: number
     btc: number
@@ -40,7 +38,7 @@ export class BittrexMinTrading {
   }
 }
 
-export default class StoreMin {
+export default class StoreDay {
   @REDIS()
   private static redis: Redis
   @MONGO('coin')
@@ -52,16 +50,16 @@ export default class StoreMin {
   private static lastUpdateDB
 
   static async init() {
-    console.log('#StoreMin', 'Initial')
-    StoreMin.lastUpdateDB = await StoreMin.redis.get('bittrex.lastUpdateMinDB')
-    if (StoreMin.lastUpdateDB) StoreMin.lastUpdateDB = new Date(StoreMin.lastUpdateDB)
-    await StoreMin.loadInMatrix()
-    await StoreMin.trends()
+    console.log('#StoreDay', 'Initial')
+    StoreDay.lastUpdateDB = await StoreDay.redis.get('bittrex.lastUpdateDayDB')
+    if (StoreDay.lastUpdateDB) StoreDay.lastUpdateDB = new Date(StoreDay.lastUpdateDB)
+    await StoreDay.loadInMatrix()
+    await StoreDay.trends()
   }
 
   static async loadInMatrix() {
-    console.log('#StoreMin', 'Load matrix')
-    const data = await StoreMin.mongo.find<BittrexMinTrading>(BittrexMinTrading, {
+    console.log('#StoreDay', 'Load matrix')
+    const data = await StoreDay.mongo.find<BittrexDayTrading>(BittrexDayTrading, {
       $recordsPerPage: 0,
       $fields: { _id: 1, percent: 1, key: 1 },
       $sort: {
@@ -69,45 +67,51 @@ export default class StoreMin {
         time: 1
       }
     })
-    StoreMin.matrix = await MatrixTrends.loadInMatrix(data)
+    StoreDay.matrix = await MatrixTrends.loadInMatrix(data)
   }
 
   static async insert(tradings: BittrexCachedTrading[], now: Date) {    
-    if (!StoreMin.lastUpdateDB || (StoreMin.lastUpdateDB.getMinutes() !== now.getMinutes() && now.getMinutes() % AppConfig.app.bittrex.updateDBAfterMins === 0)) {
-      console.log('#StoreMin', 'Inserting trading')
+    if (!StoreDay.lastUpdateDB || (StoreDay.lastUpdateDB.getDate() !== now.getDate())) { //&& now.getMinutes() % AppConfig.app.bittrex.updateDBAfterMins === 0
+      console.log('#StoreDay', 'Insert trading')
       let data = []
       for (let e of tradings) {
-        let prev = await StoreMin.redis.hget('bittrex.prev.min', e.key)
+        let prev = await StoreDay.redis.hget('bittrex.prev.day', e.key)
         if (prev) {
           e.prev = JSON.parse(prev)
         }
         e['date'] = e.time.getDate()
         e['month'] = e.time.getMonth()
         e['year'] = e.time.getFullYear()
-        e['hours'] = e.time.getHours()
-        e['minutes'] = e.time.getMinutes()
         e.percent = (e.last.usdt - e.prev.usdt) * 100 / e.prev.usdt
-        data.push(_.omit(e, ['low', 'high', 'baseVolume', 'volume']) as BittrexMinTrading)
+        data.push(_.omit(e, ['low', 'high', 'baseVolume', 'volume', 'bid', 'ask']) as BittrexDayTrading)
       }
-      await StoreMin.redis.hset('bittrex.prev.min', (() => {
+      await StoreDay.redis.hset('bittrex.prev.day', (() => {
         let rs = {}
         data.forEach(e => {
           rs[e.key] = JSON.stringify(e.last)
         })
         return rs
       })())
-      await StoreMin.mongo.insert<BittrexMinTrading>(BittrexMinTrading, data)
-      StoreMin.lastUpdateDB = now
-      await StoreMin.redis.set('bittrex.lastUpdateMinDB', StoreMin.lastUpdateDB)
-      await StoreMin.trends()
+      await StoreDay.mongo.insert<BittrexDayTrading>(BittrexDayTrading, data)
+      StoreDay.lastUpdateDB = now
+      await StoreDay.redis.set('bittrex.lastUpdateDayDB', StoreDay.lastUpdateDB)
+      await StoreDay.trends()
     }
   }
 
+  static matrixTrends(seriesPercent, allcase): string[] {
+    const rs = MatrixTrends.calculate(seriesPercent, allcase, 0.5)
+    if (!rs) return rs
+    Object.keys(rs).map(e => {
+      return { target: e, percent: rs[e] }
+    }).sort((a, b) => b.percent - a.percent).slice(0, 10).map(e => `${e.target}: ${e.percent}%`)
+  }
+
   static async trends() {
-    console.log('#StoreMin', 'Calculate simple trends')
+    console.log('#StoreDay', 'Calculate simple trends')
     let beforeThat = new Date()
-    beforeThat.setMinutes(beforeThat.getMinutes() - 30)
-    const data = await StoreMin.mongo.find<BittrexMinTrading>(BittrexMinTrading, {
+    beforeThat.setDate(beforeThat.getDate() - 5)
+    const data = await StoreDay.mongo.find<BittrexDayTrading>(BittrexDayTrading, {
       $where: {
         time: {
           $gte: beforeThat
@@ -120,6 +124,6 @@ export default class StoreMin {
         time: 1
       }
     })
-    StoreMin.trending = MatrixTrends.trends(data, StoreMin.matrix, 0.1)
+    StoreDay.trending = MatrixTrends.trends(data, StoreDay.matrix, 0.1)
   }
 }

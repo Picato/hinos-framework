@@ -2,6 +2,7 @@ import * as _ from 'lodash'
 import { MONGO, Mongo, Uuid, Collection } from "hinos-mongo/lib/mongo";
 import { Redis, REDIS } from "hinos-redis/lib/redis";
 import { BittrexCachedTrading } from './StoreTrading';
+import { MatrixTrends } from './MatrixTrends';
 
 @Collection('BittrexHourTrading')
 export class BittrexHourTrading {
@@ -44,15 +45,35 @@ export default class StoreHour {
   @MONGO('coin')
   private static mongo: Mongo
 
+  static trending
+  static matrix = [] as string[][]
+
   private static lastUpdateDB
 
   static async init() {
+    console.log('#StoreHour', 'Initial')
     StoreHour.lastUpdateDB = await StoreHour.redis.get('bittrex.lastUpdateHourDB')
     if (StoreHour.lastUpdateDB) StoreHour.lastUpdateDB = new Date(StoreHour.lastUpdateDB)
+    await StoreHour.loadInMatrix()
+    await StoreHour.trends()
+  }
+
+  static async loadInMatrix() {
+    console.log('#StoreHour', 'Load matrix')
+    const data = await StoreHour.mongo.find<BittrexHourTrading>(BittrexHourTrading, {
+      $recordsPerPage: 0,
+      $fields: { _id: 1, percent: 1, key: 1 },
+      $sort: {
+        key: 1,
+        time: 1
+      }
+    })
+    StoreHour.matrix = await MatrixTrends.loadInMatrix(data)
   }
 
   static async insert(tradings: BittrexCachedTrading[], now: Date) {
     if (!StoreHour.lastUpdateDB || (StoreHour.lastUpdateDB.getHours() !== now.getHours())) { //&& now.getMinutes() % AppConfig.app.bittrex.updateDBAfterMins === 0
+      console.log('#StoreHour', 'Inserting trading')
       let data = []
       for (let e of tradings) {
         let prev = await StoreHour.redis.hget('bittrex.prev.hour', e.key)
@@ -76,6 +97,27 @@ export default class StoreHour {
       await StoreHour.mongo.insert<BittrexHourTrading>(BittrexHourTrading, data)
       StoreHour.lastUpdateDB = now
       await StoreHour.redis.set('bittrex.lastUpdateHourDB', StoreHour.lastUpdateDB)
+      await StoreHour.trends()
     }
+  }
+
+  static async trends() {
+    console.log('#StoreHour', 'Calculate simple trends')
+    let beforeThat = new Date()
+    beforeThat.setHours(beforeThat.getHours() - 5)
+    const data = await StoreHour.mongo.find<BittrexHourTrading>(BittrexHourTrading, {
+      $where: {
+        time: {
+          $gte: beforeThat
+        }
+      },
+      $recordsPerPage: 0,
+      $fields: { _id: 1, name: 1, market: 1, key: 1, last: 1, percent: 1, time: 1 },
+      $sort: {
+        key: 1,
+        time: 1
+      }
+    })
+    StoreHour.trending = MatrixTrends.trends(data, StoreHour.matrix, 0.1)
   }
 }

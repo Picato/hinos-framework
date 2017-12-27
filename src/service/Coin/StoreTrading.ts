@@ -3,6 +3,7 @@ import { Mongo, Collection, Uuid } from "hinos-mongo/lib/mongo"
 import BittrexApi from './BittrexApi'
 import StoreMin from './StoreMin'
 import StoreHour from './StoreHour'
+import StoreDay from "./StoreDay";
 
 @Collection('BittrexCachedTrading')
 export class BittrexCachedTrading {
@@ -61,8 +62,19 @@ export class StoreTrading {
   private static redis: Redis
 
   static async init() {
-    await StoreMin.init()
-    await StoreHour.init()
+    await Promise.all([
+      StoreMin.init(),
+      StoreHour.init(),
+      StoreDay.init()
+    ])
+  }
+
+  static async executed(tradings, now) {
+    await Promise.all([
+      StoreMin.insert(tradings, now),
+      StoreHour.insert(tradings, now),
+      StoreDay.insert(tradings, now)
+    ])
   }
 
   public static async execute() {
@@ -145,13 +157,10 @@ export class StoreTrading {
         })
         return rs
       })())
-      await StoreMin.insert(tradings, now)
-      await StoreHour.insert(tradings, now)
       BittrexApi.newestTrading = tradings
+      await StoreTrading.executed(tradings, now)
     } catch (e) {
       console.error(e)
-    } finally {
-      setTimeout(StoreTrading.execute, AppConfig.app.bittrex.scanChecking)
     }
   }
 }
