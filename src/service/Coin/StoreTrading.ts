@@ -4,6 +4,7 @@ import BittrexApi from './BittrexApi'
 import StoreMin from './StoreMin'
 import StoreHour from './StoreHour'
 import StoreDay from "./StoreDay";
+import { Notification } from "./Notification";
 
 @Collection('BittrexCachedTrading')
 export class BittrexCachedTrading {
@@ -69,11 +70,13 @@ export class StoreTrading {
     ])
   }
 
-  static async executed(tradings, now) {
+  static async executed(tradings: BittrexCachedTrading[], now: Date) {
+    console.log('executed')
     await Promise.all([
       StoreMin.insert(tradings, now),
       StoreHour.insert(tradings, now),
-      StoreDay.insert(tradings, now)
+      StoreDay.insert(tradings, now),
+      Notification.checkNotification(tradings, now)
     ])
   }
 

@@ -9,6 +9,7 @@ import './config'
 // import { GoldService } from './service/GoldService';
 import { StoreTrading } from './service/Coin/StoreTrading'
 import { TelegramCommand } from './service/Coin/TelegramCommand'
+import { Notification } from './service/Coin/Notification';
 
 require(`./env.${Server.env}`).default(Server)
 
@@ -23,6 +24,7 @@ Server.use(route(path.join(__dirname, 'controller'), { ignorecase: true, root: A
 Server.listen(AppConfig.port, async () => {
   await StoreTrading.init()
   setInterval(StoreTrading.execute, AppConfig.app.bittrex.scanChecking)
+  await Notification.init()
   await TelegramCommand.bindCmdTelegram()
   console.info(`
     _     _

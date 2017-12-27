@@ -3,7 +3,7 @@ import axios from 'axios'
 
 export class BotFather {
   constructor(private token, private chatID) { }
-  send(text, opts) {
+  send(text, opts = {}) {
     axios.post(`https://api.telegram.org/bot${this.token}/sendMessage`, Object.assign({}, { text: text, chat_id: this.chatID }, opts), {
       headers: {
         'content-type': 'application/json'

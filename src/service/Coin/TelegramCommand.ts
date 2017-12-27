@@ -1,16 +1,53 @@
-import { BotCommand } from '../Telegram'
-import BittrexApi from './BittrexApi';
+import { BotCommand, BotFather } from '../Telegram'
+import BittrexApi from './BittrexApi'
+import { Notification } from './Notification'
 
 export class TelegramCommand {
+
+  static Bot = new BotFather(AppConfig.app.bittrex.telegramBot, '504722063')
+
   static async bindCmdTelegram() {
     console.log('Bind Bittrex telegram BOT')
     const bot = new BotCommand(AppConfig.app.bittrex.telegramBot) as any
-    bot.command('help', async ({ reply }) => {
-      reply(`"rate": Show btc, eth, usdt price at current time
+    bot.command('help', async (ctx) => {
+      ctx.reply(`"rate": Show btc, eth, usdt price at current time
   "coin COIN_NAME": Show coin price at current time
   "walletid": Show the wallet IDs
   "wallet": Show the balances of wallets
   `)
+    })
+    const getListNotify = (key) => {
+      return `#${key}\n` + Notification.tracing[key].map((e, i) => `  - ${i}: ${e}`).join('\n')
+    }
+    const checkKey = (key) => {
+      const newestTrading = BittrexApi.newestTrading
+      if (!newestTrading) return false
+      return newestTrading.findIndex(e => e.key === key) !== -1
+    }
+    bot.hears(/^alert(\s.+)?/i, async ({ reply, message }) => {
+      // alert usdt-omg >1000
+      let [, action, key, calstr] = message.text.split(' ')
+      if (key) key = key.toUpperCase()
+      if (action === 'ls') {
+        if (key) {
+          if (!checkKey(key)) return reply(`Market-Coin ${key} not found`)
+          return reply(getListNotify(key))
+        }
+        return reply(Object.keys(Notification.tracing).map(getListNotify).join('\n'))
+      } else if (action === 'rm') {
+        if (!calstr) return reply(`Not add index to remove yet`)
+        if (!checkKey(key)) return reply(`Market-Coin ${key} not found`)
+        await Notification.remove(key, +calstr)
+        return reply(getListNotify(key))
+      } else {
+        calstr = key
+        key = action
+        if (key) key = key.toUpperCase()
+        if (!calstr) return reply(`Not add fomular yet`)
+        if (!checkKey(key)) return reply(`Market-Coin ${key} not found`)
+        await Notification.save(key, `${calstr}`)
+        return reply(getListNotify(key))
+      }
     })
     bot.hears(/^wallet(id)?$/i, async ({ reply, message }) => {
       const balances = await BittrexApi.getMyBalances()

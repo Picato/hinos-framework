@@ -72,7 +72,7 @@ export class MatrixTrends {
       out.push(rs[k])
     }
     out.sort((a, b) => b.percent - a.percent)
-    return rs
+    return out
   }
 
   static async loadInMatrix(data) {
