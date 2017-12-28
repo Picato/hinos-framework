@@ -2,13 +2,9 @@ import { BotCommand, BotFather } from '../Telegram'
 import BittrexApi from './BittrexApi'
 import BittrexUser from './BittrexUser'
 import BittrexAlert from './BittrexAlert'
-// const Extra = require('telegraf/extra')
-const Markup = require('telegraf/markup')
 
 export class TelegramCommand {
-
-  static BotFather = new BotFather(AppConfig.app.bittrex.telegramBot, '504722063')
-  private static Bot = new BotCommand(AppConfig.app.bittrex.telegramBot)
+  static Bot = new BotCommand(AppConfig.app.bittrex.telegramBot)
 
   static async init() {
     await Promise.all([
@@ -22,20 +18,31 @@ export class TelegramCommand {
       reply('Registed bittrex apikey')
     })
     // Refer https://github.com/telegraf/telegraf/blob/develop/docs/examples/keyboard-bot.js
-    TelegramCommand.Bot.command('help', ({ reply }) => {
-      return reply('Action support', Markup
-        .inlineKeyboard([
-          Markup.callbackButton('Rate', 'rate'),
-          Markup.callbackButton('Show alerts', 'rate')
-        ])
-        .oneTime()
-        .resize()
-        .extra()
-      )
+    // const Extra = require('telegraf/extra')
+    // const Markup = require('telegraf/markup')
+    // TelegramCommand.Bot.command('help', (ctx) => {
+    //   return ctx.reply('Action support', Markup
+    //     .keyboard([
+    //       ['/rate', '/ls']
+    //     ])
+    //     .oneTime()
+    //     .resize()
+    //     .extra()
+    //   )
+    // })
+    // TelegramCommand.Bot.action('rate', (_ctx) => {
+    //   console.log('ok')
+    // })
+    TelegramCommand.Bot.start(({ from, reply }) => {
+      BittrexAlert.GROUP_ID = from.id
+      return reply('Welcome to Bittrex Bot!')
     })
-    TelegramCommand.Bot.action('rate', (_ctx) => {
-      console.log('ok')
+
+    TelegramCommand.Bot.on('inline_query', async ({ inlineQuery, answerInlineQuery }) => {
+      const offset = parseInt(inlineQuery.offset) || 0
+      return answerInlineQuery([], { next_offset: offset + 30 })
     })
+
     await TelegramCommand.registerGetMyWalletStatus()
     await TelegramCommand.registerGetMyWalletID()
     await TelegramCommand.registerGetRate()
@@ -48,7 +55,7 @@ export class TelegramCommand {
   }
 
   static async registerAddAlert() {
-    TelegramCommand.Bot.command('add', async ({ reply, replyWithMarkdown, from, message }) => {
+    TelegramCommand.Bot.command('nw', async ({ reply, replyWithMarkdown, from, message }) => {
       const [kf, des] = message.text.split('\n')
       const [, key, formula] = kf.toUpperCase().split(' ')
       if (!key || !formula) return reply('Not found market-coin or formular')
@@ -65,6 +72,7 @@ export class TelegramCommand {
     if (!alert || Object.keys(alert).length === 0) return tmp
     for (let key in alert) {
       if (_key && key !== _key) continue
+      if (tmp.length === 0) tmp.push(`List your alerts\n--------------------------------`)
       tmp.push(`*${key}*`)
       tmp.push(alert[key].map((e, i) => `*${i}* | ${e.formula} | _${e.des || ''}_`).join('\n'))
     }
@@ -86,12 +94,12 @@ export class TelegramCommand {
     //     m.callbackButton('🐈', Math.random().toString(36).slice(2)),
     //     m.callbackButton('Clear', 'clear')
     //   ], { columns: 3 }))
-    const markup = Extra.markup(
-      Markup.inlineKeyboard([
-        Markup.gameButton('🎮 Play now!'),
-        Markup.urlButton('Telegraf help', 'http://telegraf.js.org')
-      ])
-    )
+    // const markup = Extra.markup(
+    //   Markup.inlineKeyboard([
+    //     Markup.gameButton('🎮 Play now!'),
+    //     Markup.urlButton('Telegraf help', 'http://telegraf.js.org')
+    //   ])
+    // )
     TelegramCommand.Bot.command('ls', async ({ reply, replyWithMarkdown, from, message }) => {
       const alert = BittrexAlert.getAlerts(from.username)
       if (!alert || Object.keys(alert).length === 0) return reply('No alert')
@@ -99,7 +107,7 @@ export class TelegramCommand {
       if (_key) _key = _key.toUpperCase()
       const tmp = await TelegramCommand.getAlertMsgs(from.username, _key)
       if (tmp.length === 0) return reply('No alert')
-      replyWithMarkdown(tmp.join('\n'), markup)
+      replyWithMarkdown(tmp.join('\n'))
     })
   }
 

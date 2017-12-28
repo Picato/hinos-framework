@@ -1,20 +1,16 @@
 import * as Telegraf from 'telegraf'
-import axios from 'axios'
-
-export class BotFather {
-  constructor(private token, private chatID) { }
-  send(text, opts = {}) {
-    axios.post(`https://api.telegram.org/bot${this.token}/sendMessage`, Object.assign({}, { text: text, chat_id: this.chatID }, opts), {
-      headers: {
-        'content-type': 'application/json'
-      }
-    })
-  }
-}
 
 export class BotCommand extends Telegraf {
+  
   constructor(token) {
     super(token)
+  }
+
+  send(chatid: number, message: string, options?) {
+    this['telegram'].sendMessage(chatid, message, options)
+  }
+  start(cb: (ctx) => void) {
+    return super.start(cb)
   }
   command(cmd: string, cb: (ctx) => void) {
     return super.command(cmd, cb)

@@ -19,7 +19,7 @@ export class TrendingMessage {
 
   static async add(message: any) {
     TrendingMessage.messages.splice(message, 0, 0)
-    await TrendingMessage.redis.lpush('bittrex.trending.messages', message)
+    await TrendingMessage.redis.lpush('bittrex.trending.messages', JSON.stringify(message))
   }
 
   static async clear() {

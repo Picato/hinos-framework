@@ -1,10 +1,13 @@
 import { Redis, REDIS } from 'hinos-redis/lib/redis';
 import { BittrexCachedTrading } from './StoreTrading';
 import { TelegramCommand } from './TelegramCommand';
+import BittrexApi from './BittrexApi';
 
 export default class BittrexAlert {
   @REDIS()
   private static redis: Redis
+
+  static GROUP_ID = 504722063
 
   static alerts = {} as {
     [username: string]: {
@@ -27,11 +30,18 @@ export default class BittrexAlert {
             for (let i = alertFormulas.length - 1; i >= 0; i--) {
               const e = alertFormulas[i]
               let isok
-              eval(`isok = $${e.formula}`)
-              if (isok) {
-                await TelegramCommand.BotFather.send(`${key} ${e.formula} is matched | ${e.des}`)
-                await BittrexAlert.rmAlert(username, key, i)
+              try {
+                eval(`isok = $${e.formula}`)
+                if (isok) {
+                  const msgs = [`*${key}* = *${BittrexApi.formatNumber(t.last[t.market.toLowerCase()])}* ${e.formula} is matched`]
+                  if (e.des) msgs.push(`_${e.des}_`)
+                  await TelegramCommand.Bot.send(BittrexAlert.GROUP_ID, `${msgs.join('\n')}`, { parse_mode: 'Markdown' })
+                  await BittrexAlert.rmAlert(username, key, i)
+                }
+              } catch (_e) {
+                await TelegramCommand.Bot.send(BittrexAlert.GROUP_ID, `Formula *${e.formula}* got problem`, { parse_mode: 'Markdown' })
               }
+
             }
           }
         }
