@@ -3,8 +3,9 @@ import { Mongo, Collection, Uuid } from "hinos-mongo/lib/mongo"
 import BittrexApi from './BittrexApi'
 import StoreMin from './StoreMin'
 import StoreHour from './StoreHour'
-import StoreDay from "./StoreDay";
-import { Notification } from "./Notification";
+import StoreDay from "./StoreDay"
+import BittrexAlert from "./BittrexAlert";
+import BittrexUser from "./BittrexUser";
 
 @Collection('BittrexCachedTrading')
 export class BittrexCachedTrading {
@@ -70,20 +71,20 @@ export class StoreTrading {
     ])
   }
 
-  static async executed(tradings: BittrexCachedTrading[], now: Date) {
+  static async updateData(tradings: BittrexCachedTrading[], now: Date) {
     console.log('executed')
     await Promise.all([
       StoreMin.insert(tradings, now),
       StoreHour.insert(tradings, now),
       StoreDay.insert(tradings, now),
-      Notification.checkNotification(tradings, now)
+      BittrexAlert.checkAlert(tradings, now)
     ])
   }
 
   public static async execute() {
     try {
       // await StoreTrading.redis.del('bittrex.trace')
-      const data = await BittrexApi.getMarketSummaries()
+      const data = await BittrexUser.getMarketSummaries()
       const tradings = [] as BittrexCachedTrading[]
       let rate = data.find(e => e.MarketName === 'USDT-BTC')
       BittrexApi.rate['BTC-USDT'] = rate.Last
@@ -161,7 +162,7 @@ export class StoreTrading {
         return rs
       })())
       BittrexApi.newestTrading = tradings
-      await StoreTrading.executed(tradings, now)
+      await StoreTrading.updateData(tradings, now)
     } catch (e) {
       console.error(e)
     }

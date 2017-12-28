@@ -4,6 +4,7 @@ import BittrexApi from '../service/Coin/BittrexApi';
 import StoreMin from '../service/Coin/StoreMin';
 import StoreHour from '../service/Coin/StoreHour';
 import StoreDay from '../service/Coin/StoreDay';
+import { TrendingMessage } from '../service/Coin/TrendingMessage';
 
 /************************************************
  ** GoldController || 4/10/2017, 10:19:24 AM **
@@ -29,6 +30,11 @@ export default class CoinController {
   })
   static async getTrends({ query }) {
     return query.type === 'day' ? StoreDay.trending : (query.type === 'hour' ? StoreHour.trending : StoreMin.trending)
+  }
+
+  @GET('/trending-message')
+  static async getTrendingMessage() {
+    return TrendingMessage.messages
   }
 
   // @GET('/bittrex-trading')
