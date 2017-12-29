@@ -139,8 +139,10 @@ export class TelegramCommand {
       const { reply, replyWithMarkdown, from, message } = ctx
       try {
         const [kf, des] = message.text.split('\n')
-        const [, key, formula] = kf.toUpperCase().split(' ')
+        let [, key, ...formula] = kf.toUpperCase().split(' ')
+        formula = formula.join('') as string
         if (!key || !formula) return await reply('Not found market-coin or formular')
+        if (!formula.includes('<') && !formula.includes('>') && !formula.includes('=')) return await reply('Formula need includes atlest 1 in ">", "<", ">=", "<=", "=="')
         await BittrexAlert.addAlert(from.username, new BittrexAlert(key, formula, des))
         const tmp = TelegramCommand.getAlertMsgs(from.username, key)
         if (tmp.length === 0) return await reply('No alert')
@@ -297,7 +299,7 @@ export class TelegramCommand {
     for (let key in alert) {
       if (_key && key !== _key) continue
       if (tmp.length === 0) {
-        tmp.push(`Alerts\n--------------------------------`)
+        tmp.push(`🛎 Alerts\n--------------------------------`)
       }
       const f = BittrexApi.newestTrading.find(e => e.key === key)
       tmp.push(`* ${key}* ~${f ? BittrexApi.formatNumber(f.last) : ''} `)
