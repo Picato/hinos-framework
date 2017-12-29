@@ -13,7 +13,15 @@ import { TrendingMessage } from '../service/Coin/TrendingMessage';
 export default class CoinController {
 
   @GET('/market')
-  static async getMarket() {
+  @RESTRICT({
+    query: {
+      type: String
+    }
+  })
+  static async getMarket({ query }) {
+    if (query.type === 'min') return StoreMin.newestTrading
+    if (query.type === 'hour') return StoreHour.newestTrading
+    if (query.type === 'day') return StoreDay.newestTrading
     return BittrexApi.newestTrading
   }
 

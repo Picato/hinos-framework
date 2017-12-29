@@ -9,9 +9,10 @@ export class MatrixTrends {
     for (let i = 0, len = a.length; i < len; i++) {
       const vl = a[i]
       if (vl >= s[0] - buf && vl <= s[0] + buf) {
+        if (!a[i - 1]) return rs
         var si = 1
         var sa = i + 1
-        if (!rs) rs = {}
+        if (!rs) rs = {}        
         rs[`${a[i - 1]}`] = 1
         while (si < s.length) {
           if (a[sa] >= s[si] - buf && a[sa] <= s[si] + buf) {
@@ -35,7 +36,7 @@ export class MatrixTrends {
       const msgs = []
       msgs.push(`Dự báo sắp tới`)
       for (let k in r) {
-        msgs.push(` - ${k}: ${r[k]} points`)
+        msgs.push(` - Tỉ lệ tăng/giảm ${k}% ~ ${r[k]} points`)
       }
       return msgs.join('\n')
     }
@@ -52,7 +53,7 @@ export class MatrixTrends {
           const msg = await MatrixTrends.callTrends(rs[key].histories.map(e => e.percent), matrix, rate)
           if (msg) {
             rs[key].note.push(msg)
-            await TrendingMessage.add({ msg, time: new Date(), type: 0, matcher: 'MATRIX', date: new Date().toDateString() })
+            await TrendingMessage.add({ msg, key, market: key.split('-')[0], time: new Date(), type: 0, matcher: 'MATRIX', date: new Date().toDateString() })
           }
           rs[key].isMatrix = true
         }
@@ -72,7 +73,7 @@ export class MatrixTrends {
         const msg = await MatrixTrends.callTrends(rs[key].histories.map(e => e.percent), matrix, rate)
         if (msg) {
           rs[key].note.push(msg)
-          await TrendingMessage.add({ msg, time: new Date(), type: 0, matcher: 'MATRIX', date: new Date().toDateString() })
+          await TrendingMessage.add({ msg, key, market: key.split('-')[0], time: new Date(), type: 0, matcher: 'MATRIX', date: new Date().toDateString() })
         }
         rs[key].isMatrix = true
       }
@@ -84,10 +85,10 @@ export class MatrixTrends {
       if (i === data.length - 1) {
         if (e.percent >= 55) {
           rs[key].note.push(`#${rs[key].key} Sắp tới có thể sẽ tăng`)
-          await TrendingMessage.add({ name: rs[key].name, market: rs[key].market, key: rs[key].key, msg: `Sắp tới có thể sẽ tăng`, type: 1, matcher: '55%', time: new Date(), date: new Date().toDateString() })
+          await TrendingMessage.add({ key: rs[key].key, market: rs[key].market, msg: `Sắp tới có thể sẽ tăng`, type: 1, matcher: '55%', time: new Date(), date: new Date().toDateString() })
         } else if (e.percent <= -55) {
           rs[key].note.push(`#${rs[key].key} Sắp tới có thể sẽ giảm`)
-          await TrendingMessage.add({ msg: `Sắp tới có thể sẽ giảm`, type: -1, matcher: '55%', time: new Date(), date: new Date().toDateString() })
+          await TrendingMessage.add({ key: rs[key].key, market: rs[key].market, msg: `Sắp tới có thể sẽ giảm`, type: -1, matcher: '55%', time: new Date(), date: new Date().toDateString() })
         }
       }
     }

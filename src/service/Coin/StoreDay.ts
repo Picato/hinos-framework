@@ -1,4 +1,3 @@
-import * as _ from 'lodash'
 import { MONGO, Mongo, Uuid, Collection } from "hinos-mongo/lib/mongo"
 import { Redis, REDIS } from "hinos-redis/lib/redis"
 import { BittrexCachedTrading } from './StoreTrading'
@@ -15,27 +14,13 @@ export class BittrexDayTrading {
   date: number
   month: number
   year: number
-  prev: {
-    usdt: number
-    btc: number
-    eth: number
-  }
-  last: {
-    usdt: number
-    btc: number
-    eth: number
-  }
+  prev: number
+  last: number
   percent: number
-  bid: {
-    usdt: number
-    btc: number
-    eth: number
-  }
-  ask: {
-    usdt: number
-    btc: number
-    eth: number
-  }
+  baseVolume: number
+  baseVolumePercent: number
+  low: number
+  high: number
 }
 
 export default class StoreDay {
@@ -45,13 +30,14 @@ export default class StoreDay {
   private static mongo: Mongo
 
   static trending
+  static newestTrading = []
   static matrix = [] as string[][]
 
   private static lastUpdateDB
 
   static async init() {
     console.log('#StoreDay', 'Initial')
-    StoreDay.lastUpdateDB = await StoreDay.redis.get('bittrex.lastUpdateDayDB')
+    StoreDay.lastUpdateDB = await StoreDay.redis.get('StoreDay.lastUpdateDB')
     if (StoreDay.lastUpdateDB) StoreDay.lastUpdateDB = new Date(StoreDay.lastUpdateDB)
     await StoreDay.loadInMatrix()
     await StoreDay.trends()
@@ -70,33 +56,53 @@ export default class StoreDay {
     StoreDay.matrix = await MatrixTrends.loadInMatrix(data)
   }
 
-  static async insert(tradings: BittrexCachedTrading[], now: Date) {    
+  static async insert(tradings: BittrexCachedTrading[], now: Date) {
     if (!StoreDay.lastUpdateDB || (StoreDay.lastUpdateDB.getDate() !== now.getDate())) { //&& now.getMinutes() % AppConfig.app.bittrex.updateDBAfterMins === 0
       console.log('#StoreDay', 'Insert trading')
       let data = []
       for (let e of tradings) {
-        let prev = await StoreDay.redis.hget('bittrex.prev.day', e.key)
+        const tr = {} as BittrexDayTrading
+        tr._id = e._id
+        tr.key = e.key
+        tr.name = e.name
+        tr.market = e.market
+        tr.raw_time = e.raw_time
+        tr.time = e.time
+        tr.date = e.time.getDate()
+        tr.month = e.time.getMonth()
+        tr.year = e.time.getFullYear()
+        tr.baseVolume = e.baseVolume
+        tr.last = e.last
+        let prev = await StoreDay.redis.hget('StoreDay.prevCached', e.key)
         if (prev) {
-          e.prev = JSON.parse(prev)
+          prev = JSON.parse(prev)
+          tr.prev = prev.last
+          tr.low = tr.last < prev.low ? tr.last : prev.low
+          tr.high = tr.last > prev.high ? tr.last : prev.high
+          tr.baseVolumePercent = (tr.baseVolume - prev.baseVolume) * 100 / prev.baseVolume
+        } else {
+          tr.prev = tr.last
+          tr.low = tr.high = tr.last
+          tr.baseVolumePercent = 0
         }
-        e['date'] = e.time.getDate()
-        e['month'] = e.time.getMonth()
-        e['year'] = e.time.getFullYear()
-        e.percent = (e.last.usdt - e.prev.usdt) * 100 / e.prev.usdt
-        data.push(_.omit(e, ['low', 'high', 'baseVolume', 'volume', 'bid', 'ask']) as BittrexDayTrading)
+        tr.percent = (tr.last - tr.prev) * 100 / tr.prev
+        data.push(tr)
       }
-      await StoreDay.redis.hset('bittrex.prev.day', (() => {
+      await StoreDay.redis.hset('StoreDay.prevCached', (() => {
         let rs = {}
         data.forEach(e => {
-          rs[e.key] = JSON.stringify(e.last)
+          rs[e.key] = JSON.stringify({ last: e.last, low: e.low, high: e.high, baseVolume: e.baseVolume })
         })
         return rs
       })())
       await StoreDay.mongo.insert<BittrexDayTrading>(BittrexDayTrading, data)
       StoreDay.lastUpdateDB = now
-      await StoreDay.redis.set('bittrex.lastUpdateDayDB', StoreDay.lastUpdateDB)
+      await StoreDay.redis.set('StoreDay.lastUpdateDB', StoreDay.lastUpdateDB)
       await StoreDay.trends()
+      StoreDay.newestTrading = data
+      return true
     }
+    return false
   }
 
   static matrixTrends(seriesPercent, allcase): string[] {
@@ -121,7 +127,7 @@ export default class StoreDay {
       $fields: { _id: 1, name: 1, market: 1, key: 1, last: 1, percent: 1, time: 1 },
       $sort: {
         key: 1,
-        time: 1
+        time: -1
       }
     })
     StoreDay.trending = MatrixTrends.trends(data, StoreDay.matrix, 0.1)

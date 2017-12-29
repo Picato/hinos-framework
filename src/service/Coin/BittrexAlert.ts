@@ -66,12 +66,19 @@ export default class BittrexAlert {
   }
 
   static async rmAlert(username: string, key: string, i: number) {
-    if (BittrexAlert.alerts[username] && BittrexAlert.alerts[username][key] && i < BittrexAlert.alerts[username][key].length) {
-      if (i >= 0) BittrexAlert.alerts[username][key].splice(i, 1)
-      else delete BittrexAlert.alerts[username][key]
-      await BittrexAlert.redis.hset('bittrex.users.alerts', {
-        [username]: JSON.stringify(BittrexAlert.alerts[username])
-      })
+    if (BittrexAlert.alerts[username]) {
+      if (!key) {
+        BittrexAlert.alerts[username] = {}
+        await BittrexAlert.redis.hset('bittrex.users.alerts', {
+          [username]: JSON.stringify(BittrexAlert.alerts[username])
+        })
+      } else if (BittrexAlert.alerts[username][key] && i < BittrexAlert.alerts[username][key].length) {
+        if (i >= 0) BittrexAlert.alerts[username][key].splice(i, 1)
+        else delete BittrexAlert.alerts[username][key]
+        await BittrexAlert.redis.hset('bittrex.users.alerts', {
+          [username]: JSON.stringify(BittrexAlert.alerts[username])
+        })
+      }
     }
   }
 

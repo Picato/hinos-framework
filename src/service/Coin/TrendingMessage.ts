@@ -7,7 +7,7 @@ export class TrendingMessage {
   static messages = []
 
   static async init() {
-    const old = await TrendingMessage.redis.lrange('bittrex.trending.messages')
+    const old = await TrendingMessage.redis.lrange('TrendingMessage.messages')
     if (old) {
       TrendingMessage.messages = old.map(e => JSON.parse(e))
     }
@@ -18,13 +18,13 @@ export class TrendingMessage {
   }
 
   static async add(message: any) {
-    TrendingMessage.messages.splice(message, 0, 0)
-    await TrendingMessage.redis.lpush('bittrex.trending.messages', JSON.stringify(message))
+    TrendingMessage.messages.splice(0, 0, message)
+    await TrendingMessage.redis.lpush('TrendingMessage.messages', JSON.stringify(message))
   }
 
   static async clear() {
     TrendingMessage.messages = []
-    TrendingMessage.redis.del('bittrex.trending.messages')
+    TrendingMessage.redis.del('TrendingMessage.messages')
   }
 
 }

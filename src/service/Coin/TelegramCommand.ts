@@ -1,4 +1,4 @@
-import { BotCommand, BotFather } from '../Telegram'
+import { BotCommand } from '../Telegram'
 import BittrexApi from './BittrexApi'
 import BittrexUser from './BittrexUser'
 import BittrexAlert from './BittrexAlert'
@@ -11,11 +11,11 @@ export class TelegramCommand {
       BittrexUser.reloadFromCached(),
       BittrexAlert.reloadFromCached()
     ])
-    TelegramCommand.Bot.command('apikey', async ({ reply, from, message }) => {
+    TelegramCommand.Bot.command('login', async ({ reply, from, message }) => {
       const apikey = message.text.split(' ')[1]
       if (!apikey) return reply('Apikey is required')
       await BittrexUser.add(from.username, apikey)
-      reply('Registed bittrex apikey')
+      return reply(`Registed bittrex apikey\nLet's remove your token which you have just input`)
     })
     // Refer https://github.com/telegraf/telegraf/blob/develop/docs/examples/keyboard-bot.js
     // const Extra = require('telegraf/extra')
@@ -38,10 +38,10 @@ export class TelegramCommand {
       return reply('Welcome to Bittrex Bot!')
     })
 
-    TelegramCommand.Bot.on('inline_query', async ({ inlineQuery, answerInlineQuery }) => {
-      const offset = parseInt(inlineQuery.offset) || 0
-      return answerInlineQuery([], { next_offset: offset + 30 })
-    })
+    // TelegramCommand.Bot.on('inline_query', async ({ inlineQuery, answerInlineQuery }) => {
+    //   const offset = parseInt(inlineQuery.offset) || 0
+    //   return answerInlineQuery([], { next_offset: offset + 30 })
+    // })
 
     await TelegramCommand.registerGetMyWalletStatus()
     await TelegramCommand.registerGetMyWalletID()
@@ -50,6 +50,7 @@ export class TelegramCommand {
     await TelegramCommand.registerAddAlert()
     await TelegramCommand.registerGetAlerts()
     await TelegramCommand.registerRmAlert()
+    await TelegramCommand.registerClearAlert()
 
     TelegramCommand.Bot.startPolling()
   }
@@ -60,28 +61,32 @@ export class TelegramCommand {
       const [, key, formula] = kf.toUpperCase().split(' ')
       if (!key || !formula) return reply('Not found market-coin or formular')
       await BittrexAlert.addAlert(from.username, new BittrexAlert(key, formula, des))
-      const tmp = await TelegramCommand.getAlertMsgs(from.username, key)
+      const tmp = TelegramCommand.getAlertMsgs(from.username, key)
       if (tmp.length === 0) return reply('No alert')
-      replyWithMarkdown(tmp.join('\n'))
+      return replyWithMarkdown(tmp.join('\n'))
     })
   }
 
-  private static async getAlertMsgs(username: string, _key: string) {
+  private static getAlertMsgs(username: string, _key: string) {
     const tmp = []
     const alert = BittrexAlert.getAlerts(username)
     if (!alert || Object.keys(alert).length === 0) return tmp
     for (let key in alert) {
       if (_key && key !== _key) continue
-      if (tmp.length === 0) tmp.push(`List your alerts\n--------------------------------`)
-      tmp.push(`*${key}*`)
-      tmp.push(alert[key].map((e, i) => `*${i}* | ${e.formula} | _${e.des || ''}_`).join('\n'))
+      if (tmp.length === 0) {
+        tmp.push(`Alerts\n--------------------------------`)
+      }
+      const f = BittrexApi.newestTrading.find(e => e.key === key)
+      tmp.push(`*${key}* ~ ${f ? BittrexApi.formatNumber(f.last) : ''}`)
+      tmp.push(alert[key].map((e, i) => `${i} | *$${e.formula}* | _${e.des || ''}_`).join('\n'))
+      tmp.push('')
     }
     return tmp
   }
 
   static async registerGetAlerts() {
-    const Extra = require('telegraf/extra')
-    const Markup = require('telegraf/markup')
+    // const Extra = require('telegraf/extra')
+    // const Markup = require('telegraf/markup')
     // const markup = Extra
     //   .HTML()
     //   .markup((m) => m.inlineKeyboard([
@@ -105,9 +110,9 @@ export class TelegramCommand {
       if (!alert || Object.keys(alert).length === 0) return reply('No alert')
       let [, _key] = message.text.split(' ')
       if (_key) _key = _key.toUpperCase()
-      const tmp = await TelegramCommand.getAlertMsgs(from.username, _key)
+      const tmp = TelegramCommand.getAlertMsgs(from.username, _key)
       if (tmp.length === 0) return reply('No alert')
-      replyWithMarkdown(tmp.join('\n'))
+      return replyWithMarkdown(tmp.join('\n'))
     })
   }
 
@@ -117,10 +122,21 @@ export class TelegramCommand {
       if (!key) return reply('Not found Market-Coin')
       if (i === undefined) return reply('Not found index to remove')
       key = key.toUpperCase()
-      BittrexAlert.rmAlert(from.username, key, +i)
-      const tmp = await TelegramCommand.getAlertMsgs(from.username, key)
+      await BittrexAlert.rmAlert(from.username, key, +i)
+      const tmp = TelegramCommand.getAlertMsgs(from.username, key)
       if (tmp.length === 0) return reply('No alert')
-      replyWithMarkdown(tmp.join('\n'))
+      return replyWithMarkdown(tmp.join('\n'))
+    })
+  }
+
+  static async registerClearAlert() {
+    TelegramCommand.Bot.command('cls', async ({ reply, replyWithMarkdown, from, message }) => {
+      let [, key] = message.text.split(' ')
+      if (key) key = key.toUpperCase()
+      await BittrexAlert.rmAlert(from.username, key, -1)
+      const tmp = TelegramCommand.getAlertMsgs(from.username, key)
+      if (tmp.length === 0) return reply('No alert')
+      return replyWithMarkdown(tmp.join('\n'))
     })
   }
 
@@ -133,11 +149,7 @@ export class TelegramCommand {
       const newestTrading = BittrexApi.newestTrading
       for (const c of newestTrading) {
         if (c.name === coin) {
-          txt.push(`*${c.key}* ${BittrexApi.formatNumber(c.last[c.market.toLowerCase()])}`)
-          // if (c.name !== 'USDT') txt.push(`- ${BittrexApi.formatNumber(c.last.usdt)} USDT`)
-          // if (c.name !== 'BTC') txt.push(`- ${BittrexApi.formatNumber(c.last.btc)} BTC`)
-          // if (c.name !== 'ETH') txt.push(`- ${BittrexApi.formatNumber(c.last.eth)} ETH`)
-          // txt.push(`---------------------------------------------`)
+          txt.push(`*${c.key}* ~ ${BittrexApi.formatNumber(c.last)}`)
         }
       }
       if (txt.length > 0) return replyWithMarkdown(txt.join('\n'))
@@ -146,30 +158,30 @@ export class TelegramCommand {
   }
 
   static async registerGetRate() {
-    TelegramCommand.Bot.command('rate', async ({ reply }) => {
-      reply(`1 BTC = ${BittrexApi.formatNumber(BittrexApi.rate['BTC-USDT'])} USDT
-1 ETH = ${BittrexApi.formatNumber(BittrexApi.rate['ETH-USDT'])} USDT
-1 BTC = ${BittrexApi.formatNumber(BittrexApi.rate['BTC-ETH'])} ETH`)
+    TelegramCommand.Bot.command('rate', async ({ replyWithMarkdown }) => {
+      return replyWithMarkdown(`*1 BTC* = ${BittrexApi.formatNumber(BittrexApi.rate['BTC-USDT'])} USDT
+*1 ETH* = ${BittrexApi.formatNumber(BittrexApi.rate['ETH-USDT'])} USDT
+*1 BTC* = ${BittrexApi.formatNumber(BittrexApi.rate['BTC-ETH'])} ETH`)
     })
   }
 
   static async registerGetMyWalletStatus() {
-    TelegramCommand.Bot.command('wallet', async ({ reply, from }) => {
+    TelegramCommand.Bot.command('wallet', async ({ replyWithMarkdown, from }) => {
       const balances = await BittrexUser.getMyBalances(from.username)
       const msg = balances.filter(e => e.Available || e.Balance).map(e => {
-        let msgs = [`#${e.Currency}: ${BittrexApi.formatNumber(e.Balance)}`]
-        if (e.Available && e.Available !== e.Balance) msgs.push(`  - Available: ${BittrexApi.formatNumber(e.Available)}`)
+        let msgs = [`*${e.Currency}* ~ ${BittrexApi.formatNumber(e.Balance)}`]
+        if (e.Available && e.Available !== e.Balance) msgs.push(`  - Available ~ ${BittrexApi.formatNumber(e.Available)}`)
         return msgs.join('\n')
       }).join('\n')
-      reply(msg)
+      return replyWithMarkdown(msg)
     })
   }
 
   static async registerGetMyWalletID() {
-    TelegramCommand.Bot.command('walletid', async ({ reply, from }) => {
+    TelegramCommand.Bot.command('walletid', async ({ replyWithMarkdown, from }) => {
       const balances = await BittrexUser.getMyBalances(from.username)
-      const msg = balances.filter(e => e.Available).map(e => `#${e.Currency} ${e.CryptoAddress || ''}`).join('\n')
-      reply(msg)
+      const msg = balances.filter(e => e.Available).map(e => `*${e.Currency}* _${e.CryptoAddress || ''}_`).join('\n')
+      return replyWithMarkdown(msg)
     })
   }
 

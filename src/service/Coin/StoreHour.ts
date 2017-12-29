@@ -1,4 +1,3 @@
-import * as _ from 'lodash'
 import { MONGO, Mongo, Uuid, Collection } from "hinos-mongo/lib/mongo";
 import { Redis, REDIS } from "hinos-redis/lib/redis";
 import { BittrexCachedTrading } from './StoreTrading';
@@ -16,27 +15,13 @@ export class BittrexHourTrading {
   month: number
   year: number
   hours: number
-  prev: {
-    usdt: number
-    btc: number
-    eth: number
-  }
-  last: {
-    usdt: number
-    btc: number
-    eth: number
-  }
+  prev: number
+  last: number
   percent: number
-  bid: {
-    usdt: number
-    btc: number
-    eth: number
-  }
-  ask: {
-    usdt: number
-    btc: number
-    eth: number
-  }
+  baseVolume: number
+  baseVolumePercent: number
+  low: number
+  high: number
 }
 
 export default class StoreHour {
@@ -46,13 +31,14 @@ export default class StoreHour {
   private static mongo: Mongo
 
   static trending
+  static newestTrading = []
   static matrix = [] as string[][]
 
   private static lastUpdateDB
 
   static async init() {
     console.log('#StoreHour', 'Initial')
-    StoreHour.lastUpdateDB = await StoreHour.redis.get('bittrex.lastUpdateHourDB')
+    StoreHour.lastUpdateDB = await StoreHour.redis.get('StoreHour.lastUpdateDB')
     if (StoreHour.lastUpdateDB) StoreHour.lastUpdateDB = new Date(StoreHour.lastUpdateDB)
     await StoreHour.loadInMatrix()
     await StoreHour.trends()
@@ -76,29 +62,49 @@ export default class StoreHour {
       console.log('#StoreHour', 'Inserting trading')
       let data = []
       for (let e of tradings) {
-        let prev = await StoreHour.redis.hget('bittrex.prev.hour', e.key)
+        const tr = {} as BittrexHourTrading
+        tr._id = e._id
+        tr.key = e.key
+        tr.name = e.name
+        tr.market = e.market
+        tr.raw_time = e.raw_time
+        tr.time = e.time
+        tr.date = e.time.getDate()
+        tr.month = e.time.getMonth()
+        tr.year = e.time.getFullYear()
+        tr.hours = e.time.getHours()
+        tr.baseVolume = e.baseVolume
+        tr.last = e.last
+        let prev = await StoreHour.redis.hget('StoreHour.prevCached', e.key)
         if (prev) {
-          e.prev = JSON.parse(prev)
+          prev = JSON.parse(prev)
+          tr.prev = prev.last
+          tr.low = tr.last < prev.low ? tr.last : prev.low
+          tr.high = tr.last > prev.high ? tr.last : prev.high
+          tr.baseVolumePercent = (tr.baseVolume - prev.baseVolume) * 100 / prev.baseVolume
+        } else {
+          tr.prev = tr.last
+          tr.low = tr.high = tr.last
+          tr.baseVolumePercent = 0
         }
-        e['date'] = e.time.getDate()
-        e['month'] = e.time.getMonth()
-        e['year'] = e.time.getFullYear()
-        e['hours'] = e.time.getHours()
-        e.percent = (e.last.usdt - e.prev.usdt) * 100 / e.prev.usdt
-        data.push(_.omit(e, ['low', 'high', 'baseVolume', 'volume', 'bid', 'ask']) as BittrexHourTrading)
+        tr.percent = (tr.last - tr.prev) * 100 / tr.prev
+        data.push(tr)
       }
-      await StoreHour.redis.hset('bittrex.prev.hour', (() => {
+      await StoreHour.redis.hset('StoreHour.prevCached', (() => {
         let rs = {}
         data.forEach(e => {
-          rs[e.key] = JSON.stringify(e.last)
+          rs[e.key] = JSON.stringify({ last: e.last, low: e.low, high: e.high, baseVolume: e.baseVolume })
         })
         return rs
       })())
       await StoreHour.mongo.insert<BittrexHourTrading>(BittrexHourTrading, data)
       StoreHour.lastUpdateDB = now
-      await StoreHour.redis.set('bittrex.lastUpdateHourDB', StoreHour.lastUpdateDB)
+      await StoreHour.redis.set('StoreHour.lastUpdateDB', StoreHour.lastUpdateDB)
       await StoreHour.trends()
+      StoreHour.newestTrading = data
+      return true
     }
+    return false
   }
 
   static async trends() {
@@ -115,7 +121,7 @@ export default class StoreHour {
       $fields: { _id: 1, name: 1, market: 1, key: 1, last: 1, percent: 1, time: 1 },
       $sort: {
         key: 1,
-        time: 1
+        time: -1
       }
     })
     StoreHour.trending = MatrixTrends.trends(data, StoreHour.matrix, 0.1)
