@@ -27,7 +27,7 @@
     "redis": {
       "host": "localhost",
       "port": 6379,
-      "db": 0,
+      "db": 1,
       "releaseTimeout": 50000
     },
     "encrypt": {
@@ -61,7 +61,7 @@
     "hinos-helmet": "^1.0.0",
     "hinos-mongo": "^1.1.7",
     "hinos-rabbitmq": "^2.0.5",
-    "hinos-redis": "^1.0.25",
+    "hinos-redis": "^1.1.4",
     "hinos-requesthasher": "^1.1.9",
     "hinos-requestmatcher": "^1.0.7",
     "hinos-route": "^1.1.12",
