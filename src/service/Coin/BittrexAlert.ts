@@ -25,7 +25,7 @@ export default class BittrexAlert {
         const alertFormulas = alerts[username][key]
         const t = tradings.find(e => e.key === key)
         if (t) {
-          const $ = t.last[t.market.toLowerCase()]
+          const $ = t.last
           if ($) {
             for (let i = alertFormulas.length - 1; i >= 0; i--) {
               const e = alertFormulas[i]
@@ -33,7 +33,7 @@ export default class BittrexAlert {
               try {
                 eval(`isok = $${e.formula}`)
                 if (isok) {
-                  const msgs = [`*${key}* = *${BittrexApi.formatNumber(t.last[t.market.toLowerCase()])}* ${e.formula} is matched`]
+                  const msgs = [`*${key}* = *${BittrexApi.formatNumber(t.last)}* ${e.formula} is matched`]
                   if (e.des) msgs.push(`_${e.des}_`)
                   await TelegramCommand.Bot.send(BittrexAlert.GROUP_ID, `${msgs.join('\n')}`, { parse_mode: 'Markdown' })
                   await BittrexAlert.rmAlert(username, key, i)
