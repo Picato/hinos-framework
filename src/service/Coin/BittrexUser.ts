@@ -64,6 +64,20 @@ export default class BittrexUser {
     })
   }
 
+  static cancel(username: string, orderId: string) {
+    const user = BittrexUser.users[username]
+    if (!user) return Promise.reject('Not found apikey')
+    if (!orderId) return Promise.reject('Not found Order ID')
+    return new Promise<any[]>((resolve, reject) => {
+      user.bittrex.cancel({
+        uuid: orderId
+      }, function (err, data) {
+        if (err) return reject(err.message)
+        resolve(data.result)
+      })
+    })
+  }
+
   static getMyBalances(username: string) {
     const user = BittrexUser.users[username]
     if (!user) return Promise.reject('Not found apikey')
