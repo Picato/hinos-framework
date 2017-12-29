@@ -2,6 +2,8 @@ import { BotCommand } from '../Telegram'
 import BittrexApi from './BittrexApi'
 import BittrexUser from './BittrexUser'
 import BittrexAlert from './BittrexAlert'
+import * as Extra from 'telegraf/extra'
+// import * as Markup from 'telegraf/markup'
 
 export class TelegramCommand {
   static Bot = new BotCommand(AppConfig.app.bittrex.telegramBot)
@@ -51,8 +53,82 @@ export class TelegramCommand {
     await TelegramCommand.registerGetAlerts()
     await TelegramCommand.registerRmAlert()
     await TelegramCommand.registerClearAlert()
+    await TelegramCommand.registerBuy()
 
     TelegramCommand.Bot.startPolling()
+  }
+
+  static async registerBuy() {
+    TelegramCommand.Bot.action(/buy:(yes|no|cancel)(\n(.+))?/, async (ctx) => {
+      const { editMessageReplyMarkup, reply, match, from, callbackQuery, chat } = ctx
+      try {
+        if (match[1] === 'yes') {
+          if (match[3]) {
+            const [key, quantity, price] = match[3].split(' ')
+            const rs = await BittrexUser.buy(from.username, key, +quantity, +price) as any
+            await editMessageReplyMarkup()
+            await reply('Ok, got it', Extra.HTML().markup(m => m.inlineKeyboard([
+              m.callbackButton('Cancel this order', `order:cancel\n${rs.OrderId}`),
+            ])))
+          }
+          await reply('Got problem !\nCould not order')
+        } else if (match[1] === 'cancel') {
+          const orderId = match[3]
+          await editMessageReplyMarkup()
+          return reply(`Canceled this order ${orderId}`)
+        } else {
+          await editMessageReplyMarkup()
+          return reply('Canceled it')
+        }
+      } catch (e) {
+        await editMessageReplyMarkup()
+        await reply(e)
+      }
+    })
+    TelegramCommand.Bot.command('buy', async (ctx) => {
+      const { reply, message, from } = ctx
+      // buy btc-xdn 1 1000
+      let [, key, quantity, price] = message.text.split(' ')
+      if (!key) return reply('Not found market-coin')
+      if (!quantity) return reply('Not found quantity')
+      if (!price) return reply('Not found price')
+      key = key.toUpperCase()
+      quantity = +quantity
+      price = +price
+      const [market,] = key.split('-')
+      const subTotal = quantity * price
+      const commission = 0.25 * subTotal / 100
+      const total = subTotal + commission
+      const msgs = []
+      msgs.push(`FORM BUYING DETAILS`)
+      msgs.push(`----------------------------------------------`)
+      msgs.push(`Market:               ${key}`)
+      msgs.push(`Quantity:            ${BittrexApi.formatNumber(quantity)}`)
+      msgs.push(`Price:                    ${BittrexApi.formatNumber(price)} ${market}`)
+      msgs.push(`Subtotal:             ${BittrexApi.formatNumber(subTotal)} ${market}`)
+      msgs.push(`Commission:     ${BittrexApi.formatNumber(commission)} ${market}`)
+      msgs.push(`Total:                     ${BittrexApi.formatNumber(total)} ${market}`)
+      const balances = await BittrexUser.getMyBalances(from.username)
+      const w = balances.find(e => e.Currency === market)
+      let isOk = true
+      if (w) {
+        msgs.push(`----------------------------------------------`)
+        msgs.push(`Your wallet 💰`)
+        msgs.push(` - Before: ${BittrexApi.formatNumber(w.Available)} ${market}`)
+        msgs.push(` - After:   ${BittrexApi.formatNumber(w.Available - total)} ${market}`)
+        if (w.Available < total) {
+          msgs.push(`----------------------------------------------`)
+          msgs.push('😱 Insufficient funds')
+          isOk = false
+        }
+        msgs.push(`----------------------------------------------`)
+      }
+      return reply(msgs.join('\n'), !isOk ? undefined : Extra.HTML().markup(m => m.inlineKeyboard([
+        m.callbackButton('Confirm', `buy:yes\n${key} ${quantity} ${price} `),
+        m.callbackButton('Cancel', `buy:no`),
+      ]))
+      )
+    })
   }
 
   static async registerAddAlert() {
@@ -77,8 +153,8 @@ export class TelegramCommand {
         tmp.push(`Alerts\n--------------------------------`)
       }
       const f = BittrexApi.newestTrading.find(e => e.key === key)
-      tmp.push(`*${key}* ~ ${f ? BittrexApi.formatNumber(f.last) : ''}`)
-      tmp.push(alert[key].map((e, i) => `${i} | *$${e.formula}* | _${e.des || ''}_`).join('\n'))
+      tmp.push(`* ${key}* ~${f ? BittrexApi.formatNumber(f.last) : ''} `)
+      tmp.push(alert[key].map((e, i) => `${i} | * $${e.formula}* | _${e.des || ''} _`).join('\n'))
       tmp.push('')
     }
     return tmp
@@ -149,7 +225,7 @@ export class TelegramCommand {
       const newestTrading = BittrexApi.newestTrading
       for (const c of newestTrading) {
         if (c.name === coin) {
-          txt.push(`*${c.key}* ~ ${BittrexApi.formatNumber(c.last)}`)
+          txt.push(`* ${c.key}* ~${BittrexApi.formatNumber(c.last)} `)
         }
       }
       if (txt.length > 0) return replyWithMarkdown(txt.join('\n'))
@@ -159,9 +235,9 @@ export class TelegramCommand {
 
   static async registerGetRate() {
     TelegramCommand.Bot.command('rate', async ({ replyWithMarkdown }) => {
-      return replyWithMarkdown(`*1 BTC* = ${BittrexApi.formatNumber(BittrexApi.rate['BTC-USDT'])} USDT
-*1 ETH* = ${BittrexApi.formatNumber(BittrexApi.rate['ETH-USDT'])} USDT
-*1 BTC* = ${BittrexApi.formatNumber(BittrexApi.rate['BTC-ETH'])} ETH`)
+      return replyWithMarkdown(`* 1 BTC * = ${BittrexApi.formatNumber(BittrexApi.rate['BTC-USDT'])} USDT
+        * 1 ETH * = ${ BittrexApi.formatNumber(BittrexApi.rate['ETH-USDT'])} USDT
+          * 1 BTC * = ${ BittrexApi.formatNumber(BittrexApi.rate['BTC-ETH'])} ETH`)
     })
   }
 
@@ -169,8 +245,8 @@ export class TelegramCommand {
     TelegramCommand.Bot.command('wallet', async ({ replyWithMarkdown, from }) => {
       const balances = await BittrexUser.getMyBalances(from.username)
       const msg = balances.filter(e => e.Available || e.Balance).map(e => {
-        let msgs = [`*${e.Currency}* ~ ${BittrexApi.formatNumber(e.Balance)}`]
-        if (e.Available && e.Available !== e.Balance) msgs.push(`  - Available ~ ${BittrexApi.formatNumber(e.Available)}`)
+        let msgs = [`* ${e.Currency}* ~${BittrexApi.formatNumber(e.Balance)} `]
+        if (e.Available && e.Available !== e.Balance) msgs.push(`  - Available ~${BittrexApi.formatNumber(e.Available)} `)
         return msgs.join('\n')
       }).join('\n')
       return replyWithMarkdown(msg)
@@ -180,7 +256,7 @@ export class TelegramCommand {
   static async registerGetMyWalletID() {
     TelegramCommand.Bot.command('walletid', async ({ replyWithMarkdown, from }) => {
       const balances = await BittrexUser.getMyBalances(from.username)
-      const msg = balances.filter(e => e.Available).map(e => `*${e.Currency}* _${e.CryptoAddress || ''}_`).join('\n')
+      const msg = balances.filter(e => e.Available).map(e => `* ${e.Currency}* _${e.CryptoAddress || ''} _`).join('\n')
       return replyWithMarkdown(msg)
     })
   }

@@ -43,6 +43,27 @@ export default class BittrexUser {
     return user
   }
 
+  static buy(username: string, key: string, quantity: number, money: number) {
+    const user = BittrexUser.users[username]
+    if (!user) return Promise.reject('Not found apikey')
+    if (!key) return Promise.reject('Not found Market-Coin')
+    if (!money) return Promise.reject('Not found money')
+    return new Promise<any[]>((resolve, reject) => {
+      user.bittrex.tradebuy({
+        MarketName: key,
+        OrderType: 'LIMIT',
+        Quantity: quantity,
+        Rate: money,
+        TimeInEffect: 'GOOD_TIL_CANCELLED', // supported options are 'IMMEDIATE_OR_CANCEL', 'GOOD_TIL_CANCELLED', 'FILL_OR_KILL'
+        ConditionType: 'NONE', // supported options are 'NONE', 'GREATER_THAN', 'LESS_THAN'
+        Target: 0, // used in conjunction with ConditionType
+      }, function (err, data) {
+        if (err) return reject(err.message)
+        resolve(data.result)
+      })
+    })
+  }
+
   static getMyBalances(username: string) {
     const user = BittrexUser.users[username]
     if (!user) return Promise.reject('Not found apikey')
