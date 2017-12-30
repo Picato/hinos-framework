@@ -6,6 +6,8 @@ import { Redis } from 'hinos-redis'
 // import { serve } from 'hinos-serve'
 import { cors } from 'hinos-cors'
 import './config'
+import { StoreTrading } from './service/Coin/StoreTrading';
+import { TelegramCommand } from './service/Coin/TelegramCommand';
 // import { GoldService } from './service/GoldService';
 // import { StoreTrading } from './service/Coin/StoreTrading'
 // import { TelegramCommand } from './service/Coin/TelegramCommand'
@@ -21,6 +23,8 @@ Server.use(cors())
 Server.use(route(path.join(__dirname, 'controller'), { ignorecase: true, root: AppConfig.path }))
 
 Server.listen(AppConfig.port, async () => {
+  StoreTrading.init()
+  TelegramCommand.init()
   console.info(`
     _     _
   | |__ (_)_ __   ___  ___  ${AppConfig.name}
