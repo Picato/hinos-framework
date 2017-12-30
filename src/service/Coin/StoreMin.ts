@@ -1,7 +1,8 @@
 import { MONGO, Mongo, Uuid, Collection } from "hinos-mongo/lib/mongo"
 import { Redis, REDIS } from "hinos-redis/lib/redis"
 import { BittrexCachedTrading } from './StoreTrading'
-import { MatrixTrends } from './MatrixTrends';
+import { MatrixTrends } from './MatrixTrends'
+import Trends from './AI/Trends'
 
 @Collection('BittrexMinTrading')
 export class BittrexMinTrading {
@@ -120,12 +121,18 @@ export default class StoreMin {
         }
       },
       $recordsPerPage: 0,
-      $fields: { _id: 1, name: 1, market: 1, key: 1, last: 1, percent: 1, time: 1 },
+      $fields: { _id: 1, name: 1, market: 1, key: 1, last: 1, percent: 1, time: 1, prev: 1 },
       $sort: {
         key: 1,
         time: -1
       }
     })
+    const rs = {}
+    data.forEach(e => {
+      if (!rs[e.key]) rs[e.key] = []
+      rs[e.key].push(e)
+    })
+    await Trends(rs)
     StoreMin.trending = MatrixTrends.trends(data, StoreMin.matrix, 0.1)
   }
 }

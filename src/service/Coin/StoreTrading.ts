@@ -45,7 +45,8 @@ export class StoreTrading {
       StoreMin.insert(tradings, now),
       StoreHour.insert(tradings, now),
       StoreDay.insert(tradings, now),
-      BittrexAlert.checkAlert(tradings, now)
+      BittrexAlert.checkAlert(tradings, now),
+      BittrexAlert.checkOrder()
     ])
   }
 

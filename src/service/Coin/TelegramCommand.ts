@@ -55,27 +55,38 @@ export class TelegramCommand {
     await TelegramCommand.registerRmAlert()
     await TelegramCommand.registerClearAlert()
     await TelegramCommand.registerBuy()
-
+    await TelegramCommand.registerSell()
     TelegramCommand.Bot.startPolling()
   }
 
   static async registerBuy() {
     TelegramCommand.Bot.action(/buy:(yes|no|cancel) .+/, async (ctx) => {
-      const { editMessageText, editMessageReplyMarkup, reply, match, from } = ctx
+      const { editMessageText, editMessageReplyMarkup, reply, match, from, chat, callbackQuery } = ctx
       try {
         const [action, ...prms] = match[0].split(' ')
         if (action === 'buy:yes') {
-          const [key, quantity, price] = prms
+          const [key, quantity, price, type] = prms
           if (key && quantity && price) {
-            const rs = await BittrexUser.buy(from.username, key, +quantity, +price) as any
+            const user = BittrexUser.users[from.username]
+            if (!user) throw new Error('User has not login yet')
+
+            const rs = await user.buy(key, +quantity, +price, type) as any
+            await user.addOrder(rs.OrderId, chat.id, callbackQuery.message.message_id)
+
             return await editMessageReplyMarkup({
-              inline_keyboard: [[{ text: '🚫 Cancel this order', callback_data: `buy:cancel ${rs.OrderId}` }]]
+              inline_keyboard: [[{ text: '🚫 CANCEL THIS ORDER', callback_data: `buy:cancel ${rs.OrderId}` }]]
             })
           }
           await reply('Market, quantity, price is required')
         } else if (action === 'buy:cancel') {
           const [orderId] = prms
-          await BittrexUser.cancel(from.username, orderId)
+
+          const user = BittrexUser.users[from.username]
+          if (!user) throw new Error('User has not login yet')
+
+          await user.cancel(orderId)
+          await user.removeOrder(orderId)
+
           await editMessageText(`🚫 Canceled the order`)
         } else {
           await editMessageText(`🚫 Canceled the order`)
@@ -85,7 +96,7 @@ export class TelegramCommand {
       }
     })
     TelegramCommand.Bot.command('buy', async (ctx) => {
-      const { reply, message, from } = ctx
+      const { reply, message, from, replyWithMarkdown } = ctx
       try {
         // buy btc-xdn 1 1000
         let [, key, quantity, price] = message.text.split(' ')
@@ -95,37 +106,128 @@ export class TelegramCommand {
         key = key.toUpperCase()
         quantity = +quantity
         price = +price
-        const [market,] = key.split('-')
+        const [market, coin] = key.split('-')
         const subTotal = quantity * price
         const commission = 0.25 * subTotal / 100
         const total = subTotal + commission
         const msgs = []
-        msgs.push(`FORM BUYING DETAILS`)
+        msgs.push(`*BUYING FORM DETAILS*`)
         msgs.push(`----------------------------------------------`)
         msgs.push(`Market:               ${key}`)
-        msgs.push(`Quantity:            ${BittrexApi.formatNumber(quantity)}`)
+        msgs.push(`Quantity:            ${BittrexApi.formatNumber(quantity)} ${coin}`)
         msgs.push(`Price:                    ${BittrexApi.formatNumber(price)} ${market}`)
         msgs.push(`Subtotal:             ${BittrexApi.formatNumber(subTotal)} ${market}`)
         msgs.push(`Commission:     ${BittrexApi.formatNumber(commission)} ${market}`)
-        msgs.push(`Total:                     ${BittrexApi.formatNumber(total)} ${market}`)
+        msgs.push(`Total:                    ${BittrexApi.formatNumber(total)} ${market}`)
         const balances = await BittrexUser.getMyBalances(from.username)
         const w = balances.find(e => e.Currency === market)
         let isOk = true
         if (w) {
           msgs.push(`----------------------------------------------`)
-          msgs.push(`Your wallet 💰`)
+          msgs.push(`Your balance 💰`)
           msgs.push(` - Before: ${BittrexApi.formatNumber(w.Available)} ${market}`)
           msgs.push(` - After:   ${BittrexApi.formatNumber(w.Available - total)} ${market}`)
           if (w.Available < total) {
             msgs.push(`----------------------------------------------`)
-            msgs.push('😱 Insufficient funds')
+            msgs.push('_😱 Insufficient funds_')
             isOk = false
           }
           msgs.push(`----------------------------------------------`)
         }
-        await reply(msgs.join('\n'), !isOk ? undefined : Extra.HTML().markup(m => m.inlineKeyboard([
-          m.callbackButton('✅ Confirm', `buy:yes ${key} ${quantity} ${price}`),
-          m.callbackButton('🚫 Cancel', `buy:no ${key}`),
+        await replyWithMarkdown(msgs.join('\n'), !isOk ? undefined : Extra.HTML().markup(m => m.inlineKeyboard([
+          m.callbackButton('✅ GOOD_TIL_CANCELLED', `buy:yes ${key} ${quantity} ${price} GOOD_TIL_CANCELLED`),
+          m.callbackButton('🚀 IMMEDIATE', `buy:yes ${key} ${quantity} ${price} IMMEDIATE_OR_CANCEL`),
+          m.callbackButton('🚫 CANCEL', `buy:no ${key}`),
+        ]))
+        )
+      } catch (e) {
+        await reply(e)
+      }
+    })
+  }
+
+  static async registerSell() {
+    TelegramCommand.Bot.action(/sell:(yes|no|cancel) .+/, async (ctx) => {
+      const { editMessageText, editMessageReplyMarkup, reply, match, from, chat, callbackQuery } = ctx
+      try {
+        const [action, ...prms] = match[0].split(' ')
+        if (action === 'sell:yes') {
+          const [key, quantity, price, type] = prms
+          if (key && quantity && price) {
+            const user = BittrexUser.users[from.username]
+            if (!user) throw new Error('User has not login yet')
+
+            const rs = await user.sell(key, +quantity, +price, type) as any
+            await user.addOrder(rs.OrderId, chat.id, callbackQuery.message.message_id)
+
+            return await editMessageReplyMarkup({
+              inline_keyboard: [[{ text: '🚫 CANCEL THIS ORDER', callback_data: `sell:cancel ${rs.OrderId}` }]]
+            })
+          }
+          await reply('Market, quantity, price is required')
+        } else if (action === 'sell:cancel') {
+          const [orderId] = prms
+          const user = BittrexUser.users[from.username]
+          if (!user) throw new Error('User has not login yet')
+
+          await user.cancel(orderId)
+          await user.removeOrder(orderId)
+
+          await editMessageText(`🚫 Canceled the order`)
+        } else {
+          await editMessageText(`🚫 Canceled the order`)
+        }
+      } catch (e) {
+        await editMessageText(e.message || e)
+      }
+    })
+    TelegramCommand.Bot.command('sell', async (ctx) => {
+      const { reply, message, from, replyWithMarkdown } = ctx
+      try {
+        // sell btc-xdn 1 1000
+        let [, key, quantity, price] = message.text.split(' ')
+        if (!key) return await reply('Not found market-coin')
+        if (!quantity) return await reply('Not found quantity')
+        if (!price) return await reply('Not found price')
+        key = key.toUpperCase()
+        quantity = +quantity
+        price = +price
+        const [market, coin] = key.split('-')
+        const subTotal = quantity * price
+        const commission = 0.25 * subTotal / 100
+        const total = subTotal - commission
+        const msgs = []
+        msgs.push(`*SELLING FORM DETAILS*`)
+        msgs.push(`----------------------------------------------`)
+        msgs.push(`Market:               ${key}`)
+        msgs.push(`Quantity:            ${BittrexApi.formatNumber(quantity)} ${coin}`)
+        msgs.push(`Price:                    ${BittrexApi.formatNumber(price)} ${market}`)
+        msgs.push(`Subtotal:             ${BittrexApi.formatNumber(subTotal)} ${market}`)
+        msgs.push(`Commission:     ${BittrexApi.formatNumber(commission)} ${market}`)
+        msgs.push(`Total:                    ${BittrexApi.formatNumber(total)} ${market}`)
+        const balances = await BittrexUser.getMyBalances(from.username)
+        const w = balances.find(e => e.Currency === market)
+        const wsell = balances.find(e => e.Currency === coin)
+        let isOk = true
+        if (w) {
+          msgs.push(`----------------------------------------------`)
+          msgs.push(`Your balance 💰`)
+          msgs.push(` - Before: ${BittrexApi.formatNumber(wsell.Available)} ${coin}`)
+          msgs.push(` - After:   ${BittrexApi.formatNumber(wsell.Available - quantity)} ${coin}`)
+          msgs.push('')
+          msgs.push(` + Before: ${BittrexApi.formatNumber(w.Available)} ${market}`)
+          msgs.push(` + After:   ${BittrexApi.formatNumber(w.Available + total)} ${market}`)
+          if (wsell.Available < quantity) {
+            msgs.push(`----------------------------------------------`)
+            msgs.push('_😱 Insufficient funds_')
+            isOk = false
+          }
+          msgs.push(`----------------------------------------------`)
+        }
+        await replyWithMarkdown(msgs.join('\n'), !isOk ? undefined : Extra.HTML().markup(m => m.inlineKeyboard([
+          m.callbackButton('✅ GOOD_TIL_CANCELLED', `sell:yes ${key} ${quantity} ${price} GOOD_TIL_CANCELLED`),
+          m.callbackButton('🚀 IMMEDIATE', `sell:yes ${key} ${quantity} ${price} IMMEDIATE_OR_CANCEL`),
+          m.callbackButton('🚫 CANCEL', `sell:no ${key}`),
         ]))
         )
       } catch (e) {
@@ -215,7 +317,7 @@ export class TelegramCommand {
         let [, key] = message.text.split(' ')
         if (key) key = key.toUpperCase()
         await BittrexAlert.rmAlert(from.username, key, -1)
-        const tmp = TelegramCommand.getAlertMsgs(from.username, key)
+        const tmp = TelegramCommand.getAlertMsgs(from.username, undefined)
         if (tmp.length === 0) return await reply('No alert')
         await replyWithMarkdown(tmp.join('\n'))
       } catch (e) {
@@ -231,11 +333,11 @@ export class TelegramCommand {
         let coin = message.text.split('#')[1];
         if (!coin) return await reply('Not found coin')
         coin = coin.toUpperCase()
-        const txt = []
+        const txt = [`*#${coin} DETAILS*\n-----------------------------------------`]
         const newestTrading = BittrexApi.newestTrading
         for (const c of newestTrading) {
           if (c.name === coin) {
-            txt.push(`* ${c.key}* ~${BittrexApi.formatNumber(c.last)} `)
+            txt.push(`*${c.key}* = ${BittrexApi.formatNumber(c.last)} `)
           }
         }
         if (txt.length > 0) return await replyWithMarkdown(txt.join('\n'))
@@ -251,9 +353,10 @@ export class TelegramCommand {
       const { replyWithMarkdown, reply } = ctx
       try {
         const msgs = [
-          `*1 BTC* = ${BittrexApi.formatNumber(BittrexApi.rate['BTC-USDT'])} USDT`,
-          `*1 ETH* = ${BittrexApi.formatNumber(BittrexApi.rate['ETH-USDT'])} USDT`,
-          `*1 BTC* = ${BittrexApi.formatNumber(BittrexApi.rate['BTC-ETH'])} ETH`
+          `*RATE*\n-----------------------------------------`,
+          `*1 BTC* = ${BittrexApi.formatNumber(BittrexApi.rate['BTC-USDT'])} *USDT*`,
+          `*1 ETH* = ${BittrexApi.formatNumber(BittrexApi.rate['ETH-USDT'])} *USDT*`,
+          `*1 BTC* = ${BittrexApi.formatNumber(BittrexApi.rate['BTC-ETH'])} *ETH*`
         ]
         await replyWithMarkdown(msgs.join('\n'))
       } catch (e) {
@@ -267,11 +370,11 @@ export class TelegramCommand {
       const { replyWithMarkdown, from, reply } = ctx
       try {
         const balances = await BittrexUser.getMyBalances(from.username)
-        const msg = balances.filter(e => e.Available || e.Balance).map(e => {
-          let msgs = [`* ${e.Currency}* ~${BittrexApi.formatNumber(e.Balance)} `]
+        const msg = [`*WALLETS*\n-----------------------------------------`, ...balances.filter(e => e.Available || e.Balance).map(e => {
+          let msgs = [`*${e.Currency}* = ${BittrexApi.formatNumber(e.Balance)} `]
           if (e.Available && e.Available !== e.Balance) msgs.push(`  - Available ~${BittrexApi.formatNumber(e.Available)} `)
           return msgs.join('\n')
-        }).join('\n')
+        })].join('\n')
         await replyWithMarkdown(msg)
       } catch (e) {
         await reply(e)
@@ -284,7 +387,7 @@ export class TelegramCommand {
       const { replyWithMarkdown, from, reply } = ctx
       try {
         const balances = await BittrexUser.getMyBalances(from.username)
-        const msg = balances.filter(e => e.Available).map(e => `* ${e.Currency}* _${e.CryptoAddress || ''} _`).join('\n')
+        const msg = balances.filter(e => e.Available).map(e => `*${e.Currency}* _${e.CryptoAddress || ''}_`).join('\n')
         await replyWithMarkdown(msg)
       } catch (e) {
         await reply(e)
@@ -299,11 +402,11 @@ export class TelegramCommand {
     for (let key in alert) {
       if (_key && key !== _key) continue
       if (tmp.length === 0) {
-        tmp.push(`🛎 Alerts\n--------------------------------`)
+        tmp.push(`*ALERTS*\n-----------------------------------------`)
       }
       const f = BittrexApi.newestTrading.find(e => e.key === key)
-      tmp.push(`* ${key}* ~${f ? BittrexApi.formatNumber(f.last) : ''} `)
-      tmp.push(alert[key].map((e, i) => `${i} | * $${e.formula}* | _${e.des || ''} _`).join('\n'))
+      tmp.push(`*${key}* = ${f ? BittrexApi.formatNumber(f.last) : ''}`)
+      tmp.push(alert[key].map((e, i) => ` ${i} | * $${e.formula}* | _${e.des || ''} _`).join('\n'))
       tmp.push('')
     }
     return tmp

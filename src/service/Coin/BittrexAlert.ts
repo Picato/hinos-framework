@@ -2,6 +2,7 @@ import { Redis, REDIS } from 'hinos-redis/lib/redis';
 import { BittrexCachedTrading } from './StoreTrading';
 import { TelegramCommand } from './TelegramCommand';
 import BittrexApi from './BittrexApi';
+import BittrexUser from './BittrexUser';
 
 export default class BittrexAlert {
   @REDIS()
@@ -33,7 +34,7 @@ export default class BittrexAlert {
               try {
                 eval(`isok = $${e.formula}`)
                 if (isok) {
-                  const msgs = [`🛎 *${key}* ~*${BittrexApi.formatNumber(t.last)}* ${e.formula}`]
+                  const msgs = [`📣📣📣 *${key}* = *${BittrexApi.formatNumber(t.last)}* ${e.formula} 📣📣📣`]
                   if (e.des) msgs.push(`_${e.des}_`)
                   await TelegramCommand.Bot.send(BittrexAlert.GROUP_ID, `${msgs.join('\n')}`, { parse_mode: 'Markdown' })
                   await BittrexAlert.rmAlert(username, key, i)
@@ -41,7 +42,36 @@ export default class BittrexAlert {
               } catch (_e) {
                 await TelegramCommand.Bot.send(BittrexAlert.GROUP_ID, `Formula *${e.formula}* got problem`, { parse_mode: 'Markdown' })
               }
+            }
+          }
+        }
+      }
+    }
+  }
 
+  static async checkOrder() {
+    for (const username in BittrexUser.users) {
+      const user = BittrexUser.users[username]
+      const orderIds = user.orderIds
+      if (user.orderIds.length > 0) {
+        for (let i = orderIds.length - 1; i >= 0; i--) {
+          const { orderId, chatId, messageId } = orderIds[i]
+          const od = await user.getOrder(orderId)
+          if (!od.IsOpen) {
+            try {
+              if (od.CancelInitiated) {
+                // User Canceled
+                await TelegramCommand.Bot.editMessageText(chatId, messageId, undefined, '🚫 The order was canceled by another', { parse_mode: 'Markdown' })
+              } else {
+                // Success
+                await TelegramCommand.Bot.editMessageReplyMarkup(chatId, messageId, undefined, {
+                  inline_keyboard: [[{ text: 'THIS ORDER HAS DONE 👍', url: 'https://bittrex.com/History' }]]
+                })
+              }
+            } catch (e) {
+              console.error('Got problem in checkOrder', e)
+            } finally {
+              await user.removeOrder(orderId)
             }
           }
         }

@@ -14,7 +14,7 @@ export default class BittrexUser {
   static users = {} as { [username: string]: BittrexUser }
   bittrex: any
 
-  constructor(public username, public apikey) {
+  constructor(public username, public apikey, public orderIds = []) {
     this.bittrex = require('node-bittrex-api') as any;
     this.bittrex.options({
       apikey,
@@ -25,8 +25,8 @@ export default class BittrexUser {
   static async reloadFromCached() {
     const bots = await BittrexUser.redis.hget(`bittrex.users`)
     for (let username in bots) {
-      const { apikey } = JSON.parse(bots[username])
-      const user = new BittrexUser(username, apikey)
+      const { apikey, orderIds } = JSON.parse(bots[username])
+      const user = new BittrexUser(username, apikey, orderIds)
       BittrexUser.users[username] = user
     }
   }
@@ -34,29 +34,27 @@ export default class BittrexUser {
   static async add(username, apikey) {
     const user = new BittrexUser(username, apikey)
     BittrexUser.users[username] = user
-    await BittrexUser.redis.hset(`bittrex.users`, {
-      [username]: JSON.stringify({
-        username,
-        apikey
-      })
-    })
+    await user.saveToCached()
     return user
   }
 
-  static buy(username: string, key: string, quantity: number, money: number) {
-    const user = BittrexUser.users[username]
-    if (!user) return Promise.reject('Not found apikey')
-    if (!key) return Promise.reject('Not found Market-Coin')
-    if (!money) return Promise.reject('Not found money')
-    return new Promise<any[]>((resolve, reject) => {
-      user.bittrex.tradebuy({
-        MarketName: key,
-        OrderType: 'LIMIT',
-        Quantity: quantity,
-        Rate: money,
-        TimeInEffect: 'GOOD_TIL_CANCELLED', // supported options are 'IMMEDIATE_OR_CANCEL', 'GOOD_TIL_CANCELLED', 'FILL_OR_KILL'
-        ConditionType: 'NONE', // supported options are 'NONE', 'GREATER_THAN', 'LESS_THAN'
-        Target: 0, // used in conjunction with ConditionType
+  async saveToCached() {
+    const self = this
+    await BittrexUser.redis.hset(`bittrex.users`, {
+      [self.username]: JSON.stringify({
+        username: self.username,
+        apikey: self.apikey,
+        orderIds: self.orderIds
+      })
+    })
+  }
+
+  getOrder(orderId: string) {
+    if (!orderId) return Promise.reject('Not found orderID')
+    const self = this
+    return new Promise<any>((resolve, reject) => {
+      self.bittrex.getorder({
+        uuid: orderId
       }, function (err, data) {
         if (err) return reject(err.message)
         resolve(data.result)
@@ -64,14 +62,66 @@ export default class BittrexUser {
     })
   }
 
-  static cancel(username: string, orderId: string) {
-    const user = BittrexUser.users[username]
-    if (!user) return Promise.reject('Not found apikey')
-    if (!orderId) return Promise.reject('Not found Order ID')
+  async addOrder(orderId, chatId, messageId) {
+    this.orderIds.push({ orderId, chatId, messageId })
+    await this.saveToCached()
+  }
+
+  async removeOrder(orderId) {
+    const idx = this.orderIds.findIndex(e => e.orderId === orderId)
+    if (idx !== -1) {
+      this.orderIds.splice(idx, 1)
+      await this.saveToCached()
+    }
+  }
+
+  buy(key: string, quantity: number, money: number, type = 'GOOD_TIL_CANCELLED') {
+    if (!key) return Promise.reject('Not found Market-Coin')
+    if (!money) return Promise.reject('Not found money')
+    const self = this
     return new Promise<any[]>((resolve, reject) => {
-      user.bittrex.cancel({
+      self.bittrex.tradebuy({
+        MarketName: key,
+        OrderType: 'LIMIT',
+        Quantity: quantity,
+        Rate: money,
+        TimeInEffect: type, // supported options are 'IMMEDIATE_OR_CANCEL', 'GOOD_TIL_CANCELLED', 'FILL_OR_KILL'
+        ConditionType: 'NONE', // supported options are 'NONE', 'GREATER_THAN', 'LESS_THAN'
+        Target: 0, // used in conjunction with ConditionType
+      }, async (err, data) => {
+        if (err) return reject(err.message)
+        resolve(data.result)
+      })
+    })
+  }
+
+  sell(key: string, quantity: number, money: number, type = 'GOOD_TIL_CANCELLED') {
+    if (!key) return Promise.reject('Not found Market-Coin')
+    if (!money) return Promise.reject('Not found money')
+    const self = this
+    return new Promise<any[]>((resolve, reject) => {
+      self.bittrex.tradesell({
+        MarketName: key,
+        OrderType: 'LIMIT',
+        Quantity: quantity,
+        Rate: money,
+        TimeInEffect: type, // supported options are 'IMMEDIATE_OR_CANCEL', 'GOOD_TIL_CANCELLED', 'FILL_OR_KILL'
+        ConditionType: 'NONE', // supported options are 'NONE', 'GREATER_THAN', 'LESS_THAN'
+        Target: 0, // used in conjunction with ConditionType
+      }, async (err, data) => {
+        if (err) return reject(err.message)
+        resolve(data.result)
+      })
+    })
+  }
+
+  cancel(orderId: string) {
+    if (!orderId) return Promise.reject('Not found Order ID')
+    const self = this
+    return new Promise<any[]>((resolve, reject) => {
+      self.bittrex.cancel({
         uuid: orderId
-      }, function (err, data) {
+      }, async (err, data) => {
         if (err) return reject(err.message)
         resolve(data.result)
       })

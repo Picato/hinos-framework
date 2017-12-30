@@ -1,13 +1,19 @@
 import * as Telegraf from 'telegraf'
 
 export class BotCommand extends Telegraf {
-  
+
   constructor(token) {
     super(token)
   }
 
   send(chatid: number, message: string, options?) {
     this['telegram'].sendMessage(chatid, message, options)
+  }
+  editMessageReplyMarkup(chatId, messageId, inlineMessageId, markup) {
+    return this['telegram'].editMessageReplyMarkup(chatId, messageId, inlineMessageId, markup)
+  }
+  editMessageText(chatId, messageId, inlineMessageId, text, extra) {
+    return this['telegram'].editMessageText(chatId, messageId, inlineMessageId, text, extra)
   }
   start(cb: (ctx) => void) {
     return super.start(cb)
