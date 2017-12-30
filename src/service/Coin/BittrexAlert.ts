@@ -32,7 +32,7 @@ export default class BittrexAlert {
               const e = alertFormulas[i]
               let isok
               try {
-                eval(`isok = $${e.formula}`)
+                eval(`isok = $ ${e.formula}`)
                 if (isok) {
                   const msgs = [`📣📣📣 *${key}* = *${BittrexApi.formatNumber(t.last)}* ${e.formula} 📣📣📣`]
                   if (e.des) msgs.push(`_${e.des}_`)

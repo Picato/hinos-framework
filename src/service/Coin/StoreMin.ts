@@ -1,8 +1,8 @@
 import { MONGO, Mongo, Uuid, Collection } from "hinos-mongo/lib/mongo"
 import { Redis, REDIS } from "hinos-redis/lib/redis"
 import { BittrexCachedTrading } from './StoreTrading'
-import { MatrixTrends } from './MatrixTrends'
-import Trends from './AI/Trends'
+import Trends from "./AI/Trends";
+// import { MatrixTrends } from './MatrixTrends'
 
 @Collection('BittrexMinTrading')
 export class BittrexMinTrading {
@@ -32,7 +32,7 @@ export default class StoreMin {
   @MONGO('coin')
   private static mongo: Mongo
 
-  static trending
+  // static trending
   static newestTrading = []
   static matrix = [] as string[][]
 
@@ -48,15 +48,15 @@ export default class StoreMin {
 
   static async loadInMatrix() {
     console.log('#StoreMin', 'Load matrix')
-    const data = await StoreMin.mongo.find<BittrexMinTrading>(BittrexMinTrading, {
-      $recordsPerPage: 0,
-      $fields: { _id: 1, percent: 1, key: 1 },
-      $sort: {
-        key: 1,
-        time: 1
-      }
-    })
-    StoreMin.matrix = await MatrixTrends.loadInMatrix(data)
+    // const data = await StoreMin.mongo.find<BittrexMinTrading>(BittrexMinTrading, {
+    //   $recordsPerPage: 0,
+    //   $fields: { _id: 1, percent: 1, key: 1 },
+    //   $sort: {
+    //     key: 1,
+    //     time: 1
+    //   }
+    // })
+    // StoreMin.matrix = await MatrixTrends.loadInMatrix(data)
   }
 
   static async insert(tradings: BittrexCachedTrading[], now: Date) {
@@ -112,27 +112,28 @@ export default class StoreMin {
 
   static async trends() {
     console.log('#StoreMin', 'Calculate simple trends')
-    let beforeThat = new Date()
-    beforeThat.setMinutes(beforeThat.getMinutes() - 30)
-    const data = await StoreMin.mongo.find<BittrexMinTrading>(BittrexMinTrading, {
-      $where: {
-        time: {
-          $gte: beforeThat
-        }
-      },
-      $recordsPerPage: 0,
-      $fields: { _id: 1, name: 1, market: 1, key: 1, last: 1, percent: 1, time: 1, prev: 1 },
-      $sort: {
-        key: 1,
-        time: -1
-      }
-    })
-    const rs = {}
-    data.forEach(e => {
-      if (!rs[e.key]) rs[e.key] = []
-      rs[e.key].push(e)
-    })
-    await Trends(rs)
-    StoreMin.trending = MatrixTrends.trends(data, StoreMin.matrix, 0.1)
+    Trends.trendsMinutes()
+    // let beforeThat = new Date()
+    // beforeThat.setMinutes(beforeThat.getMinutes() - 30)
+    // const data = await StoreMin.mongo.find<BittrexMinTrading>(BittrexMinTrading, {
+    //   $where: {
+    //     time: {
+    //       $gte: beforeThat
+    //     }
+    //   },
+    //   $recordsPerPage: 0,
+    //   $fields: { _id: 1, name: 1, market: 1, key: 1, last: 1, percent: 1, time: 1, prev: 1 },
+    //   $sort: {
+    //     key: 1,
+    //     time: -1
+    //   }
+    // })
+    // const rs = {}
+    // data.forEach(e => {
+    //   if (!rs[e.key]) rs[e.key] = []
+    //   rs[e.key].push(e)
+    // })
+    // await Trends(rs)
+    // StoreMin.trending = MatrixTrends.trends(data, StoreMin.matrix, 0.1)
   }
 }

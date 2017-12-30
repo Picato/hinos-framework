@@ -1,13 +1,141 @@
-export default async function (_traddings: { [key: string]: any[] }) {
-  // for (let key in traddings) {
-  //   let items = traddings[key]
-  //   const last = items[0]
-  //   const first = items[items.length - 1]
-  //   const percent = (last.last - first.prev) * 100 / first.prev
-  //   let allPercent = items.reduce((sum, item) => {
-  //     return sum + item.percent
-  //   }, 0)
+// import { REDIS, Redis } from "hinos-redis/lib/redis";
+import { MONGO, Mongo } from "hinos-mongo/lib/mongo";
+import { BittrexMinTrading } from "../StoreMin";
 
-  //   // console.log(allPercent)
-  // }
+
+export default class Trends {
+  // @REDIS()
+  // private static redis: Redis
+  @MONGO('coin')
+  private static mongo: Mongo
+
+  static TrendMinsMsgs = []
+  static TrendHoursMsgs = []
+  static TrendDaysMsgs = []
+
+  static async trendsMinutes() {
+    let beforeThat = new Date()
+    beforeThat.setMinutes(beforeThat.getMinutes() - 30)
+    const data = await Trends.mongo.find<BittrexMinTrading>(BittrexMinTrading, {
+      $where: {
+        time: {
+          $gte: beforeThat
+        }
+      },
+      $recordsPerPage: 0,
+      $fields: { _id: 1, name: 1, market: 1, key: 1, last: 1, percent: 1, time: 1, prev: 1 },
+      $sort: {
+        key: 1,
+        time: -1
+      }
+    })
+    const rs = {} as {
+      [key: string]: any[]
+    }
+    data.forEach(e => {
+      if (!rs[e.key]) rs[e.key] = []
+      rs[e.key].push(e)
+    })
+    Trends.TrendMinsMsgs = await Trends.trendsUpDown(rs)
+  }
+
+  static async trendsHours() {
+    let beforeThat = new Date()
+    beforeThat.setMinutes(beforeThat.getHours() - 12)
+    const data = await Trends.mongo.find<BittrexMinTrading>(BittrexMinTrading, {
+      $where: {
+        time: {
+          $gte: beforeThat
+        }
+      },
+      $recordsPerPage: 0,
+      $fields: { _id: 1, name: 1, market: 1, key: 1, last: 1, percent: 1, time: 1, prev: 1 },
+      $sort: {
+        key: 1,
+        time: -1
+      }
+    })
+    const rs = {} as {
+      [key: string]: any[]
+    }
+    data.forEach(e => {
+      if (!rs[e.key]) rs[e.key] = []
+      rs[e.key].push(e)
+    })
+    Trends.TrendHoursMsgs = await Trends.trendsUpDown(rs)
+  }
+
+  static async trendsDays() {
+    let beforeThat = new Date()
+    beforeThat.setMinutes(beforeThat.getDate() - 7)
+    const data = await Trends.mongo.find<BittrexMinTrading>(BittrexMinTrading, {
+      $where: {
+        time: {
+          $gte: beforeThat
+        }
+      },
+      $recordsPerPage: 0,
+      $fields: { _id: 1, name: 1, market: 1, key: 1, last: 1, percent: 1, time: 1, prev: 1 },
+      $sort: {
+        key: 1,
+        time: -1
+      }
+    })
+    const rs = {} as {
+      [key: string]: any[]
+    }
+    data.forEach(e => {
+      if (!rs[e.key]) rs[e.key] = []
+      rs[e.key].push(e)
+    })
+    Trends.TrendDaysMsgs = await Trends.trendsUpDown(rs)
+  }
+
+  static async trendsUpDown(traddings: { [key: string]: any[] }) {
+    const time = new Date()
+    const msgs = [] as any
+    for (let key in traddings) {
+      let items = traddings[key]
+
+      const last = items[0] as BittrexMinTrading
+      const open = items[items.length - 1] as BittrexMinTrading
+
+      const msg = {
+        time,
+        key,
+        msgs: []
+      } as any
+
+      if (last.percent > 55) {
+        msg.msgs.push({ txt: `Vua tang ${last.percent}%`, type: 1 })
+      } else if (last.percent < -55) {
+        msg.msgs.push({ txt: `Vua giam ${last.percent}%`, type: -1 })
+      }
+
+      const bufPercent = (last.last - open.last) * 100 / open.last
+      if (bufPercent > 10) {
+        msg.msgs.push({ txt: `Bien dong tang ${bufPercent}%`, type: 1 })
+      } else if (bufPercent < -10) {
+        msg.msgs.push({ txt: `Bien dong giam ${Math.abs(bufPercent)}%`, type: -1 })
+      }
+
+      if (items.length > 5) {
+        let slient = true
+        items.forEach(e => {
+          if (e.percent > 5 || e.percent < -5) slient = false
+        })
+        if (slient) {
+          msg.msgs.push({ txt: `Da lau ko co bien dong nhieu`, type: 0 })
+        }
+      }
+
+      if (msg.msgs.length > 0) {
+        msgs.push(msg)
+      }
+
+    }
+
+    return msgs
+
+  }
 }

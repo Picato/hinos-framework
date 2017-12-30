@@ -1,7 +1,8 @@
 import { MONGO, Mongo, Uuid, Collection } from "hinos-mongo/lib/mongo"
 import { Redis, REDIS } from "hinos-redis/lib/redis"
 import { BittrexCachedTrading } from './StoreTrading'
-import { MatrixTrends } from './MatrixTrends';
+import Trends from "./AI/Trends";
+// import { MatrixTrends } from './MatrixTrends';
 
 @Collection('BittrexDayTrading')
 export class BittrexDayTrading {
@@ -29,7 +30,7 @@ export default class StoreDay {
   @MONGO('coin')
   private static mongo: Mongo
 
-  static trending
+  // static trending
   static newestTrading = []
   static matrix = [] as string[][]
 
@@ -45,15 +46,15 @@ export default class StoreDay {
 
   static async loadInMatrix() {
     console.log('#StoreDay', 'Load matrix')
-    const data = await StoreDay.mongo.find<BittrexDayTrading>(BittrexDayTrading, {
-      $recordsPerPage: 0,
-      $fields: { _id: 1, percent: 1, key: 1 },
-      $sort: {
-        key: 1,
-        time: 1
-      }
-    })
-    StoreDay.matrix = await MatrixTrends.loadInMatrix(data)
+    // const data = await StoreDay.mongo.find<BittrexDayTrading>(BittrexDayTrading, {
+    //   $recordsPerPage: 0,
+    //   $fields: { _id: 1, percent: 1, key: 1 },
+    //   $sort: {
+    //     key: 1,
+    //     time: 1
+    //   }
+    // })
+    // StoreDay.matrix = await MatrixTrends.loadInMatrix(data)
   }
 
   static async insert(tradings: BittrexCachedTrading[], now: Date) {
@@ -105,31 +106,32 @@ export default class StoreDay {
     return false
   }
 
-  static matrixTrends(seriesPercent, allcase): string[] {
-    const rs = MatrixTrends.calculate(seriesPercent, allcase, 0.5)
-    if (!rs) return rs
-    Object.keys(rs).map(e => {
-      return { target: e, percent: rs[e] }
-    }).sort((a, b) => b.percent - a.percent).slice(0, 10).map(e => `${e.target}: ${e.percent}%`)
-  }
+  // static matrixTrends(seriesPercent, allcase): string[] {
+  //   const rs = MatrixTrends.calculate(seriesPercent, allcase, 0.5)
+  //   if (!rs) return rs
+  //   Object.keys(rs).map(e => {
+  //     return { target: e, percent: rs[e] }
+  //   }).sort((a, b) => b.percent - a.percent).slice(0, 10).map(e => `${e.target}: ${e.percent}%`)
+  // }
 
   static async trends() {
     console.log('#StoreDay', 'Calculate simple trends')
-    let beforeThat = new Date()
-    beforeThat.setDate(beforeThat.getDate() - 5)
-    const data = await StoreDay.mongo.find<BittrexDayTrading>(BittrexDayTrading, {
-      $where: {
-        time: {
-          $gte: beforeThat
-        }
-      },
-      $recordsPerPage: 0,
-      $fields: { _id: 1, name: 1, market: 1, key: 1, last: 1, percent: 1, time: 1 },
-      $sort: {
-        key: 1,
-        time: -1
-      }
-    })
-    StoreDay.trending = MatrixTrends.trends(data, StoreDay.matrix, 0.1)
+    Trends.trendsDays()
+    // let beforeThat = new Date()
+    // beforeThat.setDate(beforeThat.getDate() - 5)
+    // const data = await StoreDay.mongo.find<BittrexDayTrading>(BittrexDayTrading, {
+    //   $where: {
+    //     time: {
+    //       $gte: beforeThat
+    //     }
+    //   },
+    //   $recordsPerPage: 0,
+    //   $fields: { _id: 1, name: 1, market: 1, key: 1, last: 1, percent: 1, time: 1 },
+    //   $sort: {
+    //     key: 1,
+    //     time: -1
+    //   }
+    // })
+    // StoreDay.trending = MatrixTrends.trends(data, StoreDay.matrix, 0.1)
   }
 }

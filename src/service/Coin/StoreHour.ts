@@ -1,7 +1,8 @@
 import { MONGO, Mongo, Uuid, Collection } from "hinos-mongo/lib/mongo";
 import { Redis, REDIS } from "hinos-redis/lib/redis";
 import { BittrexCachedTrading } from './StoreTrading';
-import { MatrixTrends } from './MatrixTrends';
+import Trends from "./AI/Trends";
+// import { MatrixTrends } from './MatrixTrends';
 
 @Collection('BittrexHourTrading')
 export class BittrexHourTrading {
@@ -30,7 +31,7 @@ export default class StoreHour {
   @MONGO('coin')
   private static mongo: Mongo
 
-  static trending
+  // static trending
   static newestTrading = []
   static matrix = [] as string[][]
 
@@ -46,15 +47,15 @@ export default class StoreHour {
 
   static async loadInMatrix() {
     console.log('#StoreHour', 'Load matrix')
-    const data = await StoreHour.mongo.find<BittrexHourTrading>(BittrexHourTrading, {
-      $recordsPerPage: 0,
-      $fields: { _id: 1, percent: 1, key: 1 },
-      $sort: {
-        key: 1,
-        time: 1
-      }
-    })
-    StoreHour.matrix = await MatrixTrends.loadInMatrix(data)
+    // const data = await StoreHour.mongo.find<BittrexHourTrading>(BittrexHourTrading, {
+    //   $recordsPerPage: 0,
+    //   $fields: { _id: 1, percent: 1, key: 1 },
+    //   $sort: {
+    //     key: 1,
+    //     time: 1
+    //   }
+    // })
+    // StoreHour.matrix = await MatrixTrends.loadInMatrix(data)
   }
 
   static async insert(tradings: BittrexCachedTrading[], now: Date) {
@@ -109,21 +110,6 @@ export default class StoreHour {
 
   static async trends() {
     console.log('#StoreHour', 'Calculate simple trends')
-    let beforeThat = new Date()
-    beforeThat.setHours(beforeThat.getHours() - 5)
-    const data = await StoreHour.mongo.find<BittrexHourTrading>(BittrexHourTrading, {
-      $where: {
-        time: {
-          $gte: beforeThat
-        }
-      },
-      $recordsPerPage: 0,
-      $fields: { _id: 1, name: 1, market: 1, key: 1, last: 1, percent: 1, time: 1 },
-      $sort: {
-        key: 1,
-        time: -1
-      }
-    })
-    StoreHour.trending = MatrixTrends.trends(data, StoreHour.matrix, 0.1)
+    Trends.trendsHours()
   }
 }

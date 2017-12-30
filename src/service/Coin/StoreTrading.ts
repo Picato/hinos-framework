@@ -37,6 +37,7 @@ export class StoreTrading {
       StoreHour.init(),
       StoreDay.init()
     ])
+    setInterval(StoreTrading.execute, AppConfig.app.bittrex.scanChecking)
   }
 
   static async updateData(tradings: BittrexCachedTrading[], now: Date) {

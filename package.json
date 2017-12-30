@@ -6,6 +6,7 @@
   "scripts": {
     "once": "npm install -g typescript && npm install -g cross-var && npm install -g tslint-config-standard",
     "start": "node .",
+    "synccoin": "cross-var \"pm2 start ./SyncCoin --env production --name sync-coin\"",
     "prebuild": "rimraf .build .spec",
     "build": "tsc",
     "pretest": "rimraf .spec && tsc -p src/test/tsconfig.json",
