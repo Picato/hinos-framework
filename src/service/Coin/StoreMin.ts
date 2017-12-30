@@ -42,6 +42,13 @@ export default class StoreMin {
     console.log('#StoreMin', 'Initial')
     StoreMin.lastUpdateDB = await StoreMin.redis.get('StoreMin.lastUpdateDB')
     if (StoreMin.lastUpdateDB) StoreMin.lastUpdateDB = new Date(StoreMin.lastUpdateDB)
+    const lastTrading = await StoreMin.mongo.find<BittrexMinTrading>(BittrexMinTrading, {
+      $where: {
+        time: StoreMin.lastUpdateDB
+      },
+      $recordsPerPage: 0
+    })
+    if (lastTrading) StoreMin.newestTrading = lastTrading
     await StoreMin.loadInMatrix()
     await StoreMin.trends()
   }

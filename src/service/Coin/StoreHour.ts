@@ -41,6 +41,13 @@ export default class StoreHour {
     console.log('#StoreHour', 'Initial')
     StoreHour.lastUpdateDB = await StoreHour.redis.get('StoreHour.lastUpdateDB')
     if (StoreHour.lastUpdateDB) StoreHour.lastUpdateDB = new Date(StoreHour.lastUpdateDB)
+    const lastTrading = await StoreHour.mongo.find<BittrexHourTrading>(BittrexHourTrading, {
+      $where: {
+        time: StoreHour.lastUpdateDB
+      },
+      $recordsPerPage: 0
+    })
+    if (lastTrading) StoreHour.newestTrading = lastTrading
     await StoreHour.loadInMatrix()
     await StoreHour.trends()
   }

@@ -40,6 +40,13 @@ export default class StoreDay {
     console.log('#StoreDay', 'Initial')
     StoreDay.lastUpdateDB = await StoreDay.redis.get('StoreDay.lastUpdateDB')
     if (StoreDay.lastUpdateDB) StoreDay.lastUpdateDB = new Date(StoreDay.lastUpdateDB)
+    const lastTrading = await StoreDay.mongo.find<BittrexDayTrading>(BittrexDayTrading, {
+      $where: {
+        time: StoreDay.lastUpdateDB
+      },
+      $recordsPerPage: 0
+    })
+    if (lastTrading) StoreDay.newestTrading = lastTrading
     await StoreDay.loadInMatrix()
     await StoreDay.trends()
   }
