@@ -78,8 +78,8 @@ export default class StoreMin {
         if (!caches[e.key]) caches[e.key] = {}
         let cached = caches[e.key]
 
-        if (caches.$open === undefined) caches.$open = e.last
-        if (caches.$baseVolume === undefined) caches.$baseVolume = e.baseVolume
+        if (cached.prev === undefined) cached.prev = e.last
+        if (cached.baseVolume === undefined) cached.baseVolume = e.baseVolume
 
         if (cached.low === undefined) cached.low = e.last
         if (cached.high === undefined) cached.high = e.last
@@ -101,27 +101,26 @@ export default class StoreMin {
 
         tr.low = tr.last > cached.low ? cached.low : tr.last
         tr.high = tr.last < cached.high ? cached.high : tr.last
-        delete caches[e.key]
 
-        tr.prev = caches.$open !== undefined ? caches.$open : tr.last
-        tr.baseVolumePercent = caches.$baseVolume !== undefined ? ((tr.baseVolume - caches.$baseVolume) * 100 / caches.$baseVolume) : 0
+        tr.prev = cached.prev !== undefined ? cached.prev : tr.last
+        tr.baseVolumePercent = cached.baseVolume !== undefined ? ((tr.baseVolume - cached.baseVolume) * 100 / cached.baseVolume) : 0
 
         tr.percent = (tr.last - tr.prev) * 100 / tr.prev
-        caches.$open = undefined
-        caches.$baseVolume = undefined
         data.push(tr)
+
+        cached.low = undefined
+        cached.high = undefined
+        cached.prev = tr.last
+        cached.baseVolume = tr.baseVolume
       }
-      await StoreMin.mongo.insert<BittrexMinTrading>(BittrexMinTrading, data)      
-      await StoreMin.redis.set('StoreMin.lastUpdateDB', StoreMin.lastUpdateDB)      
+      await StoreMin.mongo.insert<BittrexMinTrading>(BittrexMinTrading, data)
+      await StoreMin.redis.set('StoreMin.lastUpdateDB', StoreMin.lastUpdateDB)
       await StoreMin.redis.set('StoreMin.newestTrading', JSON.stringify(data))
       await StoreMin.trends()
     } else {
       for (let e of tradings) {
         if (!caches[e.key]) caches[e.key] = {}
         let cached = caches[e.key]
-
-        if (caches.$open === undefined) caches.$open = e.last
-        if (caches.$baseVolume === undefined) caches.$baseVolume = e.baseVolume
 
         if (cached.low === undefined) cached.low = e.last
         else cached.low = e.last > cached.low ? cached.low : e.last

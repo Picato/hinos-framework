@@ -76,8 +76,8 @@ export default class StoreDay {
         if (!caches[e.key]) caches[e.key] = {}
         let cached = caches[e.key]
 
-        if (caches.$open === undefined) caches.$open = e.last
-        if (caches.$baseVolume === undefined) caches.$baseVolume = e.baseVolume
+        if (cached.prev === undefined) cached.prev = e.last
+        if (cached.baseVolume === undefined) cached.baseVolume = e.baseVolume
 
         if (cached.low === undefined) cached.low = e.last
         if (cached.high === undefined) cached.high = e.last
@@ -97,27 +97,26 @@ export default class StoreDay {
 
         tr.low = tr.last > cached.low ? cached.low : tr.last
         tr.high = tr.last < cached.high ? cached.high : tr.last
-        delete caches[e.key]
 
-        tr.prev = caches.$open !== undefined ? caches.$open : tr.last
-        tr.baseVolumePercent = caches.$baseVolume !== undefined ? ((tr.baseVolume - caches.$baseVolume) * 100 / caches.$baseVolume) : 0
+        tr.prev = cached.prev !== undefined ? cached.prev : tr.last
+        tr.baseVolumePercent = cached.baseVolume !== undefined ? ((tr.baseVolume - cached.baseVolume) * 100 / cached.baseVolume) : 0
 
         tr.percent = (tr.last - tr.prev) * 100 / tr.prev
-        caches.$open = undefined
-        caches.$baseVolume = undefined
-        data.push(tr) 
+        data.push(tr)
+
+        cached.low = undefined
+        cached.high = undefined
+        cached.prev = tr.last
+        cached.baseVolume = tr.baseVolume
       }
-      await StoreDay.mongo.insert<BittrexDayTrading>(BittrexDayTrading, data)      
-      await StoreDay.redis.set('StoreDay.lastUpdateDB', StoreDay.lastUpdateDB)      
+      await StoreDay.mongo.insert<BittrexDayTrading>(BittrexDayTrading, data)
+      await StoreDay.redis.set('StoreDay.lastUpdateDB', StoreDay.lastUpdateDB)
       await StoreDay.redis.set('StoreDay.newestTrading', JSON.stringify(data))
       await StoreDay.trends()
     } else {
       for (let e of tradings) {
         if (!caches[e.key]) caches[e.key] = {}
         let cached = caches[e.key]
-
-        if (caches.$open === undefined) caches.$open = e.last
-        if (caches.$baseVolume === undefined) caches.$baseVolume = e.baseVolume
 
         if (cached.low === undefined) cached.low = e.last
         else cached.low = e.last > cached.low ? cached.low : e.last
@@ -132,27 +131,5 @@ export default class StoreDay {
   static async trends() {
     console.log('#StoreDay', 'Calculate simple trends')
     // Trends.trendsMinutes()
-    // let beforeThat = new Date()
-    // beforeThat.setMinutes(beforeThat.getMinutes() - 30)
-    // const data = await StoreDay.mongo.find<BittrexDayTrading>(BittrexDayTrading, {
-    //   $where: {
-    //     time: {
-    //       $gte: beforeThat
-    //     }
-    //   },
-    //   $recordsPerPage: 0,
-    //   $fields: { _id: 1, name: 1, market: 1, key: 1, last: 1, percent: 1, time: 1, prev: 1 },
-    //   $sort: {
-    //     key: 1,
-    //     time: -1
-    //   }
-    // })
-    // const rs = {}
-    // data.forEach(e => {
-    //   if (!rs[e.key]) rs[e.key] = []
-    //   rs[e.key].push(e)
-    // })
-    // await Trends(rs)
-    // StoreDay.trending = MatrixTrends.trends(data, StoreDay.matrix, 0.1)
   }
 }
