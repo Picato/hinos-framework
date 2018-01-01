@@ -1,10 +1,10 @@
 import { GET } from 'hinos-route'
 import { RESTRICT } from 'hinos-bodyparser/restrict'
-import BittrexApi from '../service/Coin/BittrexApi';
-import StoreMin from '../service/Coin/StoreMin';
-import StoreHour from '../service/Coin/StoreHour';
-import StoreDay from '../service/Coin/StoreDay';
-import Trends from '../service/Coin/AI/Trends';
+import StoreMin from '../service/Coin/StoreMin'
+import StoreHour from '../service/Coin/StoreHour'
+import StoreDay from '../service/Coin/StoreDay'
+import Trends from '../service/Coin/AI/Trends'
+import { StoreTrading } from '../service/Coin/StoreTrading'
 
 /************************************************
  ** GoldController || 4/10/2017, 10:19:24 AM **
@@ -19,15 +19,56 @@ export default class CoinController {
     }
   })
   static async getMarket({ query }) {
-    if (query.type === 'min') return StoreMin.newestTrading
-    if (query.type === 'hour') return StoreHour.newestTrading
-    if (query.type === 'day') return StoreDay.newestTrading
-    return BittrexApi.newestTrading
+    let rs
+    if (query.type === 'min') rs = await StoreMin.getTradings()
+    else if (query.type === 'hour') rs = await StoreHour.getTradings()
+    else if (query.type === 'day') rs = await StoreDay.getTradings()
+    else rs = await StoreTrading.getTradings()
+    return rs.sort((a, b) => Math.abs(b.percent - a.percent))
+  }
+
+  @GET('/market/:coinName')
+  @RESTRICT({
+    query: {
+      type: String
+    },
+    params: {
+      coinName: String
+    }
+  })
+  static async getMarketDetails({ query, params }) {
+    if (query.type === 'min') return StoreMin.find({
+      $where: {
+        key: params.coinName.toUpperCase()
+      },
+      $sort: {
+        time: -1
+      },
+      $recordsPerPage: 30
+    })
+    if (query.type === 'hour') return StoreHour.find({
+      $where: {
+        key: params.coinName.toUpperCase()
+      },
+      $sort: {
+        time: -1
+      },
+      $recordsPerPage: 24
+    })
+    if (query.type === 'day') return StoreDay.find({
+      $where: {
+        key: params.coinName.toUpperCase()
+      },
+      $sort: {
+        time: -1
+      },
+      $recordsPerPage: 14
+    })
   }
 
   @GET('/rate')
   static async getRate() {
-    return BittrexApi.rate
+    return await StoreTrading.getRate()
   }
 
   @GET('/trends')
@@ -47,7 +88,9 @@ export default class CoinController {
     }
   })
   static async getTrendingMessage({ query }) {
-    return query.type === 'day' ? Trends.TrendDaysMsgs : (query.type === 'hour' ? Trends.TrendHoursMsgs : Trends.TrendMinsMsgs)
+    if (query.type === 'day') return await Trends.getTrendNewsOnDay()
+    if (query.type === 'hour') return await Trends.getTrendNewsInHour()
+    if (query.type === 'min') return await Trends.getTrendNewsInMinute()
   }
 
   // @GET('/bittrex-trading')

@@ -1,17 +1,23 @@
-// import { REDIS, Redis } from "hinos-redis/lib/redis";
+import { REDIS, Redis } from "hinos-redis/lib/redis";
 import { MONGO, Mongo } from "hinos-mongo/lib/mongo";
 import { BittrexMinTrading } from "../StoreMin";
 
 
 export default class Trends {
-  // @REDIS()
-  // private static redis: Redis
+  @REDIS()
+  private static redis: Redis
   @MONGO('coin')
   private static mongo: Mongo
 
-  static TrendMinsMsgs = []
-  static TrendHoursMsgs = []
-  static TrendDaysMsgs = []
+  static async getTrendNewsOnDay() {
+    return JSON.parse((await Trends.redis.get('Trends.newsOnDay')) || '[]')
+  }
+  static async getTrendNewsInHour() {
+    return JSON.parse((await Trends.redis.get('Trends.newsInHour')) || '[]')
+  }
+  static async getTrendNewsInMinute() {
+    return JSON.parse((await Trends.redis.get('Trends.newsInMinute')) || '[]')
+  }
 
   static async trendsMinutes() {
     let beforeThat = new Date()
@@ -36,7 +42,8 @@ export default class Trends {
       if (!rs[e.key]) rs[e.key] = []
       rs[e.key].push(e)
     })
-    Trends.TrendMinsMsgs = await Trends.trendsUpDown(rs)
+    const msgs = await Trends.trendsUpDown(rs)
+    await Trends.redis.set('Trends.newsInMinute', JSON.stringify(msgs))
   }
 
   static async trendsHours() {
@@ -62,7 +69,8 @@ export default class Trends {
       if (!rs[e.key]) rs[e.key] = []
       rs[e.key].push(e)
     })
-    Trends.TrendHoursMsgs = await Trends.trendsUpDown(rs)
+    const msgs = await Trends.trendsUpDown(rs)
+    await Trends.redis.set('Trends.newsInHour', JSON.stringify(msgs))
   }
 
   static async trendsDays() {
@@ -88,7 +96,8 @@ export default class Trends {
       if (!rs[e.key]) rs[e.key] = []
       rs[e.key].push(e)
     })
-    Trends.TrendDaysMsgs = await Trends.trendsUpDown(rs)
+    const msgs = await Trends.trendsUpDown(rs)
+    await Trends.redis.set('Trends.newsOnDay', JSON.stringify(msgs))
   }
 
   static async trendsUpDown(traddings: { [key: string]: any[] }) {

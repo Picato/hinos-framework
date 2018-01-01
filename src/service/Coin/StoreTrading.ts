@@ -1,6 +1,5 @@
 import { REDIS, Redis } from "hinos-redis/lib/redis"
 import { Mongo, Collection, Uuid } from "hinos-mongo/lib/mongo"
-import BittrexApi from './BittrexApi'
 import StoreMin from './StoreMin'
 import StoreHour from './StoreHour'
 import StoreDay from "./StoreDay"
@@ -21,9 +20,8 @@ export class BittrexCachedTrading {
   bid: number
   ask: number
   baseVolume: number
+  baseVolumePercent: number
   volume: number
-  low: number
-  high: number
 }
 
 export class StoreTrading {
@@ -41,14 +39,22 @@ export class StoreTrading {
   }
 
   static async updateData(tradings: BittrexCachedTrading[], now: Date) {
-    console.log('executed')
-    await Promise.all([
+    console.log('updateData')
+    Promise.all([
       StoreMin.insert(tradings, now),
       StoreHour.insert(tradings, now),
       StoreDay.insert(tradings, now),
-      BittrexAlert.checkAlert(tradings, now),
-      BittrexAlert.checkOrder()
+      BittrexAlert.checkOrder(),
+      BittrexAlert.checkAlert(tradings, now)
     ])
+  }
+
+  public static async getTradings() {
+    return JSON.parse(await StoreTrading.redis.get('StoreTrading.newestTrading') || '[]') as BittrexCachedTrading[]
+  }
+
+  public static async getRate() {
+    return JSON.parse(await StoreTrading.redis.get('StoreTrading.rate') || '[]') as { [key: string]: number }
   }
 
   public static async execute() {
@@ -56,8 +62,13 @@ export class StoreTrading {
       // await StoreTrading.redis.del('bittrex.trace')
       const data = await BittrexUser.getMarketSummaries()
       const now = new Date()
-      StoreTrading.handleRate(data)
+
+      const rate = await StoreTrading.handleRate(data)
+      await StoreTrading.redis.set('StoreTrading.rate', JSON.stringify(rate))
+
       const tradings = await StoreTrading.handleData(data, now)
+      await StoreTrading.redis.set('StoreTrading.newestTrading', JSON.stringify(tradings))
+
       await StoreTrading.updateData(tradings, now)
     } catch (e) {
       console.error(e)
@@ -65,46 +76,59 @@ export class StoreTrading {
   }
 
   static handleRate(data: any[]) {
+    let rs = {
+      'BTC-ETH': 0,
+      'BTC-USDT': 0,
+      'BTC-BTC': 1,
+      'USDT-BTC': 0,
+      'USDT-ETH': 0,
+      'USDT-USDT': 1,
+      'ETH-BTC': 0,
+      'ETH-USDT': 0,
+      'ETH-ETH': 1
+    }
     let rate = data.find(e => e.MarketName === 'USDT-BTC')
-    BittrexApi.rate['BTC-USDT'] = rate.Last
-    BittrexApi.rate['USDT-BTC'] = 1 / rate.Last
+    if (rate) {
+      rs['BTC-USDT'] = rate.Last
+      rs['USDT-BTC'] = 1 / rate.Last
+    }
     rate = data.find(e => e.MarketName === 'BTC-ETH')
-    BittrexApi.rate['BTC-ETH'] = 1 / rate.Last
-    BittrexApi.rate['ETH-BTC'] = rate.Last
+    if (rate) {
+      rs['BTC-ETH'] = 1 / rate.Last
+      rs['ETH-BTC'] = rate.Last
+    }
     rate = data.find(e => e.MarketName === 'USDT-ETH')
-    BittrexApi.rate['ETH-USDT'] = rate.Last
-    BittrexApi.rate['USDT-ETH'] = 1 / rate.Last
+    if (rate) {
+      rs['ETH-USDT'] = rate.Last
+      rs['USDT-ETH'] = 1 / rate.Last
+    }
+    return rs
   }
 
   static async handleData(data: any[], now: Date) {
     const tradings = [] as BittrexCachedTrading[]
+    const oldTradings = await StoreTrading.getTradings()
     for (let e of data) {
-      let cached = new BittrexCachedTrading()
-      cached._id = Mongo.uuid()
-      cached.key = e.MarketName
+      let trading = new BittrexCachedTrading()
+      trading._id = Mongo.uuid()
+      trading.key = e.MarketName
       e.MarketName.split('-').forEach((e, i) => {
-        if (i === 0) cached.market = e
-        else if (i === 1) cached.name = e
+        if (i === 0) trading.market = e
+        else if (i === 1) trading.name = e
       })
-      cached.raw_time = new Date(e.TimeStamp)
-      cached.time = now
-      cached.last = e.Last
-      let prev = await StoreTrading.redis.hget('StoreHour.prevCached', e.MarketName)
-      if (prev) {
-        prev = JSON.parse(prev)
-        cached.prev = prev.last
-        cached.low = cached.last < prev.low ? cached.last : prev.low
-        cached.high = cached.last > prev.high ? cached.last : prev.high
-      } else {
-        cached.low = cached.high = cached.last
-      }
-      cached.percent = (cached.last - cached.prev) * 100 / cached.prev
-      cached.bid = e.Bid
-      cached.ask = e.Ask
-      cached.baseVolume = e.BaseVolume
-      cached.volume = e.Volume
-      tradings.push(cached)
+      trading.raw_time = new Date(e.TimeStamp)
+      trading.time = now
+      trading.last = e.Last
+      trading.bid = e.Bid
+      trading.ask = e.Ask
+      trading.baseVolume = e.BaseVolume
+      trading.volume = e.Volume
+      const cached = oldTradings.find(e => e.key === trading.key)
+      trading.prev = !cached ? trading.last : cached.last
+      trading.percent = !cached ? 0 : (trading.last - cached.last) * 100 / cached.last
+      trading.baseVolumePercent = !cached ? 0 : (trading.baseVolume - cached.baseVolume) * 100 / cached.baseVolume
+      tradings.push(trading)
     }
-    return BittrexApi.newestTrading = tradings
+    return tradings
   }
 }

@@ -1,8 +1,8 @@
-import { MONGO, Mongo, Uuid, Collection } from "hinos-mongo/lib/mongo";
-import { Redis, REDIS } from "hinos-redis/lib/redis";
-import { BittrexCachedTrading } from './StoreTrading';
-import Trends from "./AI/Trends";
-// import { MatrixTrends } from './MatrixTrends';
+import { MONGO, Mongo, Uuid, Collection } from "hinos-mongo/lib/mongo"
+import { Redis, REDIS } from "hinos-redis/lib/redis"
+import { BittrexCachedTrading } from './StoreTrading'
+// import Trends from "./AI/Trends";
+// import { MatrixTrends } from './MatrixTrends'
 
 @Collection('BittrexHourTrading')
 export class BittrexHourTrading {
@@ -32,24 +32,20 @@ export default class StoreHour {
   private static mongo: Mongo
 
   // static trending
-  static newestTrading = []
   static matrix = [] as string[][]
 
   private static lastUpdateDB
+
+  static async find(fil) {
+    return await StoreHour.mongo.find<BittrexHourTrading>(BittrexHourTrading, fil)
+  }
 
   static async init() {
     console.log('#StoreHour', 'Initial')
     StoreHour.lastUpdateDB = await StoreHour.redis.get('StoreHour.lastUpdateDB')
     if (StoreHour.lastUpdateDB) StoreHour.lastUpdateDB = new Date(StoreHour.lastUpdateDB)
-    const lastTrading = await StoreHour.mongo.find<BittrexHourTrading>(BittrexHourTrading, {
-      $where: {
-        time: StoreHour.lastUpdateDB
-      },
-      $recordsPerPage: 0
-    })
-    if (lastTrading) StoreHour.newestTrading = lastTrading
-    await StoreHour.loadInMatrix()
-    await StoreHour.trends()
+    // await StoreHour.loadInMatrix()
+    // await StoreHour.trends()
   }
 
   static async loadInMatrix() {
@@ -65,11 +61,28 @@ export default class StoreHour {
     // StoreHour.matrix = await MatrixTrends.loadInMatrix(data)
   }
 
+  static async getTradings() {
+    return JSON.parse(await StoreHour.redis.get('StoreHour.newestTrading') || '[]')
+  }
+
   static async insert(tradings: BittrexCachedTrading[], now: Date) {
-    if (!StoreHour.lastUpdateDB || (StoreHour.lastUpdateDB.getHours() !== now.getHours())) { //&& now.getMinutes() % AppConfig.app.bittrex.updateDBAfterMins === 0
+    let caches = await StoreHour.redis.get('StoreHour.cached')
+    if (caches) caches = JSON.parse(caches)
+    else caches = {}
+    if (!StoreHour.lastUpdateDB || StoreHour.lastUpdateDB.getHours() !== now.getHours()) {
       console.log('#StoreHour', 'Inserting trading')
+      StoreHour.lastUpdateDB = now
       let data = []
       for (let e of tradings) {
+        if (!caches[e.key]) caches[e.key] = {}
+        let cached = caches[e.key]
+
+        if (caches.$open === undefined) caches.$open = e.last
+        if (caches.$baseVolume === undefined) caches.$baseVolume = e.baseVolume
+
+        if (cached.low === undefined) cached.low = e.last
+        if (cached.high === undefined) cached.high = e.last
+
         const tr = {} as BittrexHourTrading
         tr._id = e._id
         tr.key = e.key
@@ -83,40 +96,65 @@ export default class StoreHour {
         tr.hours = e.time.getHours()
         tr.baseVolume = e.baseVolume
         tr.last = e.last
-        let prev = await StoreHour.redis.hget('StoreHour.prevCached', e.key)
-        if (prev) {
-          prev = JSON.parse(prev)
-          tr.prev = prev.last
-          tr.low = tr.last < prev.low ? tr.last : prev.low
-          tr.high = tr.last > prev.high ? tr.last : prev.high
-          tr.baseVolumePercent = (tr.baseVolume - prev.baseVolume) * 100 / prev.baseVolume
-        } else {
-          tr.prev = tr.last
-          tr.low = tr.high = tr.last
-          tr.baseVolumePercent = 0
-        }
+
+        tr.low = tr.last > cached.low ? cached.low : tr.last
+        tr.high = tr.last < cached.high ? cached.high : tr.last
+        delete caches[e.key]
+
+        tr.prev = caches.$open !== undefined ? caches.$open : tr.last
+        tr.baseVolumePercent = caches.$baseVolume !== undefined ? ((tr.baseVolume - caches.$baseVolume) * 100 / caches.$baseVolume) : 0
+
         tr.percent = (tr.last - tr.prev) * 100 / tr.prev
-        data.push(tr)
+        caches.$open = undefined
+        caches.$baseVolume = undefined
+        data.push(tr) 
       }
-      await StoreHour.redis.hset('StoreHour.prevCached', (() => {
-        let rs = {}
-        data.forEach(e => {
-          rs[e.key] = JSON.stringify({ last: e.last, low: e.low, high: e.high, baseVolume: e.baseVolume })
-        })
-        return rs
-      })())
-      await StoreHour.mongo.insert<BittrexHourTrading>(BittrexHourTrading, data)
-      StoreHour.lastUpdateDB = now
-      await StoreHour.redis.set('StoreHour.lastUpdateDB', StoreHour.lastUpdateDB)
+      await StoreHour.mongo.insert<BittrexHourTrading>(BittrexHourTrading, data)      
+      await StoreHour.redis.set('StoreHour.lastUpdateDB', StoreHour.lastUpdateDB)      
+      await StoreHour.redis.set('StoreHour.newestTrading', JSON.stringify(data))
       await StoreHour.trends()
-      StoreHour.newestTrading = data
-      return true
+    } else {
+      for (let e of tradings) {
+        if (!caches[e.key]) caches[e.key] = {}
+        let cached = caches[e.key]
+
+        if (caches.$open === undefined) caches.$open = e.last
+        if (caches.$baseVolume === undefined) caches.$baseVolume = e.baseVolume
+
+        if (cached.low === undefined) cached.low = e.last
+        else cached.low = e.last > cached.low ? cached.low : e.last
+
+        if (cached.high === undefined) cached.high = e.last
+        else cached.high = e.last < cached.high ? caches[e.key].high : e.last
+      }
     }
-    return false
+    await StoreHour.redis.set('StoreHour.cached', JSON.stringify(caches))
   }
 
   static async trends() {
     console.log('#StoreHour', 'Calculate simple trends')
-    Trends.trendsHours()
+    // Trends.trendsMinutes()
+    // let beforeThat = new Date()
+    // beforeThat.setMinutes(beforeThat.getMinutes() - 30)
+    // const data = await StoreHour.mongo.find<BittrexHourTrading>(BittrexHourTrading, {
+    //   $where: {
+    //     time: {
+    //       $gte: beforeThat
+    //     }
+    //   },
+    //   $recordsPerPage: 0,
+    //   $fields: { _id: 1, name: 1, market: 1, key: 1, last: 1, percent: 1, time: 1, prev: 1 },
+    //   $sort: {
+    //     key: 1,
+    //     time: -1
+    //   }
+    // })
+    // const rs = {}
+    // data.forEach(e => {
+    //   if (!rs[e.key]) rs[e.key] = []
+    //   rs[e.key].push(e)
+    // })
+    // await Trends(rs)
+    // StoreHour.trending = MatrixTrends.trends(data, StoreHour.matrix, 0.1)
   }
 }

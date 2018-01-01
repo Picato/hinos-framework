@@ -3,9 +3,11 @@ import BittrexApi from './BittrexApi'
 import BittrexUser from './BittrexUser'
 import BittrexAlert from './BittrexAlert'
 import * as Extra from 'telegraf/extra'
+import { StoreTrading } from './StoreTrading'
 // import * as Markup from 'telegraf/markup'
 
 export class TelegramCommand {
+
   static Bot = new BotCommand(AppConfig.app.bittrex.telegramBot)
 
   static async init() {
@@ -246,7 +248,7 @@ export class TelegramCommand {
         if (!key || !formula) return await reply('Not found market-coin or formular')
         if (!formula.includes('<') && !formula.includes('>') && !formula.includes('=')) return await reply('Formula need includes atlest 1 in ">", "<", ">=", "<=", "=="')
         await BittrexAlert.addAlert(from.username, new BittrexAlert(key, formula, des))
-        const tmp = TelegramCommand.getAlertMsgs(from.username, key)
+        const tmp = await TelegramCommand.getAlertMsgs(from.username, key)
         if (tmp.length === 0) return await reply('No alert')
         await replyWithMarkdown(tmp.join('\n'))
       } catch (e) {
@@ -283,7 +285,7 @@ export class TelegramCommand {
         if (!alert || Object.keys(alert).length === 0) return await reply('No alert')
         let [, _key] = message.text.split(' ')
         if (_key) _key = _key.toUpperCase()
-        const tmp = TelegramCommand.getAlertMsgs(from.username, _key)
+        const tmp = await TelegramCommand.getAlertMsgs(from.username, _key)
         if (tmp.length === 0) return await reply('No alert')
         await replyWithMarkdown(tmp.join('\n'))
       } catch (e) {
@@ -301,7 +303,7 @@ export class TelegramCommand {
         if (i === undefined) return await reply('Not found index to remove')
         key = key.toUpperCase()
         await BittrexAlert.rmAlert(from.username, key, +i)
-        const tmp = TelegramCommand.getAlertMsgs(from.username, key)
+        const tmp = await TelegramCommand.getAlertMsgs(from.username, key)
         if (tmp.length === 0) return await reply('No alert')
         await replyWithMarkdown(tmp.join('\n'))
       } catch (e) {
@@ -317,7 +319,7 @@ export class TelegramCommand {
         let [, key] = message.text.split(' ')
         if (key) key = key.toUpperCase()
         await BittrexAlert.rmAlert(from.username, key, -1)
-        const tmp = TelegramCommand.getAlertMsgs(from.username, undefined)
+        const tmp = await TelegramCommand.getAlertMsgs(from.username, undefined)
         if (tmp.length === 0) return await reply('No alert')
         await replyWithMarkdown(tmp.join('\n'))
       } catch (e) {
@@ -334,7 +336,7 @@ export class TelegramCommand {
         if (!coin) return await reply('Not found coin')
         coin = coin.toUpperCase()
         const txt = [`*#${coin} DETAILS*\n-----------------------------------------`]
-        const newestTrading = BittrexApi.newestTrading
+        const newestTrading = await StoreTrading.getTradings()
         for (const c of newestTrading) {
           if (c.name === coin) {
             txt.push(`*${c.key}* = ${BittrexApi.formatNumber(c.last)} `)
@@ -352,11 +354,12 @@ export class TelegramCommand {
     TelegramCommand.Bot.command('rate', async (ctx) => {
       const { replyWithMarkdown, reply } = ctx
       try {
+        const rate = await StoreTrading.getRate()
         const msgs = [
           `*RATE*\n-----------------------------------------`,
-          `*1 BTC* = ${BittrexApi.formatNumber(BittrexApi.rate['BTC-USDT'])} *USDT*`,
-          `*1 ETH* = ${BittrexApi.formatNumber(BittrexApi.rate['ETH-USDT'])} *USDT*`,
-          `*1 BTC* = ${BittrexApi.formatNumber(BittrexApi.rate['BTC-ETH'])} *ETH*`
+          `*1 BTC* = ${BittrexApi.formatNumber(rate['BTC-USDT'])} *USDT*`,
+          `*1 ETH* = ${BittrexApi.formatNumber(rate['ETH-USDT'])} *USDT*`,
+          `*1 BTC* = ${BittrexApi.formatNumber(rate['BTC-ETH'])} *ETH*`
         ]
         await replyWithMarkdown(msgs.join('\n'))
       } catch (e) {
@@ -395,7 +398,7 @@ export class TelegramCommand {
     })
   }
 
-  private static getAlertMsgs(username: string, _key: string) {
+  private static async getAlertMsgs(username: string, _key: string) {
     const tmp = []
     const alert = BittrexAlert.getAlerts(username)
     if (!alert || Object.keys(alert).length === 0) return tmp
@@ -404,7 +407,8 @@ export class TelegramCommand {
       if (tmp.length === 0) {
         tmp.push(`*ALERTS*\n-----------------------------------------`)
       }
-      const f = BittrexApi.newestTrading.find(e => e.key === key)
+      const newestTrading = await StoreTrading.getTradings()
+      const f = newestTrading.find(e => e.key === key)
       tmp.push(`*${key}* = ${f ? BittrexApi.formatNumber(f.last) : ''}`)
       tmp.push(alert[key].map((e, i) => ` ${i} | * $${e.formula}* | _${e.des || ''} _`).join('\n'))
       tmp.push('')

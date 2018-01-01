@@ -33,24 +33,20 @@ export default class StoreMin {
   private static mongo: Mongo
 
   // static trending
-  static newestTrading = []
   static matrix = [] as string[][]
 
   private static lastUpdateDB
+
+  static async find(fil) {
+    return await StoreMin.mongo.find<BittrexMinTrading>(BittrexMinTrading, fil)
+  }
 
   static async init() {
     console.log('#StoreMin', 'Initial')
     StoreMin.lastUpdateDB = await StoreMin.redis.get('StoreMin.lastUpdateDB')
     if (StoreMin.lastUpdateDB) StoreMin.lastUpdateDB = new Date(StoreMin.lastUpdateDB)
-    const lastTrading = await StoreMin.mongo.find<BittrexMinTrading>(BittrexMinTrading, {
-      $where: {
-        time: StoreMin.lastUpdateDB
-      },
-      $recordsPerPage: 0
-    })
-    if (lastTrading) StoreMin.newestTrading = lastTrading
-    await StoreMin.loadInMatrix()
-    await StoreMin.trends()
+    // await StoreMin.loadInMatrix()
+    // await StoreMin.trends()
   }
 
   static async loadInMatrix() {
@@ -66,11 +62,28 @@ export default class StoreMin {
     // StoreMin.matrix = await MatrixTrends.loadInMatrix(data)
   }
 
+  static async getTradings() {
+    return JSON.parse(await StoreMin.redis.get('StoreMin.newestTrading') || '[]')
+  }
+
   static async insert(tradings: BittrexCachedTrading[], now: Date) {
+    let caches = await StoreMin.redis.get('StoreMin.cached')
+    if (caches) caches = JSON.parse(caches)
+    else caches = {}
     if (!StoreMin.lastUpdateDB || (StoreMin.lastUpdateDB.getMinutes() !== now.getMinutes() && now.getMinutes() % AppConfig.app.bittrex.updateDBAfterMins === 0)) {
       console.log('#StoreMin', 'Inserting trading')
+      StoreMin.lastUpdateDB = now
       let data = []
       for (let e of tradings) {
+        if (!caches[e.key]) caches[e.key] = {}
+        let cached = caches[e.key]
+
+        if (caches.$open === undefined) caches.$open = e.last
+        if (caches.$baseVolume === undefined) caches.$baseVolume = e.baseVolume
+
+        if (cached.low === undefined) cached.low = e.last
+        if (cached.high === undefined) cached.high = e.last
+
         const tr = {} as BittrexMinTrading
         tr._id = e._id
         tr.key = e.key
@@ -85,36 +98,39 @@ export default class StoreMin {
         tr.minutes = e.time.getMinutes()
         tr.baseVolume = e.baseVolume
         tr.last = e.last
-        let prev = await StoreMin.redis.hget('StoreMin.prevCached', e.key)
-        if (prev) {
-          prev = JSON.parse(prev)
-          tr.prev = prev.last
-          tr.low = tr.last < prev.low ? tr.last : prev.low
-          tr.high = tr.last > prev.high ? tr.last : prev.high
-          tr.baseVolumePercent = (tr.baseVolume - prev.baseVolume) * 100 / prev.baseVolume
-        } else {
-          tr.prev = tr.last
-          tr.low = tr.high = tr.last
-          tr.baseVolumePercent = 0
-        }
+
+        tr.low = tr.last > cached.low ? cached.low : tr.last
+        tr.high = tr.last < cached.high ? cached.high : tr.last
+        delete caches[e.key]
+
+        tr.prev = caches.$open !== undefined ? caches.$open : tr.last
+        tr.baseVolumePercent = caches.$baseVolume !== undefined ? ((tr.baseVolume - caches.$baseVolume) * 100 / caches.$baseVolume) : 0
+
         tr.percent = (tr.last - tr.prev) * 100 / tr.prev
+        caches.$open = undefined
+        caches.$baseVolume = undefined
         data.push(tr)
       }
-      await StoreMin.redis.hset('StoreMin.prevCached', (() => {
-        let rs = {}
-        data.forEach(e => {
-          rs[e.key] = JSON.stringify({ last: e.last, low: e.low, high: e.high, baseVolume: e.baseVolume })
-        })
-        return rs
-      })())
-      await StoreMin.mongo.insert<BittrexMinTrading>(BittrexMinTrading, data)
-      StoreMin.lastUpdateDB = now
-      await StoreMin.redis.set('StoreMin.lastUpdateDB', StoreMin.lastUpdateDB)
+      await StoreMin.mongo.insert<BittrexMinTrading>(BittrexMinTrading, data)      
+      await StoreMin.redis.set('StoreMin.lastUpdateDB', StoreMin.lastUpdateDB)      
+      await StoreMin.redis.set('StoreMin.newestTrading', JSON.stringify(data))
       await StoreMin.trends()
-      StoreMin.newestTrading = data
-      return true
+    } else {
+      for (let e of tradings) {
+        if (!caches[e.key]) caches[e.key] = {}
+        let cached = caches[e.key]
+
+        if (caches.$open === undefined) caches.$open = e.last
+        if (caches.$baseVolume === undefined) caches.$baseVolume = e.baseVolume
+
+        if (cached.low === undefined) cached.low = e.last
+        else cached.low = e.last > cached.low ? cached.low : e.last
+
+        if (cached.high === undefined) cached.high = e.last
+        else cached.high = e.last < cached.high ? caches[e.key].high : e.last
+      }
     }
-    return false
+    await StoreMin.redis.set('StoreMin.cached', JSON.stringify(caches))
   }
 
   static async trends() {
