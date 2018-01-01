@@ -16,6 +16,7 @@ export class BittrexHourTrading {
   month: number
   year: number
   hours: number
+  open: number
   prev: number
   last: number
   percent: number
@@ -96,16 +97,18 @@ export default class StoreHour {
         tr.hours = e.time.getHours()
         tr.baseVolume = e.baseVolume
         tr.last = e.last
-
+        
         tr.low = tr.last > cached.low ? cached.low : tr.last
         tr.high = tr.last < cached.high ? cached.high : tr.last
 
+        tr.open = cached.open !== undefined ? cached.open : tr.last
         tr.prev = cached.prev !== undefined ? cached.prev : tr.last
         tr.baseVolumePercent = cached.baseVolume !== undefined ? ((tr.baseVolume - cached.baseVolume) * 100 / cached.baseVolume) : 0
 
         tr.percent = (tr.last - tr.prev) * 100 / tr.prev
         data.push(tr)
 
+        cached.open = undefined
         cached.low = undefined
         cached.high = undefined
         cached.prev = tr.last
@@ -119,6 +122,8 @@ export default class StoreHour {
       for (let e of tradings) {
         if (!caches[e.key]) caches[e.key] = {}
         let cached = caches[e.key]
+
+        if (cached.open === undefined) cached.open = e.last
 
         if (cached.low === undefined) cached.low = e.last
         else cached.low = e.last > cached.low ? cached.low : e.last

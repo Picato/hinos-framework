@@ -5,6 +5,7 @@ import StoreHour from './StoreHour'
 import StoreDay from "./StoreDay"
 import BittrexAlert from "./BittrexAlert";
 import BittrexUser from "./BittrexUser";
+import { setTimeout } from "timers";
 
 @Collection('BittrexCachedTrading')
 export class BittrexCachedTrading {
@@ -35,6 +36,11 @@ export class StoreTrading {
       StoreHour.init(),
       StoreDay.init()
     ])
+    StoreTrading.prepareStartExecute()
+  }
+
+  static prepareStartExecute() {
+    if (new Date().getSeconds() !== 0) return setTimeout(StoreTrading.prepareStartExecute, 1000)
     setInterval(StoreTrading.execute, AppConfig.app.bittrex.scanChecking)
   }
 
