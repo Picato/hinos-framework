@@ -15,7 +15,7 @@ export class BittrexMinTrading {
   date: number
   month: number
   year: number
-  hours: number  
+  hours: number
   minutes: number
   open: number
   prev: number
@@ -131,7 +131,7 @@ export default class StoreMin {
         else cached.low = e.last > cached.low ? cached.low : e.last
 
         if (cached.high === undefined) cached.high = e.last
-        else cached.high = e.last < cached.high ? caches[e.key].high : e.last
+        else cached.high = e.last < cached.high ? cached.high : e.last
       }
     }
     await StoreMin.redis.set('StoreMin.cached', JSON.stringify(caches))

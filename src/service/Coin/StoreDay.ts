@@ -127,7 +127,7 @@ export default class StoreDay {
         else cached.low = e.last > cached.low ? cached.low : e.last
 
         if (cached.high === undefined) cached.high = e.last
-        else cached.high = e.last < cached.high ? caches[e.key].high : e.last
+        else cached.high = e.last < cached.high ? cached.high : e.last
       }
     }
     await StoreDay.redis.set('StoreDay.cached', JSON.stringify(caches))

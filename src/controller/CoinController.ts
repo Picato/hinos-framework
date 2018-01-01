@@ -62,7 +62,7 @@ export default class CoinController {
       $sort: {
         time: -1
       },
-      $recordsPerPage: 14
+      $recordsPerPage: 31
     })
   }
 
