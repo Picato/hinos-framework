@@ -1,11 +1,10 @@
 import { MONGO, Mongo, Uuid, Collection } from "hinos-mongo/lib/mongo"
 import { Redis, REDIS } from "hinos-redis/lib/redis"
 import { BittrexCachedTrading } from './StoreTrading'
-import Trends from "./AI/Trends";
 // import { MatrixTrends } from './MatrixTrends'
 
-@Collection('BittrexMinTrading')
-export class BittrexMinTrading {
+@Collection('BittrexMin3Trading')
+export class BittrexMin3Trading {
   _id?: Uuid
   name: string
   market: string
@@ -27,7 +26,7 @@ export class BittrexMinTrading {
   high: number
 }
 
-export default class StoreMin {
+export default class StoreMin3 {
   @REDIS()
   private static redis: Redis
   @MONGO('coin')
@@ -39,20 +38,20 @@ export default class StoreMin {
   private static lastUpdateDB
 
   static async find(fil) {
-    return await StoreMin.mongo.find<BittrexMinTrading>(BittrexMinTrading, fil)
+    return await StoreMin3.mongo.find<BittrexMin3Trading>(BittrexMin3Trading, fil)
   }
 
   static async init() {
-    console.log('#StoreMin', 'Initial')
-    StoreMin.lastUpdateDB = await StoreMin.redis.get('StoreMin.lastUpdateDB')
-    if (StoreMin.lastUpdateDB) StoreMin.lastUpdateDB = new Date(StoreMin.lastUpdateDB)
-    // await StoreMin.loadInMatrix()
-    // await StoreMin.trends()
+    console.log('#StoreMin3', 'Initial')
+    StoreMin3.lastUpdateDB = await StoreMin3.redis.get('StoreMin3.lastUpdateDB')
+    if (StoreMin3.lastUpdateDB) StoreMin3.lastUpdateDB = new Date(StoreMin3.lastUpdateDB)
+    // await StoreMin3.loadInMatrix()
+    // await StoreMin3.trends()
   }
 
   static async loadInMatrix() {
-    console.log('#StoreMin', 'Load matrix')
-    // const data = await StoreMin.mongo.find<BittrexMinTrading>(BittrexMinTrading, {
+    console.log('#StoreMin3', 'Load matrix')
+    // const data = await StoreMin3.mongo.find<BittrexMin3Trading>(BittrexMin3Trading, {
     //   $recordsPerPage: 0,
     //   $fields: { _id: 1, percent: 1, key: 1 },
     //   $sort: {
@@ -60,20 +59,20 @@ export default class StoreMin {
     //     time: 1
     //   }
     // })
-    // StoreMin.matrix = await MatrixTrends.loadInMatrix(data)
+    // StoreMin3.matrix = await MatrixTrends.loadInMatrix(data)
   }
 
   static async getTradings() {
-    return JSON.parse(await StoreMin.redis.get('StoreMin.newestTrading') || '[]')
+    return JSON.parse(await StoreMin3.redis.get('StoreMin3.newestTrading') || '[]')
   }
 
   static async insert(tradings: BittrexCachedTrading[], now: Date) {
-    let caches = await StoreMin.redis.get('StoreMin.cached')
+    let caches = await StoreMin3.redis.get('StoreMin3.cached')
     if (caches) caches = JSON.parse(caches)
     else caches = {}
-    if (!StoreMin.lastUpdateDB || (StoreMin.lastUpdateDB.getMinutes() !== now.getMinutes() && now.getMinutes() % AppConfig.app.bittrex.updateDBAfterMins === 0)) {
-      console.log('#StoreMin', 'Inserting trading')
-      StoreMin.lastUpdateDB = now
+    if (!StoreMin3.lastUpdateDB || (StoreMin3.lastUpdateDB.getMinutes() !== now.getMinutes() && now.getMinutes() % 3 === 0)) {
+      console.log('#StoreMin3', 'Inserting trading')
+      StoreMin3.lastUpdateDB = now
       let data = []
       for (let e of tradings) {
         if (!caches[e.key]) caches[e.key] = {}
@@ -85,7 +84,7 @@ export default class StoreMin {
         if (cached.low === undefined) cached.low = e.last
         if (cached.high === undefined) cached.high = e.last
 
-        const tr = {} as BittrexMinTrading
+        const tr = {} as BittrexMin3Trading
         tr._id = e._id
         tr.key = e.key
         tr.name = e.name
@@ -116,10 +115,10 @@ export default class StoreMin {
         cached.prev = tr.last
         cached.baseVolume = tr.baseVolume
       }
-      await StoreMin.mongo.insert<BittrexMinTrading>(BittrexMinTrading, data)
-      await StoreMin.redis.set('StoreMin.lastUpdateDB', StoreMin.lastUpdateDB)
-      await StoreMin.redis.set('StoreMin.newestTrading', JSON.stringify(data))
-      await StoreMin.trends()
+      await StoreMin3.mongo.insert<BittrexMin3Trading>(BittrexMin3Trading, data)
+      await StoreMin3.redis.set('StoreMin3.lastUpdateDB', StoreMin3.lastUpdateDB)
+      await StoreMin3.redis.set('StoreMin3.newestTrading', JSON.stringify(data))
+      await StoreMin3.trends()
     } else {
       for (let e of tradings) {
         if (!caches[e.key]) caches[e.key] = {}
@@ -134,33 +133,10 @@ export default class StoreMin {
         else cached.high = e.last < cached.high ? cached.high : e.last
       }
     }
-    await StoreMin.redis.set('StoreMin.cached', JSON.stringify(caches))
+    await StoreMin3.redis.set('StoreMin3.cached', JSON.stringify(caches))
   }
 
   static async trends() {
-    console.log('#StoreMin', 'Calculate simple trends')
-    Trends.trendsMinutes()
-    // let beforeThat = new Date()
-    // beforeThat.setMinutes(beforeThat.getMinutes() - 30)
-    // const data = await StoreMin.mongo.find<BittrexMinTrading>(BittrexMinTrading, {
-    //   $where: {
-    //     time: {
-    //       $gte: beforeThat
-    //     }
-    //   },
-    //   $recordsPerPage: 0,
-    //   $fields: { _id: 1, name: 1, market: 1, key: 1, last: 1, percent: 1, time: 1, prev: 1 },
-    //   $sort: {
-    //     key: 1,
-    //     time: -1
-    //   }
-    // })
-    // const rs = {}
-    // data.forEach(e => {
-    //   if (!rs[e.key]) rs[e.key] = []
-    //   rs[e.key].push(e)
-    // })
-    // await Trends(rs)
-    // StoreMin.trending = MatrixTrends.trends(data, StoreMin.matrix, 0.1)
+    console.log('#StoreMin3', 'Calculate simple trends')
   }
 }

@@ -1,6 +1,6 @@
 import { REDIS, Redis } from "hinos-redis/lib/redis";
 import { MONGO, Mongo } from "hinos-mongo/lib/mongo";
-import { BittrexMinTrading } from "../StoreMin";
+import { BittrexMin5Trading } from "../StoreMin5";
 
 
 export default class Trends {
@@ -22,7 +22,7 @@ export default class Trends {
   static async trendsMinutes() {
     let beforeThat = new Date()
     beforeThat.setMinutes(beforeThat.getMinutes() - 30)
-    const data = await Trends.mongo.find<BittrexMinTrading>(BittrexMinTrading, {
+    const data = await Trends.mongo.find<BittrexMin5Trading>(BittrexMin5Trading, {
       $where: {
         time: {
           $gte: beforeThat
@@ -49,7 +49,7 @@ export default class Trends {
   static async trendsHours() {
     let beforeThat = new Date()
     beforeThat.setMinutes(beforeThat.getHours() - 12)
-    const data = await Trends.mongo.find<BittrexMinTrading>(BittrexMinTrading, {
+    const data = await Trends.mongo.find<BittrexMin5Trading>(BittrexMin5Trading, {
       $where: {
         time: {
           $gte: beforeThat
@@ -76,7 +76,7 @@ export default class Trends {
   static async trendsDays() {
     let beforeThat = new Date()
     beforeThat.setMinutes(beforeThat.getDate() - 7)
-    const data = await Trends.mongo.find<BittrexMinTrading>(BittrexMinTrading, {
+    const data = await Trends.mongo.find<BittrexMin5Trading>(BittrexMin5Trading, {
       $where: {
         time: {
           $gte: beforeThat
@@ -106,8 +106,8 @@ export default class Trends {
     for (let key in traddings) {
       let items = traddings[key]
 
-      const last = items[0] as BittrexMinTrading
-      const open = items[items.length - 1] as BittrexMinTrading
+      const last = items[0] as BittrexMin5Trading
+      const open = items[items.length - 1] as BittrexMin5Trading
 
       const msg = {
         time,

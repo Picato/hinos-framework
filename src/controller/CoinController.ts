@@ -1,6 +1,8 @@
 import { GET } from 'hinos-route'
 import { RESTRICT } from 'hinos-bodyparser/restrict'
-import StoreMin from '../service/Coin/StoreMin'
+import StoreMin5 from '../service/Coin/StoreMin5'
+import StoreMin3 from '../service/Coin/StoreMin3'
+import StoreMin30 from '../service/Coin/StoreMin30'
 import StoreHour from '../service/Coin/StoreHour'
 import StoreDay from '../service/Coin/StoreDay'
 import Trends from '../service/Coin/AI/Trends'
@@ -20,7 +22,9 @@ export default class CoinController {
   })
   static async getMarket({ query }) {
     let rs
-    if (query.type === 'min') rs = await StoreMin.getTradings()
+    if (query.type === 'min3') rs = await StoreMin3.getTradings()
+    else if (query.type === 'min5') rs = await StoreMin5.getTradings()
+    else if (query.type === 'min30') rs = await StoreMin30.getTradings()
     else if (query.type === 'hour') rs = await StoreHour.getTradings()
     else if (query.type === 'day') rs = await StoreDay.getTradings()
     else rs = await StoreTrading.getTradings()
@@ -37,7 +41,25 @@ export default class CoinController {
     }
   })
   static async getMarketDetails({ query, params }) {
-    if (query.type === 'min') return StoreMin.find({
+    if (query.type === 'min3') return StoreMin3.find({
+      $where: {
+        key: params.coinName.toUpperCase()
+      },
+      $sort: {
+        time: -1
+      },
+      $recordsPerPage: 30
+    })
+    if (query.type === 'min5') return StoreMin5.find({
+      $where: {
+        key: params.coinName.toUpperCase()
+      },
+      $sort: {
+        time: -1
+      },
+      $recordsPerPage: 30
+    })
+    if (query.type === 'min30') return StoreMin30.find({
       $where: {
         key: params.coinName.toUpperCase()
       },

@@ -8,7 +8,7 @@ export default class BittrexAlert {
   @REDIS()
   private static redis: Redis
 
-  static GROUP_ID = 504722063
+  // static GROUP_ID = 504722063
 
   static alerts = {} as {
     [username: string]: {
@@ -31,16 +31,19 @@ export default class BittrexAlert {
             for (let i = alertFormulas.length - 1; i >= 0; i--) {
               const e = alertFormulas[i]
               let isok
-              try {
-                eval(`isok = $ ${e.formula}`)
-                if (isok) {
-                  const msgs = [`📣📣📣 *${key}* = *${BittrexApi.formatNumber(t.last)}* ${e.formula} 📣📣📣`]
-                  if (e.des) msgs.push(`_${e.des}_`)
-                  await TelegramCommand.Bot.send(BittrexAlert.GROUP_ID, `${msgs.join('\n')}`, { parse_mode: 'Markdown' })
-                  await BittrexAlert.rmAlert(username, key, i)
+              const user = BittrexUser.users[username]
+              if (user) {
+                try {
+                  eval(`isok = $ ${e.formula}`)
+                  if (isok) {
+                    const msgs = [`📣📣📣 *${key}* = *${BittrexApi.formatNumber(t.last)}* ${e.formula} 📣📣📣`]
+                    if (e.des) msgs.push(`_${e.des}_`)
+                    await TelegramCommand.Bot.send(user.chatId, `${msgs.join('\n')}`, { parse_mode: 'Markdown' })
+                    await BittrexAlert.rmAlert(username, key, i)
+                  }
+                } catch (_e) {
+                  await TelegramCommand.Bot.send(user.chatId, `Formula *${e.formula}* got problem`, { parse_mode: 'Markdown' })
                 }
-              } catch (_e) {
-                await TelegramCommand.Bot.send(BittrexAlert.GROUP_ID, `Formula *${e.formula}* got problem`, { parse_mode: 'Markdown' })
               }
             }
           }

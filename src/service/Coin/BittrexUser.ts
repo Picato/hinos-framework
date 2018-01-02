@@ -14,10 +14,12 @@ export default class BittrexUser {
   static users = {} as { [username: string]: BittrexUser }
   bittrex: any
 
-  constructor(public username, public apikey, public orderIds = []) {
+  constructor(private username, private apikey, private secretkey, public chatId, public orderIds = []) {
     this.bittrex = require('node-bittrex-api') as any;
+    const self = this
     this.bittrex.options({
-      apikey,
+      apikey: self.apikey,
+      apisecret: self.secretkey,
       inverse_callback_arguments: true
     })
   }
@@ -25,14 +27,14 @@ export default class BittrexUser {
   static async reloadFromCached() {
     const bots = await BittrexUser.redis.hget(`bittrex.users`)
     for (let username in bots) {
-      const { apikey, orderIds } = JSON.parse(bots[username])
-      const user = new BittrexUser(username, apikey, orderIds)
+      const { apikey, secretkey, orderIds, chatId } = JSON.parse(bots[username])
+      const user = new BittrexUser(username, apikey, secretkey, chatId, orderIds)
       BittrexUser.users[username] = user
     }
   }
 
-  static async add(username, apikey) {
-    const user = new BittrexUser(username, apikey)
+  static async add(username, apikey, secretkey, chatId) {
+    const user = new BittrexUser(username, apikey, secretkey, chatId)
     BittrexUser.users[username] = user
     await user.saveToCached()
     return user
@@ -44,6 +46,8 @@ export default class BittrexUser {
       [self.username]: JSON.stringify({
         username: self.username,
         apikey: self.apikey,
+        secretkey: self.secretkey,
+        chatId: self.chatId,
         orderIds: self.orderIds
       })
     })

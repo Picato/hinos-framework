@@ -1,6 +1,8 @@
 import { REDIS, Redis } from "hinos-redis/lib/redis"
 import { Mongo, Collection, Uuid } from "hinos-mongo/lib/mongo"
-import StoreMin from './StoreMin'
+import StoreMin5 from './StoreMin5'
+import StoreMin3 from './StoreMin3'
+import StoreMin30 from './StoreMin30'
 import StoreHour from './StoreHour'
 import StoreDay from "./StoreDay"
 import BittrexAlert from "./BittrexAlert";
@@ -32,7 +34,9 @@ export class StoreTrading {
 
   static async init() {
     await Promise.all([
-      StoreMin.init(),
+      StoreMin3.init(),
+      StoreMin5.init(),
+      StoreMin30.init(),
       StoreHour.init(),
       StoreDay.init()
     ])
@@ -47,7 +51,9 @@ export class StoreTrading {
   static async updateData(tradings: BittrexCachedTrading[], now: Date) {
     console.log('updateData')
     Promise.all([
-      StoreMin.insert(tradings, now),
+      StoreMin3.insert(tradings, now),
+      StoreMin5.insert(tradings, now),
+      StoreMin30.insert(tradings, now),
       StoreHour.insert(tradings, now),
       StoreDay.insert(tradings, now),
       BittrexAlert.checkOrder(),

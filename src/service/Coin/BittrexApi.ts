@@ -1,8 +1,5 @@
 export default class BittrexApi {
 
-  username: string
-  token: string
-
   static toETH(price, market, rate) {
     return price * (rate[`${market}-ETH`] || 1)
   }

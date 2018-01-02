@@ -45,7 +45,6 @@
         "apikey": "",
         "apisecret": "",
         "telegramBot": "",
-        "updateDBAfterMins": 5,
         "scanCurrency": 300000,
         "scanChecking": 5000
       },
