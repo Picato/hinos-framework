@@ -1,6 +1,7 @@
 import { MONGO, Mongo, Uuid, Collection } from "hinos-mongo/lib/mongo"
 import { Redis, REDIS } from "hinos-redis/lib/redis"
 import { BittrexCachedTrading } from './StoreTrading'
+import TrendsHour from "./AI/TrendsHourMessage";
 // import Trends from "./AI/Trends";
 // import { MatrixTrends } from './MatrixTrends'
 
@@ -97,7 +98,7 @@ export default class StoreHour {
         tr.hours = e.time.getHours()
         tr.baseVolume = e.baseVolume
         tr.last = e.last
-        
+
         tr.low = tr.last > cached.low ? cached.low : tr.last
         tr.high = tr.last < cached.high ? cached.high : tr.last
 
@@ -117,7 +118,7 @@ export default class StoreHour {
       await StoreHour.mongo.insert<BittrexHourTrading>(BittrexHourTrading, data)
       await StoreHour.redis.set('StoreHour.lastUpdateDB', StoreHour.lastUpdateDB)
       await StoreHour.redis.set('StoreHour.newestTrading', JSON.stringify(data))
-      await StoreHour.trends()
+      TrendsHour.execute()
     } else {
       for (let e of tradings) {
         if (!caches[e.key]) caches[e.key] = {}
@@ -133,10 +134,5 @@ export default class StoreHour {
       }
     }
     await StoreHour.redis.set('StoreHour.cached', JSON.stringify(caches))
-  }
-
-  static async trends() {
-    console.log('#StoreHour', 'Calculate simple trends')
-    // Trends.trendsMinutes()
   }
 }

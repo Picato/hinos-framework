@@ -1,6 +1,7 @@
 import { MONGO, Mongo, Uuid, Collection } from "hinos-mongo/lib/mongo"
 import { Redis, REDIS } from "hinos-redis/lib/redis"
 import { BittrexCachedTrading } from './StoreTrading'
+import TrendsDay from "./AI/TrendsDayMessage";
 // import Trends from "./AI/Trends";
 // import { MatrixTrends } from './MatrixTrends'
 
@@ -100,10 +101,10 @@ export default class StoreDay {
         tr.high = tr.last < cached.high ? cached.high : tr.last
 
         tr.open = cached.open !== undefined ? cached.open : tr.last
-        tr.prev = cached.prev !== undefined ? cached.prev : tr.last
+        tr.prev = cached.prev !== undefined ? cached.prev : (tr.last - tr.open)
         tr.baseVolumePercent = cached.baseVolume !== undefined ? ((tr.baseVolume - cached.baseVolume) * 100 / cached.baseVolume) : 0
 
-        tr.percent = (tr.last - tr.prev) * 100 / tr.prev
+        tr.percent = (tr.last - tr.open) * 100 / tr.prev
         data.push(tr)
 
         cached.open = undefined
@@ -115,7 +116,7 @@ export default class StoreDay {
       await StoreDay.mongo.insert<BittrexDayTrading>(BittrexDayTrading, data)
       await StoreDay.redis.set('StoreDay.lastUpdateDB', StoreDay.lastUpdateDB)
       await StoreDay.redis.set('StoreDay.newestTrading', JSON.stringify(data))
-      await StoreDay.trends()
+      TrendsDay.execute()
     } else {
       for (let e of tradings) {
         if (!caches[e.key]) caches[e.key] = {}
@@ -131,10 +132,5 @@ export default class StoreDay {
       }
     }
     await StoreDay.redis.set('StoreDay.cached', JSON.stringify(caches))
-  }
-
-  static async trends() {
-    console.log('#StoreDay', 'Calculate simple trends')
-    // Trends.trendsMinutes()
   }
 }

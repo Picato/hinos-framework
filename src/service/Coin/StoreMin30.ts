@@ -1,6 +1,7 @@
 import { MONGO, Mongo, Uuid, Collection } from "hinos-mongo/lib/mongo"
 import { Redis, REDIS } from "hinos-redis/lib/redis"
 import { BittrexCachedTrading } from './StoreTrading'
+import TrendsMin30 from "./AI/TrendsMin30";
 // import { MatrixTrends } from './MatrixTrends'
 
 @Collection('BittrexMin30Trading')
@@ -118,7 +119,7 @@ export default class StoreMin30 {
       await StoreMin30.mongo.insert<BittrexMin30Trading>(BittrexMin30Trading, data)
       await StoreMin30.redis.set('StoreMin30.lastUpdateDB', StoreMin30.lastUpdateDB)
       await StoreMin30.redis.set('StoreMin30.newestTrading', JSON.stringify(data))
-      await StoreMin30.trends()
+      TrendsMin30.execute()
     } else {
       for (let e of tradings) {
         if (!caches[e.key]) caches[e.key] = {}
@@ -134,9 +135,5 @@ export default class StoreMin30 {
       }
     }
     await StoreMin30.redis.set('StoreMin30.cached', JSON.stringify(caches))
-  }
-
-  static async trends() {
-    console.log('#StoreMin30', 'Calculate simple trends')
   }
 }

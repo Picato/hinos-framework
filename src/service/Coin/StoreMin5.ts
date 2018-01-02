@@ -1,7 +1,7 @@
 import { MONGO, Mongo, Uuid, Collection } from "hinos-mongo/lib/mongo"
 import { Redis, REDIS } from "hinos-redis/lib/redis"
 import { BittrexCachedTrading } from './StoreTrading'
-import Trends from "./AI/Trends";
+import TrendsMin5 from "./AI/TrendsMin5";
 // import { MatrixTrends } from './MatrixTrends'
 
 @Collection('BittrexMin5Trading')
@@ -120,7 +120,7 @@ export default class StoreMin {
       await StoreMin.mongo.insert<BittrexMin5Trading>(BittrexMin5Trading, data)
       await StoreMin.redis.set('StoreMin.lastUpdateDB', StoreMin.lastUpdateDB)
       await StoreMin.redis.set('StoreMin.newestTrading', JSON.stringify(data))
-      await StoreMin.trends()
+      TrendsMin5.execute()
     } else {
       for (let e of tradings) {
         if (!caches[e.key]) caches[e.key] = {}
@@ -136,32 +136,5 @@ export default class StoreMin {
       }
     }
     await StoreMin.redis.set('StoreMin.cached', JSON.stringify(caches))
-  }
-
-  static async trends() {
-    console.log('#StoreMin', 'Calculate simple trends')
-    Trends.trendsMinutes()
-    // let beforeThat = new Date()
-    // beforeThat.setMinutes(beforeThat.getMinutes() - 30)
-    // const data = await StoreMin.mongo.find<BittrexMin5Trading>(BittrexMin5Trading, {
-    //   $where: {
-    //     time: {
-    //       $gte: beforeThat
-    //     }
-    //   },
-    //   $recordsPerPage: 0,
-    //   $fields: { _id: 1, name: 1, market: 1, key: 1, last: 1, percent: 1, time: 1, prev: 1 },
-    //   $sort: {
-    //     key: 1,
-    //     time: -1
-    //   }
-    // })
-    // const rs = {}
-    // data.forEach(e => {
-    //   if (!rs[e.key]) rs[e.key] = []
-    //   rs[e.key].push(e)
-    // })
-    // await Trends(rs)
-    // StoreMin.trending = MatrixTrends.trends(data, StoreMin.matrix, 0.1)
   }
 }

@@ -7,6 +7,9 @@ import StoreHour from '../service/Coin/StoreHour'
 import StoreDay from '../service/Coin/StoreDay'
 import Trends from '../service/Coin/AI/Trends'
 import { StoreTrading } from '../service/Coin/StoreTrading'
+import TrendsMin3 from '../service/Coin/AI/TrendsMin3';
+import { TrendingMessage } from '../service/Coin/TrendingMessage';
+import { TrendsMessageService } from '../service/Coin/AI/TrendsMessage';
 
 /************************************************
  ** GoldController || 4/10/2017, 10:19:24 AM **
@@ -99,8 +102,8 @@ export default class CoinController {
       type: String
     }
   })
-  static async getTrends({ _query }) {
-    return [] // query.type === 'day' ? StoreDay.trending : (query.type === 'hour' ? StoreHour.trending : StoreMin.trending)
+  static async getTrends({ query }) {
+    return []
   }
 
   @GET('/trending-message')
@@ -110,9 +113,8 @@ export default class CoinController {
     }
   })
   static async getTrendingMessage({ query }) {
-    if (query.type === 'day') return await Trends.getTrendNewsOnDay()
-    if (query.type === 'hour') return await Trends.getTrendNewsInHour()
-    if (query.type === 'min') return await Trends.getTrendNewsInMinute()
+    if (query.type === 'min3') return TrendsMessageService.find({}, query.type)
+    return []
   }
 
   // @GET('/bittrex-trading')
