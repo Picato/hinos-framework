@@ -1,50 +1,43 @@
-import { MONGO, Mongo } from "hinos-mongo/lib/mongo"
-import { BittrexTradingMin } from "../StoreMin";
+import { Uuid } from "hinos-mongo/lib/mongo"
 import { TrendsMessageService } from "./TrendsMessage";
 
-export default class TrendsMin3 {
-  @MONGO('coin')
-  private static mongo: Mongo
+export class BittrexTrading {
+  _id?: Uuid
+  key: string
+  time: Date
+  prev: number
+  last: number
+  percent: number
+  baseVolumePercent: number
+  candlePercent: number
+  candlePrev: number
+  candleLast: number
+}
 
-  static tradings = {} as {
-    [key: string]: any[]
+export class TrendsCommon {
+
+  constructor(private keyMessage) {
+    
   }
 
-  static async execute() {
-    let beforeThat = new Date()
-    beforeThat.setMinutes(beforeThat.getMinutes() - 30)
-    const data = await TrendsMin3.mongo.find<BittrexTradingMin>(BittrexTradingMin, {
-      $where: {
-        time: {
-          $gte: beforeThat
-        }
-      },
-      $recordsPerPage: 0,
-      $fields: { _id: 1, name: 1, market: 1, key: 1, last: 1, percent: 1, time: 1, prev: 1, candlePrev: 1, candlePercent: 1, candleLast: 1, baseVolumePercent: 1 },
-      $sort: {
-        key: 1,
-        time: -1
-      }
-    })
-    data.forEach(e => {
-      if (!TrendsMin3.tradings[e.key]) TrendsMin3.tradings[e.key] = []
-      TrendsMin3.tradings[e.key].push(e)
-    })
-    for (let key in TrendsMin3.tradings) {
-      const tradings = TrendsMin3.tradings[key]
+  public async execute(tradings: { [key: string]: BittrexTrading[] }) {
+    for (let key in tradings) {
+      const items = tradings[key]
+
       let msgs = await Promise.all([
-        TrendsMin3.check55Percent(key, tradings[0]),
-        TrendsMin3.checkRecentlySame(key, tradings),
-        TrendsMin3.checkBaseVolume(key, tradings)
+        this.check55Percent(key, items[0]),
+        this.checkRecentlySame(key, items),
+        this.checkBaseVolume(key, items)
       ]) as any[]
+
       msgs = msgs.reduce((sum: any[], msgs: any[]) => sum.concat(msgs), [])
       if (msgs.length > 0) {
-        await TrendsMessageService.insert(msgs, 'min3')
+        await TrendsMessageService.insert(msgs, this.keyMessage)
       }
     }
   }
 
-  static checkBaseVolume(key, tradings: BittrexTradingMin[]) {
+  checkBaseVolume(key, tradings: BittrexTrading[]) {
     return new Promise((resolve) => {
       let sign
       let c = 0
@@ -71,7 +64,7 @@ export default class TrendsMin3 {
     })
   }
 
-  static checkRecentlySame(key, tradings: BittrexTradingMin[]) {
+  checkRecentlySame(key, tradings: BittrexTrading[]) {
     return new Promise((resolve) => {
       const msgs = []
       const Step = 10
@@ -89,7 +82,7 @@ export default class TrendsMin3 {
     })
   }
 
-  static check55Percent(key: string, item: BittrexTradingMin) {
+  check55Percent(key: string, item: BittrexTrading) {
     return new Promise((resolve) => {
       const Percent = 55
       const msgs = []

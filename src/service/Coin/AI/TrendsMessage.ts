@@ -6,6 +6,7 @@ export class TrendsMessage {
   txt: string
   key: string
   type: string
+  style: string
   updated_at: Date
 }
 
@@ -16,12 +17,13 @@ export class TrendsMessageService {
   static async insert(msgs: TrendsMessage[], type: string) {
     await TrendsMessageService.mongo.insert<TrendsMessage>(TrendsMessage, msgs.map(e => {
       e.type = type
+      if (!e.style) e.style = 'COIN'
       e.updated_at = new Date()
       return e
     }))
   }
 
-  static async find(fil: any, type: string) {
+  static async find(_fil: any, type: string) {
     return await TrendsMessageService.mongo.find<TrendsMessage>(TrendsMessage, {
       $where: {
         type

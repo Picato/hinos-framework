@@ -3,7 +3,7 @@ import BittrexApi from './BittrexApi'
 import BittrexUser from './BittrexUser'
 import BittrexAlert from './BittrexAlert'
 import * as Extra from 'telegraf/extra'
-import { StoreTrading } from './StoreTrading'
+import StoreTrading from './StoreTrading'
 // import * as Markup from 'telegraf/markup'
 
 export class TelegramCommand {

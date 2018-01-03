@@ -5,11 +5,9 @@ import StoreMin3 from '../service/Coin/StoreMin3'
 import StoreMin30 from '../service/Coin/StoreMin30'
 import StoreHour from '../service/Coin/StoreHour'
 import StoreDay from '../service/Coin/StoreDay'
-import Trends from '../service/Coin/AI/Trends'
-import { StoreTrading } from '../service/Coin/StoreTrading'
-import TrendsMin3 from '../service/Coin/AI/TrendsMin3';
-import { TrendingMessage } from '../service/Coin/TrendingMessage';
+import StoreTrading from '../service/Coin/StoreTrading'
 import { TrendsMessageService } from '../service/Coin/AI/TrendsMessage';
+import StoreMin1 from '../service/Coin/StoreMin1';
 
 /************************************************
  ** GoldController || 4/10/2017, 10:19:24 AM **
@@ -25,7 +23,8 @@ export default class CoinController {
   })
   static async getMarket({ query }) {
     let rs
-    if (query.type === 'min3') rs = await StoreMin3.getTradings()
+    if (query.type === 'min1') rs = await StoreMin1.getTradings()
+    else if (query.type === 'min3') rs = await StoreMin3.getTradings()
     else if (query.type === 'min5') rs = await StoreMin5.getTradings()
     else if (query.type === 'min30') rs = await StoreMin30.getTradings()
     else if (query.type === 'hour') rs = await StoreHour.getTradings()
@@ -62,15 +61,15 @@ export default class CoinController {
       },
       $recordsPerPage: 30
     })
-    if (query.type === 'min30') return StoreMin30.find({
-      $where: {
-        key: params.coinName.toUpperCase()
-      },
-      $sort: {
-        time: -1
-      },
-      $recordsPerPage: 30
-    })
+    // if (query.type === 'min30') return StoreMin30.find({
+    //   $where: {
+    //     key: params.coinName.toUpperCase()
+    //   },
+    //   $sort: {
+    //     time: -1
+    //   },
+    //   $recordsPerPage: 30
+    // })
     if (query.type === 'hour') return StoreHour.find({
       $where: {
         key: params.coinName.toUpperCase()
@@ -102,7 +101,7 @@ export default class CoinController {
       type: String
     }
   })
-  static async getTrends({ query }) {
+  static async getTrends({ }) {
     return []
   }
 
@@ -113,8 +112,7 @@ export default class CoinController {
     }
   })
   static async getTrendingMessage({ query }) {
-    if (query.type === 'min3') return TrendsMessageService.find({}, query.type)
-    return []
+    return TrendsMessageService.find({}, query.type)
   }
 
   // @GET('/bittrex-trading')

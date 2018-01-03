@@ -12,7 +12,7 @@ export default class TrendsHour {
 
   static async execute() {
     let beforeThat = new Date()
-    beforeThat.setHours(beforeThat.getHours() - 10)
+    beforeThat.setHours(beforeThat.getHours() - 24)
     const data = await TrendsHour.mongo.find<BittrexHourTrading>(BittrexHourTrading, {
       $where: {
         time: {
@@ -20,7 +20,7 @@ export default class TrendsHour {
         }
       },
       $recordsPerPage: 0,
-      $fields: { _id: 1, name: 1, market: 1, key: 1, last: 1, percent: 1, time: 1, prev: 1 },
+      $fields: { _id: 1, name: 1, market: 1, key: 1, last: 1, percent: 1, time: 1, prev: 1, candlePrev: 1, candlePercent: 1, candleLast: 1 },
       $sort: {
         key: 1,
         time: -1
@@ -33,7 +33,7 @@ export default class TrendsHour {
     for (let key in TrendsHour.tradings) {
       const tradings = TrendsHour.tradings[key]
       let msgs = await Promise.all([
-        TrendsHour.check55Percent(key, tradings[0].percent),
+        TrendsHour.check55Percent(key, tradings[0]),
         TrendsHour.checkRecentlySame(key, tradings)
       ]) as any[]
       msgs = msgs.reduce((sum: any[], msgs: any[]) => sum.concat(msgs), [])
@@ -46,46 +46,39 @@ export default class TrendsHour {
   static checkRecentlySame(key, tradings: BittrexHourTrading[]) {
     return new Promise((resolve) => {
       const msgs = []
-      const Step = 3
+      const Step = 10
       let c = 0
-      let p = 0
       for (let t of tradings) {
-        if (!c) {
-          c += t.percent > 0 ? 1 : -1
-          p += t.percent
-        }
-        else if (c > 0 && t.percent > 0) {
+        if (t.candlePercent < 50)
           c++
-          p += t.percent
-        }
-        else if (c < 0 && t.percent < 0) {
-          c--
-          p += t.percent
-        }
         else
           break
       }
-      if (c > Step || c < -Step) {
-        if (p > 100) {
-          if (c > 0) msgs.push({ key, txt: `Đang tăng mạnh` })
-          else if (c < 0) msgs.push({ key, txt: `Đang giảm mạnh` })
-        } else {
-          if (c > 0) msgs.push({ key, txt: `Đang tăng nhẹ` })
-          else if (c < 0) msgs.push({ key, txt: `Đang giảm nhẹ` })
-        }
+      if (c >= Step) {
+        msgs.push({ key, txt: `Thị trường đã lâu không biến động trong ${c} candle` })
       }
       resolve(msgs)
     })
   }
 
-  static check55Percent(key, percent) {
+  static check55Percent(key: string, item: BittrexHourTrading) {
     return new Promise((resolve) => {
-      const Percent = 50
+      const Percent = 55
       const msgs = []
-      if (percent > Percent) {
-        msgs.push({ key, txt: `Chuẩn bị đợt tăng (${percent}%)` })
-      } else if (percent < -Percent) {
-        msgs.push({ key, txt: `Chuẩn bị đợt giảm (${percent}%)` })
+      if (item.candlePercent >= Percent) {
+        if (item.candlePrev > 0 && item.candleLast < 0) {
+          // Dang giam
+          msgs.push({ key, txt: `Thị trường đảo chiều đang giảm ${item.candlePercent}%` })
+        } else if (item.candlePrev < 0 && item.candleLast > 0) {
+          // Dang tang
+          msgs.push({ key, txt: `Thị trường đảo chiều đang tăng ${item.candlePercent}%` })
+        } else if (item.candlePrev < 0 && item.candleLast < 0) {
+          // Trends giam
+          msgs.push({ key, txt: `Có thể trends giảm (${item.candlePercent}%)` })
+        } else {
+          // Trends tang
+          msgs.push({ key, txt: `Có thể trends tăng (${item.candlePercent}%)` })
+        }
       }
       resolve(msgs)
     })

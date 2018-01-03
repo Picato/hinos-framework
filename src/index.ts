@@ -10,8 +10,8 @@ import './config'
 
 require(`./env.${Server.env}`).default(Server)
 
-Mongo(AppConfig.mongo).debug(!Server.isProduction)
-Redis(AppConfig.redis).debug(!Server.isProduction)
+Mongo(AppConfig.mongo)
+Redis(AppConfig.redis)
 // Server.use(serve({
 //   '/images': path.join(__dirname, '..', 'assets', 'images')
 // }))
@@ -31,3 +31,4 @@ Server.listen(AppConfig.port, async () => {
 
 // GoldService.autoSync();
 
+import './SyncCoin'

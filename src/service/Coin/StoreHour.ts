@@ -1,8 +1,7 @@
 import { MONGO, Mongo, Uuid, Collection } from "hinos-mongo/lib/mongo"
 import { Redis, REDIS } from "hinos-redis/lib/redis"
 import { BittrexCachedTrading } from './StoreTrading'
-import TrendsHour from "./AI/TrendsHourMessage";
-// import Trends from "./AI/Trends";
+import TrendsHour from "./AI/TrendsHour";
 // import { MatrixTrends } from './MatrixTrends'
 
 @Collection('BittrexHourTrading')
@@ -19,6 +18,9 @@ export class BittrexHourTrading {
   hours: number
   open: number
   prev: number
+  candleLast: number
+  candlePrev: number
+  candlePercent: number
   last: number
   percent: number
   baseVolume: number
@@ -71,7 +73,7 @@ export default class StoreHour {
     let caches = await StoreHour.redis.get('StoreHour.cached')
     if (caches) caches = JSON.parse(caches)
     else caches = {}
-    if (!StoreHour.lastUpdateDB || StoreHour.lastUpdateDB.getHours() !== now.getHours()) {
+    if (!StoreHour.lastUpdateDB || (StoreHour.lastUpdateDB.getHours() !== now.getHours() && now.getHours() % 1 === 0)) {
       console.log('#StoreHour', 'Inserting trading')
       StoreHour.lastUpdateDB = now
       let data = []
@@ -107,12 +109,19 @@ export default class StoreHour {
         tr.baseVolumePercent = cached.baseVolume !== undefined ? ((tr.baseVolume - cached.baseVolume) * 100 / cached.baseVolume) : 0
 
         tr.percent = (tr.last - tr.prev) * 100 / tr.prev
+
+        tr.candleLast = tr.last - tr.open
+        tr.candlePrev = cached.candlePrev !== undefined ? cached.candlePrev : (tr.last - tr.open)
+        const candlePrev = tr.candlePrev * (tr.candlePrev < 0 ? -1 : 1)
+        const candleLast = tr.candleLast * (tr.candleLast < 0 ? -1 : 1)
+        tr.candlePercent = candleLast * 100 / (candlePrev || 1)
         data.push(tr)
 
         cached.open = undefined
         cached.low = undefined
         cached.high = undefined
         cached.prev = tr.last
+        cached.candlePrev = tr.last - tr.open
         cached.baseVolume = tr.baseVolume
       }
       await StoreHour.mongo.insert<BittrexHourTrading>(BittrexHourTrading, data)

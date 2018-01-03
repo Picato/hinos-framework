@@ -3,11 +3,12 @@ import { Mongo, Collection, Uuid } from "hinos-mongo/lib/mongo"
 import StoreMin5 from './StoreMin5'
 import StoreMin3 from './StoreMin3'
 import StoreMin30 from './StoreMin30'
-import StoreHour from './StoreHour'
-import StoreDay from "./StoreDay"
-import BittrexAlert from "./BittrexAlert";
+// import StoreHour from './StoreHour'
+// import StoreDay from "./StoreDay"
+// import BittrexAlert from "./BittrexAlert";
 import BittrexUser from "./BittrexUser";
-import { setTimeout } from "timers";
+import { EventEmitter } from "events";
+// import StoreMin1 from "./StoreMin1";
 
 @Collection('BittrexCachedTrading')
 export class BittrexCachedTrading {
@@ -27,67 +28,82 @@ export class BittrexCachedTrading {
   volume: number
 }
 
-export class StoreTrading {
+class StoreTrading {
 
   @REDIS()
-  private static redis: Redis
+  private redis: Redis
 
-  static async init() {
-    await Promise.all([
+  private event = new EventEmitter()
+
+  constructor() {
+    this.event.on('init', () => StoreMin3.init.call(StoreMin3))
+    this.event.on('init', () => StoreMin3.init.call(StoreMin5))
+    this.event.on('init', () => StoreMin3.init.call(StoreMin30))
+
+    this.event.on('updateData', (tradings: BittrexCachedTrading[], now: Date) => StoreMin3.handle.call(StoreMin3, tradings, now))
+    this.event.on('updateData', (tradings: BittrexCachedTrading[], now: Date) => StoreMin5.handle.call(StoreMin5, tradings, now))
+    this.event.on('updateData', (tradings: BittrexCachedTrading[], now: Date) => StoreMin30.handle.call(StoreMin30, tradings, now))
+    Promise.all([
+      // StoreMin1.init(),
       StoreMin3.init(),
       StoreMin5.init(),
       StoreMin30.init(),
-      StoreHour.init(),
-      StoreDay.init()
-    ])
-    StoreTrading.prepareStartExecute()
+      // StoreHour.init(),
+      // StoreDay.init()
+    ]).then(() => {
+      this.prepareStartExecute.apply(this)
+    })
   }
 
-  static prepareStartExecute() {
-    if (new Date().getSeconds() !== 0) return setTimeout(StoreTrading.prepareStartExecute, 1000)
-    setInterval(StoreTrading.execute, AppConfig.app.bittrex.scanChecking)
+  public async getTradings() {
+    return JSON.parse(await this.redis.get('StoreTrading.newestTrading') || '[]') as BittrexCachedTrading[]
   }
 
-  static async updateData(tradings: BittrexCachedTrading[], now: Date) {
-    console.log('updateData')
-    Promise.all([
-      StoreMin3.insert(tradings, now),
-      StoreMin5.insert(tradings, now),
-      StoreMin30.insert(tradings, now),
-      StoreHour.insert(tradings, now),
-      StoreDay.insert(tradings, now),
-      BittrexAlert.checkOrder(),
-      BittrexAlert.checkAlert(tradings, now)
-    ])
+  public async getRate() {
+    return JSON.parse(await this.redis.get('StoreTrading.rate') || '[]') as { [key: string]: number }
   }
 
-  public static async getTradings() {
-    return JSON.parse(await StoreTrading.redis.get('StoreTrading.newestTrading') || '[]') as BittrexCachedTrading[]
-  }
-
-  public static async getRate() {
-    return JSON.parse(await StoreTrading.redis.get('StoreTrading.rate') || '[]') as { [key: string]: number }
-  }
-
-  public static async execute() {
+  public async execute() {
     try {
-      // await StoreTrading.redis.del('bittrex.trace')
+      // await this.redis.del('bittrex.trace')
       const data = await BittrexUser.getMarketSummaries()
       const now = new Date()
 
-      const rate = await StoreTrading.handleRate(data)
-      await StoreTrading.redis.set('StoreTrading.rate', JSON.stringify(rate))
+      const rate = await this.handleRate(data)
+      await this.redis.set('StoreTrading.rate', JSON.stringify(rate))
 
-      const tradings = await StoreTrading.handleData(data, now)
-      await StoreTrading.redis.set('StoreTrading.newestTrading', JSON.stringify(tradings))
+      const tradings = await this.handleData(data, now)
+      await this.redis.set('StoreTrading.newestTrading', JSON.stringify(tradings))
 
-      await StoreTrading.updateData(tradings, now)
+      await this.updateData(tradings, now)
     } catch (e) {
       console.error(e)
     }
   }
 
-  static handleRate(data: any[]) {
+  private prepareStartExecute() {
+    // if (new Date().getSeconds() !== 0) return setTimeout(this.prepareStartExecute, 1000)
+    setInterval(() => {
+      this.execute.apply(this)
+    }, AppConfig.app.bittrex.scanChecking)
+  }
+
+  private async updateData(tradings: BittrexCachedTrading[], now: Date) {
+    console.log('updateData')
+    this.event.emit('updateData', tradings, now)
+    // Promise.all([
+    //   // StoreMin1.insert(tradings, now),
+    //   this.storeMin3.insert(tradings, now),
+    //   // StoreMin5.insert(tradings, now),
+    //   // StoreMin30.insert(tradings, now),
+    //   // StoreHour.insert(tradings, now),
+    //   // StoreDay.insert(tradings, now),
+    //   // BittrexAlert.checkOrder(),
+    //   // BittrexAlert.checkAlert(tradings, now)
+    // ])
+  }
+
+  private handleRate(data: any[]) {
     let rs = {
       'BTC-ETH': 0,
       'BTC-USDT': 0,
@@ -117,9 +133,9 @@ export class StoreTrading {
     return rs
   }
 
-  static async handleData(data: any[], now: Date) {
+  private async handleData(data: any[], now: Date) {
     const tradings = [] as BittrexCachedTrading[]
-    const oldTradings = await StoreTrading.getTradings()
+    const oldTradings = await this.getTradings()
     for (let e of data) {
       let trading = new BittrexCachedTrading()
       trading._id = Mongo.uuid()
@@ -144,3 +160,5 @@ export class StoreTrading {
     return tradings
   }
 }
+
+export default new StoreTrading()
