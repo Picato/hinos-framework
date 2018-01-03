@@ -1,6 +1,6 @@
 import { Redis, REDIS } from 'hinos-redis/lib/redis';
-import { BittrexCachedTrading } from './StoreTrading';
-import { TelegramCommand } from './TelegramCommand';
+import { TradingTemp } from '../Crawler/RawHandler';
+import TelegramCommand from '../Telegram/TelegramCommand';
 import BittrexApi from './BittrexApi';
 import BittrexUser from './BittrexUser';
 
@@ -18,8 +18,8 @@ export default class BittrexAlert {
 
   constructor(public key: string, public formula: string, public des: string) { }
 
-  // Run in StoreTrading after each updae new data
-  static async checkAlert(tradings: BittrexCachedTrading[], _now: Date) {
+  // Run in RawTrading after each updae new data
+  static async checkAlert(tradings: TradingTemp[], _now: Date) {
     const alerts = BittrexAlert.alerts
     for (let username in alerts) {
       for (let key in alerts[username]) {

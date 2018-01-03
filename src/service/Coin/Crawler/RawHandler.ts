@@ -1,17 +1,16 @@
 import { REDIS, Redis } from "hinos-redis/lib/redis"
-import { Mongo, Collection, Uuid } from "hinos-mongo/lib/mongo"
-import StoreMin5 from './StoreMin5'
-import StoreMin3 from './StoreMin3'
-import StoreMin30 from './StoreMin30'
-// import StoreHour from './StoreHour'
-// import StoreDay from "./StoreDay"
+import { Mongo, Uuid } from "hinos-mongo/lib/mongo"
+import HandlerMin1 from "./HandlerMin1"
+import HandlerMin5 from './HandlerMin5'
+import HandlerMin3 from './HandlerMin3'
+import HandlerMin30 from './HandlerMin30'
+// import HandlerHour1 from './HandlerHour1'
+// import HandlerDay1 from "./HandlerDay1"
 // import BittrexAlert from "./BittrexAlert";
-import BittrexUser from "./BittrexUser";
+import BittrexUser from "../Bittrex/BittrexUser";
 import { EventEmitter } from "events";
-// import StoreMin1 from "./StoreMin1";
 
-@Collection('BittrexCachedTrading')
-export class BittrexCachedTrading {
+export class TradingTemp {
   _id?: Uuid
   name: string
   market: string
@@ -28,39 +27,41 @@ export class BittrexCachedTrading {
   volume: number
 }
 
-class StoreTrading {
+class _RawTrading {
 
   @REDIS()
   private redis: Redis
 
-  private event = new EventEmitter()
+  public event = new EventEmitter()
 
   constructor() {
-    this.event.on('init', () => StoreMin3.init.call(StoreMin3))
-    this.event.on('init', () => StoreMin3.init.call(StoreMin5))
-    this.event.on('init', () => StoreMin3.init.call(StoreMin30))
 
-    this.event.on('updateData', (tradings: BittrexCachedTrading[], now: Date) => StoreMin3.handle.call(StoreMin3, tradings, now))
-    this.event.on('updateData', (tradings: BittrexCachedTrading[], now: Date) => StoreMin5.handle.call(StoreMin5, tradings, now))
-    this.event.on('updateData', (tradings: BittrexCachedTrading[], now: Date) => StoreMin30.handle.call(StoreMin30, tradings, now))
-    Promise.all([
-      // StoreMin1.init(),
-      StoreMin3.init(),
-      StoreMin5.init(),
-      StoreMin30.init(),
-      // StoreHour.init(),
-      // StoreDay.init()
-    ]).then(() => {
-      this.prepareStartExecute.apply(this)
-    })
+  }
+
+  async init() {
+    await Promise.all([
+      HandlerMin1.init(),
+      HandlerMin3.init(),
+      HandlerMin5.init(),
+      HandlerMin30.init(),
+      // HandlerHour1.init(),
+      // HandlerDay1.init()
+    ])
+
+    this.event.on('updateData', (tradings: TradingTemp[], now: Date) => HandlerMin1.handle.call(HandlerMin1, tradings, now))
+    this.event.on('updateData', (tradings: TradingTemp[], now: Date) => HandlerMin3.handle.call(HandlerMin3, tradings, now))
+    this.event.on('updateData', (tradings: TradingTemp[], now: Date) => HandlerMin5.handle.call(HandlerMin5, tradings, now))
+    this.event.on('updateData', (tradings: TradingTemp[], now: Date) => HandlerMin30.handle.call(HandlerMin30, tradings, now))
+
+    this.prepareStartExecute.apply(this)
   }
 
   public async getTradings() {
-    return JSON.parse(await this.redis.get('StoreTrading.newestTrading') || '[]') as BittrexCachedTrading[]
+    return JSON.parse(await this.redis.get('RawTrading.newestTrading') || '[]') as TradingTemp[]
   }
 
   public async getRate() {
-    return JSON.parse(await this.redis.get('StoreTrading.rate') || '[]') as { [key: string]: number }
+    return JSON.parse(await this.redis.get('RawTrading.rate') || '[]') as { [key: string]: number }
   }
 
   public async execute() {
@@ -70,12 +71,22 @@ class StoreTrading {
       const now = new Date()
 
       const rate = await this.handleRate(data)
-      await this.redis.set('StoreTrading.rate', JSON.stringify(rate))
+      await this.redis.set('RawTrading.rate', JSON.stringify(rate))
 
       const tradings = await this.handleData(data, now)
-      await this.redis.set('StoreTrading.newestTrading', JSON.stringify(tradings))
+      await this.redis.set('RawTrading.newestTrading', JSON.stringify(tradings))
 
-      await this.updateData(tradings, now)
+      this.event.emit('updateData', tradings, now)
+      // Promise.all([
+      //   // HandlerMin1.insert(tradings, now),
+      //   this.storeMin3.insert(tradings, now),
+      //   // HandlerMin5.insert(tradings, now),
+      //   // HandlerMin30.insert(tradings, now),
+      //   // HandlerHour1.insert(tradings, now),
+      //   // HandlerDay1.insert(tradings, now),
+      //   // BittrexAlert.checkOrder(),
+      //   // BittrexAlert.checkAlert(tradings, now)
+      // ])
     } catch (e) {
       console.error(e)
     }
@@ -86,21 +97,6 @@ class StoreTrading {
     setInterval(() => {
       this.execute.apply(this)
     }, AppConfig.app.bittrex.scanChecking)
-  }
-
-  private async updateData(tradings: BittrexCachedTrading[], now: Date) {
-    console.log('updateData')
-    this.event.emit('updateData', tradings, now)
-    // Promise.all([
-    //   // StoreMin1.insert(tradings, now),
-    //   this.storeMin3.insert(tradings, now),
-    //   // StoreMin5.insert(tradings, now),
-    //   // StoreMin30.insert(tradings, now),
-    //   // StoreHour.insert(tradings, now),
-    //   // StoreDay.insert(tradings, now),
-    //   // BittrexAlert.checkOrder(),
-    //   // BittrexAlert.checkAlert(tradings, now)
-    // ])
   }
 
   private handleRate(data: any[]) {
@@ -134,10 +130,10 @@ class StoreTrading {
   }
 
   private async handleData(data: any[], now: Date) {
-    const tradings = [] as BittrexCachedTrading[]
+    const tradings = [] as TradingTemp[]
     const oldTradings = await this.getTradings()
     for (let e of data) {
-      let trading = new BittrexCachedTrading()
+      let trading = new TradingTemp()
       trading._id = Mongo.uuid()
       trading.key = e.MarketName
       e.MarketName.split('-').forEach((e, i) => {
@@ -160,5 +156,5 @@ class StoreTrading {
     return tradings
   }
 }
-
-export default new StoreTrading()
+const RawTrading = new _RawTrading()
+export default RawTrading

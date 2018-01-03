@@ -6,13 +6,15 @@
   "scripts": {
     "once": "npm install -g typescript && npm install -g cross-var && npm install -g tslint-config-standard",
     "start": "node .",
-    "synccoin": "pm2 start \".build/SyncCoin\" --env production --name \"sync-coin\"",
+    "pm2:synccoin": "pm2 start \".build/service/Coin/Crawler\" --env production --name \"blaz-sync-coin\"",
+    "pm2:telebot": "pm2 start \".build/service/Coin/Telegram\" --env production --name \"blaz-telegram-bot\"",
+    "pm2:api": "pm2 start . --env production --name \"blaz-api\"",
+    "pm2": "npm run pm2:synccoin && npm run pm2:telebot && npm run pm2:api",
     "prebuild": "rimraf .build .spec",
     "build": "tsc",
     "pretest": "rimraf .spec && tsc -p src/test/tsconfig.json",
     "test": "mocha --opts src/test/mocha.opts \".spec/test/spec/*.js\"",
     "dev": "tsc --watch --pretty --sourceMap",
-    "pm2": "cross-var \"pm2 start . --env production --name $npm_package_name\"",
     "hinosgen": "git clone https://github.com/doanthuanthanh88/quickstart.git -b hinos@gencode --single-branch @gencode && cd @gencode && npm install",
     "gen": "cd @gencode && npm start"
   },

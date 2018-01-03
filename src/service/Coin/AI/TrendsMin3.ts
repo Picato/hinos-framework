@@ -1,6 +1,6 @@
 import { MONGO, Mongo } from "hinos-mongo/lib/mongo"
-import { BittrexTradingMin } from "../StoreMin";
 import { TrendsMessageService } from "./TrendsMessage";
+import { TradingMin } from "../Crawler/AbsHandlerMin";
 
 export default class TrendsMin3 {
   @MONGO('coin')
@@ -13,7 +13,7 @@ export default class TrendsMin3 {
   static async execute() {
     let beforeThat = new Date()
     beforeThat.setMinutes(beforeThat.getMinutes() - 30)
-    const data = await TrendsMin3.mongo.find<BittrexTradingMin>(BittrexTradingMin, {
+    const data = await TrendsMin3.mongo.find<TradingMin>('TradingMin3', {
       $where: {
         time: {
           $gte: beforeThat
@@ -44,7 +44,7 @@ export default class TrendsMin3 {
     }
   }
 
-  static checkBaseVolume(key, tradings: BittrexTradingMin[]) {
+  static checkBaseVolume(key, tradings: TradingMin[]) {
     return new Promise((resolve) => {
       let sign
       let c = 0
@@ -71,7 +71,7 @@ export default class TrendsMin3 {
     })
   }
 
-  static checkRecentlySame(key, tradings: BittrexTradingMin[]) {
+  static checkRecentlySame(key, tradings: TradingMin[]) {
     return new Promise((resolve) => {
       const msgs = []
       const Step = 10
@@ -89,7 +89,7 @@ export default class TrendsMin3 {
     })
   }
 
-  static check55Percent(key: string, item: BittrexTradingMin) {
+  static check55Percent(key: string, item: TradingMin) {
     return new Promise((resolve) => {
       const Percent = 55
       const msgs = []

@@ -1,16 +1,16 @@
 import { Redis, REDIS } from "hinos-redis/lib/redis"
-import { BittrexCachedTrading } from './StoreTrading'
-import { BittrexTrading, TrendsCommon } from "./AI/TrendsCommon"
-import { TrendsMessage, TrendsMessageService } from "./AI/TrendsMessage"
+import { TradingTemp } from './RawHandler'
+import { BittrexTrading, TrendsCommon } from "../AI/TrendsCommon"
+import { TrendsMessage, TrendsMessageService } from "../AI/TrendsMessage"
 
-export class BittrexMin1Trading extends BittrexTrading {
+export class TradingMin1 extends BittrexTrading {
   name: string
   market: string
   raw_time: Date
   baseVolume: number
 }
 
-class StoreMin1 extends TrendsCommon {
+class HandlerMin1 extends TrendsCommon {
   @REDIS()
   private redis: Redis
 
@@ -20,8 +20,13 @@ class StoreMin1 extends TrendsCommon {
   private lastUpdateDB
   private caches
 
+  constructor(keyMessage: string) {
+    super(keyMessage)
+    this.init()
+  }
+
   async init() {
-    console.log('#StoreMin1', 'Initial')
+    console.log(`#${this.constructor.name}`, 'Initial')
     this.lastUpdateDB = await this.redis.get('this.lastUpdateDB')
     if (this.lastUpdateDB) this.lastUpdateDB = new Date(this.lastUpdateDB)
 
@@ -33,12 +38,12 @@ class StoreMin1 extends TrendsCommon {
     return JSON.parse(await this.redis.get('this.newestTrading') || '[]')
   }
 
-  async handle(tradings: BittrexCachedTrading[], now: Date) {
+  async handle(tradings: TradingTemp[], now: Date) {
     if (!this.lastUpdateDB || (this.lastUpdateDB.getMinutes() !== now.getMinutes() && now.getMinutes() % 1 === 0)) {
-      console.log('#StoreMin1', 'Inserting trading')
+      console.log(`#${this.constructor.name}`, 'Inserting trading')
 
       this.lastUpdateDB = now
-      let data = [] as BittrexMin1Trading[]
+      let data = [] as TradingMin1[]
       for (let e of tradings) {
         if (!this.caches[e.key]) this.caches[e.key] = {}
         let cached = this.caches[e.key]
@@ -49,7 +54,7 @@ class StoreMin1 extends TrendsCommon {
         if (cached.low === undefined) cached.low = e.last
         if (cached.high === undefined) cached.high = e.last
 
-        const tr = {} as BittrexMin1Trading
+        const tr = {} as TradingMin1
         tr._id = e._id
         tr.key = e.key
         tr.name = e.name
@@ -100,4 +105,4 @@ class StoreMin1 extends TrendsCommon {
   }
 }
 
-export default new StoreMin1('min1')
+export default new HandlerMin1('min1')

@@ -1,4 +1,4 @@
-import { BittrexMin1Trading } from "../StoreMin1";
+import { TradingMin1 } from "../Crawler/HandlerMin1";
 import { TrendsMessageService, TrendsMessage } from "./TrendsMessage";
 
 // import { REDIS, Redis } from "hinos-redis/lib/redis";
@@ -7,7 +7,7 @@ export default class TrendsMin1 {
   // @REDIS()
   // private static redis: Redis
 
-  static async execute(data: BittrexMin1Trading[]) {
+  static async execute(data: TradingMin1[]) {
     let msgs = []
     let maxPercent = data
       .sort((a, b) => (b.percent > 0 ? b.percent : (b.percent * -1)) - (a.percent > 0 ? a.percent : (a.percent * -1)))

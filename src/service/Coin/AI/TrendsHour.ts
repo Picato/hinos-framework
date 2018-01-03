@@ -1,5 +1,5 @@
 import { MONGO, Mongo } from "hinos-mongo/lib/mongo"
-import { BittrexHourTrading } from "../StoreHour";
+import { TradingHour1 } from "../Crawler/HandlerHour1";
 import { TrendsMessageService } from "./TrendsMessage";
 
 export default class TrendsHour {
@@ -13,7 +13,7 @@ export default class TrendsHour {
   static async execute() {
     let beforeThat = new Date()
     beforeThat.setHours(beforeThat.getHours() - 24)
-    const data = await TrendsHour.mongo.find<BittrexHourTrading>(BittrexHourTrading, {
+    const data = await TrendsHour.mongo.find<TradingHour1>(TradingHour1, {
       $where: {
         time: {
           $gte: beforeThat
@@ -43,7 +43,7 @@ export default class TrendsHour {
     }
   }
 
-  static checkRecentlySame(key, tradings: BittrexHourTrading[]) {
+  static checkRecentlySame(key, tradings: TradingHour1[]) {
     return new Promise((resolve) => {
       const msgs = []
       const Step = 10
@@ -61,7 +61,7 @@ export default class TrendsHour {
     })
   }
 
-  static check55Percent(key: string, item: BittrexHourTrading) {
+  static check55Percent(key: string, item: TradingHour1) {
     return new Promise((resolve) => {
       const Percent = 55
       const msgs = []

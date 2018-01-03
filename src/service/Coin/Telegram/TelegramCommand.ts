@@ -1,12 +1,12 @@
-import { BotCommand } from '../Telegram'
-import BittrexApi from './BittrexApi'
-import BittrexUser from './BittrexUser'
-import BittrexAlert from './BittrexAlert'
+import { BotCommand } from './Telegram'
+import BittrexApi from '../Bittrex/BittrexApi'
+import BittrexUser from '../Bittrex/BittrexUser'
+import BittrexAlert from '../Bittrex/BittrexAlert'
 import * as Extra from 'telegraf/extra'
-import StoreTrading from './StoreTrading'
+import RawTrading from '../Crawler/RawHandler'
 // import * as Markup from 'telegraf/markup'
 
-export class TelegramCommand {
+export default class TelegramCommand {
 
   static Bot = new BotCommand(AppConfig.app.bittrex.telegramBot)
 
@@ -15,12 +15,30 @@ export class TelegramCommand {
       BittrexUser.reloadFromCached(),
       BittrexAlert.reloadFromCached()
     ])
+    // Refer https://github.com/telegraf/telegraf/blob/develop/docs/examples/keyboard-bot.js
+    TelegramCommand.registerLogin()
+    TelegramCommand.registerGetMyWalletStatus()
+    TelegramCommand.registerGetMyWalletID()
+    TelegramCommand.registerGetRate()
+    TelegramCommand.registerGetCoinInfo()
+    TelegramCommand.registerAddAlert()
+    TelegramCommand.registerGetAlerts()
+    TelegramCommand.registerRmAlert()
+    TelegramCommand.registerClearAlert()
+    TelegramCommand.registerBuy()
+    TelegramCommand.registerSell()
+    TelegramCommand.registerStart()
+  }
 
+  private static registerStart() {
     TelegramCommand.Bot.start(async (ctx) => {
       const { reply, chat } = ctx
       await reply(`[${chat.id}] Welcome to BittrexBotVN!`)
     })
+    TelegramCommand.Bot.startPolling()
+  }
 
+  private static registerLogin() {
     TelegramCommand.Bot.command('login', async (ctx) => {
       const { reply, from, message, chat } = ctx
       const [, apikey, secretKey] = message.text.split(' ')
@@ -29,62 +47,9 @@ export class TelegramCommand {
       await BittrexUser.add(from.id.toString(), apikey, secretKey, chat.id)
       await reply(`[${from.id}] Hi ${from.first_name} ${from.last_name}.\nYour account is registed via bittrex apikey\nLet's remove your token which you have just input`)
     })
-    // Refer https://github.com/telegraf/telegraf/blob/develop/docs/examples/keyboard-bot.js
-    // const Extra = require('telegraf/extra')
-    // const Markup = require('telegraf/markup')
-    // TelegramCommand.Bot.command('help', (ctx) => {
-    //   return ctx.reply('Action support', Markup
-    //     .keyboard([
-    //       ['/rate', '/ls']
-    //     ])
-    //     .oneTime()
-    //     .resize()
-    //     .extra()
-    //   )
-    // })
-    // TelegramCommand.Bot.action('rate', (_ctx) => {
-    //   console.log('ok')
-    // })
-
-    // TelegramCommand.Bot.on('inline_query', async ({ inlineQuery, answerInlineQuery }) => {
-    //   try {
-    //     let rs = []
-    //     let coin = inlineQuery.query
-    //     if (coin) {
-    //       coin = coin.toUpperCase()
-    //       const newestTrading = await StoreTrading.getTradings()
-    //       rs = newestTrading.filter(e => e.name.indexOf(coin) !== -1).map((e, i) => {
-    //         return {
-    //           type: 'article',
-    //           title: `${e.key}`,
-    //           id: i,
-    //           input_message_content: {
-    //             message_text: `#${e.name}`,
-    //             parse_mode: 'Markdown'
-    //           }
-    //         }
-    //       })
-    //       return answerInlineQuery(rs)
-    //     }
-    //   } catch (e) {
-    //     await console.error(e)
-    //   }
-    // })
-
-    await TelegramCommand.registerGetMyWalletStatus()
-    await TelegramCommand.registerGetMyWalletID()
-    await TelegramCommand.registerGetRate()
-    await TelegramCommand.registerGetCoinInfo()
-    await TelegramCommand.registerAddAlert()
-    await TelegramCommand.registerGetAlerts()
-    await TelegramCommand.registerRmAlert()
-    await TelegramCommand.registerClearAlert()
-    await TelegramCommand.registerBuy()
-    await TelegramCommand.registerSell()
-    TelegramCommand.Bot.startPolling()
   }
 
-  static async registerBuy() {
+  private static registerBuy() {
     TelegramCommand.Bot.action(/buy:(yes|no|cancel) .+/, async (ctx) => {
       const { editMessageText, editMessageReplyMarkup, reply, match, from, chat, callbackQuery } = ctx
       try {
@@ -141,7 +106,7 @@ export class TelegramCommand {
         const commission = subTotal * rate
         const total = subTotal + commission
         const msgs = []
-        const newestTrading = await StoreTrading.getTradings()
+        const newestTrading = await RawTrading.getTradings()
         const trading = newestTrading.find(e => e.key === key)
         if (!trading) throw `Could not found price of "${key}"`
         msgs.push(`*BUYING FORM DETAILS*`)
@@ -180,7 +145,7 @@ export class TelegramCommand {
     })
   }
 
-  static async registerSell() {
+  private static registerSell() {
     TelegramCommand.Bot.action(/sell:(yes|no|cancel) .+/, async (ctx) => {
       const { editMessageText, editMessageReplyMarkup, reply, match, from, chat, callbackQuery } = ctx
       try {
@@ -236,7 +201,7 @@ export class TelegramCommand {
         const commission = subTotal * rate
         const total = subTotal - commission
         const msgs = []
-        const newestTrading = await StoreTrading.getTradings()
+        const newestTrading = await RawTrading.getTradings()
         const trading = newestTrading.find(e => e.key === key)
         if (!trading) throw `Could not found price of "${key}"`
         msgs.push(`*SELLING FORM DETAILS*`)
@@ -275,7 +240,7 @@ export class TelegramCommand {
     })
   }
 
-  static async registerAddAlert() {
+  private static registerAddAlert() {
     TelegramCommand.Bot.command('nw', async (ctx) => {
       const { reply, replyWithMarkdown, from, message } = ctx
       try {
@@ -294,27 +259,7 @@ export class TelegramCommand {
     })
   }
 
-  static async registerGetAlerts() {
-    // const Extra = require('telegraf/extra')
-    // const Markup = require('telegraf/markup')
-    // const markup = Extra
-    //   .HTML()
-    //   .markup((m) => m.inlineKeyboard([
-    //     m.callbackButton('Add 1', 'add:1'),
-    //     m.callbackButton('Add 10', 'add:10'),
-    //     m.callbackButton('Add 100', 'add:100'),
-    //     m.callbackButton('Subtract 1', 'sub:1'),
-    //     m.callbackButton('Subtract 10', 'sub:10'),
-    //     m.callbackButton('Subtract 100', 'sub:100'),
-    //     m.callbackButton('🐈', Math.random().toString(36).slice(2)),
-    //     m.callbackButton('Clear', 'clear')
-    //   ], { columns: 3 }))
-    // const markup = Extra.markup(
-    //   Markup.inlineKeyboard([
-    //     Markup.gameButton('🎮 Play now!'),
-    //     Markup.urlButton('Telegraf help', 'http://telegraf.js.org')
-    //   ])
-    // )
+  private static registerGetAlerts() {
     TelegramCommand.Bot.command('ls', async (ctx) => {
       const { reply, replyWithMarkdown, from, message } = ctx
       try {
@@ -331,7 +276,7 @@ export class TelegramCommand {
     })
   }
 
-  static async registerRmAlert() {
+  private static registerRmAlert() {
     TelegramCommand.Bot.command('rm', async (ctx) => {
       const { reply, replyWithMarkdown, from, message } = ctx
       try {
@@ -349,7 +294,7 @@ export class TelegramCommand {
     })
   }
 
-  static async registerClearAlert() {
+  private static registerClearAlert() {
     TelegramCommand.Bot.command('cls', async (ctx) => {
       const { reply, replyWithMarkdown, from, message } = ctx
       try {
@@ -365,7 +310,7 @@ export class TelegramCommand {
     })
   }
 
-  static async registerGetCoinInfo() {
+  private static registerGetCoinInfo() {
     TelegramCommand.Bot.hears(/^#.+$/i, async (ctx) => {
       const { reply, replyWithMarkdown, message } = ctx
       try {
@@ -373,7 +318,7 @@ export class TelegramCommand {
         if (!coin) return await reply('Not found coin')
         coin = coin.toUpperCase()
         const txt = [`*#${coin} DETAILS*\n-----------------------------------------`]
-        const newestTrading = await StoreTrading.getTradings()
+        const newestTrading = await RawTrading.getTradings()
         for (const c of newestTrading) {
           if (c.name === coin) {
             txt.push(`*${c.key}* = ${BittrexApi.formatNumber(c.last)} `)
@@ -387,11 +332,11 @@ export class TelegramCommand {
     })
   }
 
-  static async registerGetRate() {
+  private static registerGetRate() {
     TelegramCommand.Bot.command('rate', async (ctx) => {
       const { replyWithMarkdown, reply } = ctx
       try {
-        const rate = await StoreTrading.getRate()
+        const rate = await RawTrading.getRate()
         const msgs = [
           `*RATE*\n-----------------------------------------`,
           `*1 BTC* = ${BittrexApi.formatNumber(rate['BTC-USDT'])} *USDT*`,
@@ -405,7 +350,7 @@ export class TelegramCommand {
     })
   }
 
-  static async registerGetMyWalletStatus() {
+  private static registerGetMyWalletStatus() {
     TelegramCommand.Bot.command('wallet', async (ctx) => {
       const { replyWithMarkdown, from, reply } = ctx
       try {
@@ -422,7 +367,7 @@ export class TelegramCommand {
     })
   }
 
-  static async registerGetMyWalletID() {
+  private static registerGetMyWalletID() {
     TelegramCommand.Bot.command('walletid', async (ctx) => {
       const { replyWithMarkdown, from, reply } = ctx
       try {
@@ -444,7 +389,7 @@ export class TelegramCommand {
       if (tmp.length === 0) {
         tmp.push(`*ALERTS*\n-----------------------------------------`)
       }
-      const newestTrading = await StoreTrading.getTradings()
+      const newestTrading = await RawTrading.getTradings()
       const f = newestTrading.find(e => e.key === key)
       tmp.push(`*${key}* = ${f ? BittrexApi.formatNumber(f.last) : ''}`)
       tmp.push(alert[key].map((e, i) => ` ${i} | * $${e.formula}* | _${e.des || ''} _`).join('\n'))

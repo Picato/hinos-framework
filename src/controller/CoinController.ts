@@ -1,13 +1,13 @@
 import { GET } from 'hinos-route'
 import { RESTRICT } from 'hinos-bodyparser/restrict'
-import StoreMin5 from '../service/Coin/StoreMin5'
-import StoreMin3 from '../service/Coin/StoreMin3'
-import StoreMin30 from '../service/Coin/StoreMin30'
-import StoreHour from '../service/Coin/StoreHour'
-import StoreDay from '../service/Coin/StoreDay'
-import StoreTrading from '../service/Coin/StoreTrading'
+import HandlerMin5 from '../service/Coin/Crawler/HandlerMin5'
+import HandlerMin3 from '../service/Coin/Crawler/HandlerMin3'
+import HandlerMin30 from '../service/Coin/Crawler/HandlerMin30'
+import HandlerHour1 from '../service/Coin/Crawler/HandlerHour1'
+import HandlerDay1 from '../service/Coin/Crawler/HandlerDay1'
+import RawTrading from '../service/Coin/Crawler/RawHandler'
 import { TrendsMessageService } from '../service/Coin/AI/TrendsMessage';
-import StoreMin1 from '../service/Coin/StoreMin1';
+import HandlerMin1 from '../service/Coin/Crawler/HandlerMin1';
 
 /************************************************
  ** GoldController || 4/10/2017, 10:19:24 AM **
@@ -23,13 +23,13 @@ export default class CoinController {
   })
   static async getMarket({ query }) {
     let rs
-    if (query.type === 'min1') rs = await StoreMin1.getTradings()
-    else if (query.type === 'min3') rs = await StoreMin3.getTradings()
-    else if (query.type === 'min5') rs = await StoreMin5.getTradings()
-    else if (query.type === 'min30') rs = await StoreMin30.getTradings()
-    else if (query.type === 'hour') rs = await StoreHour.getTradings()
-    else if (query.type === 'day') rs = await StoreDay.getTradings()
-    else rs = await StoreTrading.getTradings()
+    if (query.type === 'min1') rs = await HandlerMin1.getTradings()
+    else if (query.type === 'min3') rs = await HandlerMin3.getTradings()
+    else if (query.type === 'min5') rs = await HandlerMin5.getTradings()
+    else if (query.type === 'min30') rs = await HandlerMin30.getTradings()
+    else if (query.type === 'hour') rs = await HandlerHour1.getTradings()
+    else if (query.type === 'day') rs = await HandlerDay1.getTradings()
+    else rs = await RawTrading.getTradings()
     return rs.sort((a, b) => Math.abs(b.percent - a.percent))
   }
 
@@ -43,7 +43,7 @@ export default class CoinController {
     }
   })
   static async getMarketDetails({ query, params }) {
-    if (query.type === 'min3') return StoreMin3.find({
+    if (query.type === 'min3') return HandlerMin3.find({
       $where: {
         key: params.coinName.toUpperCase()
       },
@@ -52,7 +52,7 @@ export default class CoinController {
       },
       $recordsPerPage: 30
     })
-    if (query.type === 'min5') return StoreMin5.find({
+    if (query.type === 'min5') return HandlerMin5.find({
       $where: {
         key: params.coinName.toUpperCase()
       },
@@ -61,16 +61,16 @@ export default class CoinController {
       },
       $recordsPerPage: 30
     })
-    // if (query.type === 'min30') return StoreMin30.find({
-    //   $where: {
-    //     key: params.coinName.toUpperCase()
-    //   },
-    //   $sort: {
-    //     time: -1
-    //   },
-    //   $recordsPerPage: 30
-    // })
-    if (query.type === 'hour') return StoreHour.find({
+    if (query.type === 'min30') return HandlerMin30.find({
+      $where: {
+        key: params.coinName.toUpperCase()
+      },
+      $sort: {
+        time: -1
+      },
+      $recordsPerPage: 30
+    })
+    if (query.type === 'hour') return HandlerHour1.find({
       $where: {
         key: params.coinName.toUpperCase()
       },
@@ -79,7 +79,7 @@ export default class CoinController {
       },
       $recordsPerPage: 24
     })
-    if (query.type === 'day') return StoreDay.find({
+    if (query.type === 'day') return HandlerDay1.find({
       $where: {
         key: params.coinName.toUpperCase()
       },
@@ -92,7 +92,7 @@ export default class CoinController {
 
   @GET('/rate')
   static async getRate() {
-    return await StoreTrading.getRate()
+    return await RawTrading.getRate()
   }
 
   @GET('/trends')

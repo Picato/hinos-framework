@@ -1,5 +1,5 @@
 import { MONGO, Mongo } from "hinos-mongo/lib/mongo"
-import { BittrexDayTrading } from "../StoreDay";
+import { TradingDay1 } from "../Crawler/HandlerDay1";
 import { TrendsMessageService } from "./TrendsMessage";
 
 export default class TrendsDay {
@@ -13,7 +13,7 @@ export default class TrendsDay {
   static async execute() {
     let beforeThat = new Date()
     beforeThat.setDate(beforeThat.getDate() - 30)
-    const data = await TrendsDay.mongo.find<BittrexDayTrading>(BittrexDayTrading, {
+    const data = await TrendsDay.mongo.find<TradingDay1>(TradingDay1, {
       $where: {
         time: {
           $gte: beforeThat
@@ -43,7 +43,7 @@ export default class TrendsDay {
     }
   }
 
-  static checkRecentlySame(key, tradings: BittrexDayTrading[]) {
+  static checkRecentlySame(key, tradings: TradingDay1[]) {
     return new Promise((resolve) => {
       const msgs = []
       const Step = 10
@@ -61,7 +61,7 @@ export default class TrendsDay {
     })
   }
 
-  static check55Percent(key: string, item: BittrexDayTrading) {
+  static check55Percent(key: string, item: TradingDay1) {
     return new Promise((resolve) => {
       const Percent = 55
       const msgs = []

@@ -1,11 +1,11 @@
 import { MONGO, Mongo, Uuid, Collection } from "hinos-mongo/lib/mongo"
 import { Redis, REDIS } from "hinos-redis/lib/redis"
-import { BittrexCachedTrading } from './StoreTrading'
-import TrendsDay from "./AI/TrendsDay";
+import { TradingTemp } from './RawHandler'
+import TrendsHour from "../AI/TrendsHour";
 // import { MatrixTrends } from './MatrixTrends'
 
-@Collection('BittrexDayTrading')
-export class BittrexDayTrading {
+@Collection('TradingHour1')
+export class TradingHour1 {
   _id?: Uuid
   name: string
   market: string
@@ -15,6 +15,7 @@ export class BittrexDayTrading {
   date: number
   month: number
   year: number
+  hours: number
   open: number
   prev: number
   candleLast: number
@@ -28,7 +29,7 @@ export class BittrexDayTrading {
   high: number
 }
 
-export default class StoreDay {
+export default class HandlerHour1 {
   @REDIS()
   private static redis: Redis
   @MONGO('coin')
@@ -40,20 +41,20 @@ export default class StoreDay {
   private static lastUpdateDB
 
   static async find(fil) {
-    return await StoreDay.mongo.find<BittrexDayTrading>(BittrexDayTrading, fil)
+    return await HandlerHour1.mongo.find<TradingHour1>(TradingHour1, fil)
   }
 
   static async init() {
-    console.log('#StoreDay', 'Initial')
-    StoreDay.lastUpdateDB = await StoreDay.redis.get('StoreDay.lastUpdateDB')
-    if (StoreDay.lastUpdateDB) StoreDay.lastUpdateDB = new Date(StoreDay.lastUpdateDB)
-    // await StoreDay.loadInMatrix()
-    // await StoreDay.trends()
+    console.log('#HandlerHour1', 'Initial')
+    HandlerHour1.lastUpdateDB = await HandlerHour1.redis.get('HandlerHour1.lastUpdateDB')
+    if (HandlerHour1.lastUpdateDB) HandlerHour1.lastUpdateDB = new Date(HandlerHour1.lastUpdateDB)
+    // await HandlerHour1.loadInMatrix()
+    // await HandlerHour1.trends()
   }
 
   static async loadInMatrix() {
-    console.log('#StoreDay', 'Load matrix')
-    // const data = await StoreDay.mongo.find<BittrexDayTrading>(BittrexDayTrading, {
+    console.log('#HandlerHour1', 'Load matrix')
+    // const data = await HandlerHour1.mongo.find<TradingHour1>(TradingHour1, {
     //   $recordsPerPage: 0,
     //   $fields: { _id: 1, percent: 1, key: 1 },
     //   $sort: {
@@ -61,20 +62,20 @@ export default class StoreDay {
     //     time: 1
     //   }
     // })
-    // StoreDay.matrix = await MatrixTrends.loadInMatrix(data)
+    // HandlerHour1.matrix = await MatrixTrends.loadInMatrix(data)
   }
 
   static async getTradings() {
-    return JSON.parse(await StoreDay.redis.get('StoreDay.newestTrading') || '[]')
+    return JSON.parse(await HandlerHour1.redis.get('HandlerHour1.newestTrading') || '[]')
   }
 
-  static async insert(tradings: BittrexCachedTrading[], now: Date) {
-    let caches = await StoreDay.redis.get('StoreDay.cached')
+  static async insert(tradings: TradingTemp[], now: Date) {
+    let caches = await HandlerHour1.redis.get('HandlerHour1.cached')
     if (caches) caches = JSON.parse(caches)
     else caches = {}
-    if (!StoreDay.lastUpdateDB || (StoreDay.lastUpdateDB.getDate() !== now.getDate() && now.getDate() % 1 === 0)) {
-      console.log('#StoreDay', 'Inserting trading')
-      StoreDay.lastUpdateDB = now
+    if (!HandlerHour1.lastUpdateDB || (HandlerHour1.lastUpdateDB.getHours() !== now.getHours() && now.getHours() % 1 === 0)) {
+      console.log('#HandlerHour1', 'Inserting trading')
+      HandlerHour1.lastUpdateDB = now
       let data = []
       for (let e of tradings) {
         if (!caches[e.key]) caches[e.key] = {}
@@ -86,7 +87,7 @@ export default class StoreDay {
         if (cached.low === undefined) cached.low = e.last
         if (cached.high === undefined) cached.high = e.last
 
-        const tr = {} as BittrexDayTrading
+        const tr = {} as TradingHour1
         tr._id = e._id
         tr.key = e.key
         tr.name = e.name
@@ -96,6 +97,7 @@ export default class StoreDay {
         tr.date = e.time.getDate()
         tr.month = e.time.getMonth()
         tr.year = e.time.getFullYear()
+        tr.hours = e.time.getHours()
         tr.baseVolume = e.baseVolume
         tr.last = e.last
 
@@ -122,10 +124,10 @@ export default class StoreDay {
         cached.candlePrev = tr.last - tr.open
         cached.baseVolume = tr.baseVolume
       }
-      await StoreDay.mongo.insert<BittrexDayTrading>(BittrexDayTrading, data)
-      await StoreDay.redis.set('StoreDay.lastUpdateDB', StoreDay.lastUpdateDB)
-      await StoreDay.redis.set('StoreDay.newestTrading', JSON.stringify(data))
-      TrendsDay.execute()
+      await HandlerHour1.mongo.insert<TradingHour1>(TradingHour1, data)
+      await HandlerHour1.redis.set('HandlerHour1.lastUpdateDB', HandlerHour1.lastUpdateDB)
+      await HandlerHour1.redis.set('HandlerHour1.newestTrading', JSON.stringify(data))
+      TrendsHour.execute()
     } else {
       for (let e of tradings) {
         if (!caches[e.key]) caches[e.key] = {}
@@ -140,6 +142,6 @@ export default class StoreDay {
         else cached.high = e.last < cached.high ? cached.high : e.last
       }
     }
-    await StoreDay.redis.set('StoreDay.cached', JSON.stringify(caches))
+    await HandlerHour1.redis.set('HandlerHour1.cached', JSON.stringify(caches))
   }
 }

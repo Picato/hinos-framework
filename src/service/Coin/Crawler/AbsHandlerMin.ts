@@ -1,9 +1,9 @@
 import { MONGO, Mongo } from "hinos-mongo/lib/mongo"
 import { Redis, REDIS } from "hinos-redis/lib/redis"
-import { TrendsCommon, BittrexTrading } from "./AI/TrendsCommon";
-import { BittrexCachedTrading } from "./StoreTrading";
+import { TrendsCommon, BittrexTrading } from "../AI/TrendsCommon";
+import RawHandler, { TradingTemp } from "./RawHandler";
 
-export class BittrexTradingMin extends BittrexTrading {
+export class TradingMin extends BittrexTrading {
   name: string
   market: string
   raw_time: Date
@@ -18,14 +18,14 @@ export class BittrexTradingMin extends BittrexTrading {
   high: number
 }
 
-export default class StoreMin extends TrendsCommon {
+export default class AbsHandlerMin extends TrendsCommon {
   @REDIS()
   protected redis: Redis
-  
+
   @MONGO('coin')
   protected mongo: Mongo
 
-  private lastUpdateDB
+  protected lastUpdateDB
 
   constructor(protected min: number) {
     super(`min${min}`)
@@ -35,18 +35,23 @@ export default class StoreMin extends TrendsCommon {
     console.log(`#${this.constructor.name}`, 'Initial')
     this.lastUpdateDB = await this.redis.get(`${this.constructor.name}.lastUpdateDB`)
     if (this.lastUpdateDB) this.lastUpdateDB = new Date(this.lastUpdateDB)
+
+    const self = this
+    RawHandler.event.on('updateData', (tradings: TradingTemp[], now: Date) => {
+      self.handle(tradings, now)
+    })
   }
 
   async find(fil) {
-    return await Mongo.pool().find<BittrexTradingMin>(`BittrexTradingMin${this.min}`, fil)
+    return await this.mongo.find<TradingMin>(`TradingMin${this.min}`, fil)
   }
 
   async getTradings() {
-    return JSON.parse(await Redis.pool().get(`${this.constructor.name}.newestTrading`) || '[]')
+    return JSON.parse(await this.redis.get(`${this.constructor.name}.newestTrading`) || '[]')
   }
 
-  async handle(tradings: BittrexCachedTrading[], now: Date) {
-    console.log(`#StoreMin${this.min}`, 'Begin handle data')
+  async handle(tradings: TradingTemp[], now: Date) {
+    console.log(`#${this.constructor.name}`, 'Begin handle data')
     let caches = await this.redis.get(`${this.constructor.name}.cached`)
     if (caches) caches = JSON.parse(caches)
     else caches = {}
@@ -63,7 +68,7 @@ export default class StoreMin extends TrendsCommon {
         if (cached.low === undefined) cached.low = e.last
         if (cached.high === undefined) cached.high = e.last
 
-        const tr = {} as BittrexTradingMin
+        const tr = {} as TradingMin
         tr._id = e._id
         tr.key = e.key
         tr.name = e.name
@@ -101,7 +106,7 @@ export default class StoreMin extends TrendsCommon {
         cached.candlePrev = tr.last - tr.open
         cached.baseVolume = tr.baseVolume
       }
-      await this.mongo.insert<BittrexTradingMin>(`BittrexTradingMin${this.min}`, data)
+      await this.mongo.insert<TradingMin>(`TradingMin${this.min}`, data)
       await this.redis.set(`${this.constructor.name}.lastUpdateDB`, this.lastUpdateDB)
       await this.redis.set(`${this.constructor.name}.newestTrading`, JSON.stringify(data))
       // this.execute()
@@ -120,6 +125,6 @@ export default class StoreMin extends TrendsCommon {
       }
     }
     await this.redis.set(`${this.constructor.name}.cached`, JSON.stringify(caches))
-    console.log(`#StoreMin${this.min}`, 'Finished handle data')
+    console.log(`#${this.constructor.name}`, 'Finished handle data')
   }
 }

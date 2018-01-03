@@ -1,6 +1,6 @@
-import StoreMin from "./StoreMin";
+import AbsHandlerMin from "./AbsHandlerMin";
 
-class _StoreMin3 extends StoreMin {
+class _StoreMin3 extends AbsHandlerMin {
 
   constructor() {
     super(3)
