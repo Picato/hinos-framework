@@ -1,12 +1,12 @@
-// import '../../../config'
-// import { Server } from 'hinos'
-// import { Mongo } from 'hinos-mongo'
-// import { Redis } from 'hinos-redis'
+import '../../../config'
+import { Server } from 'hinos'
+import { Mongo } from 'hinos-mongo'
+import { Redis } from 'hinos-redis'
 
-// require(`../../../env.${Server.env}`)
+require(`../../../env.${Server.env}`)
 
-// Mongo(AppConfig.mongo)
-// Redis(AppConfig.redis)
+Mongo(AppConfig.mongo)
+Redis(AppConfig.redis)
 
 console.log('---------------- SETUP AI ----------------')
 
@@ -17,9 +17,11 @@ import TrendsMin30 from './TrendsMin30'
 import TrendsHour1 from './TrendsHour1'
 import TrendsDay1 from './TrendsDay1'
 
-TrendsMin1.init()
-TrendsMin3.init()
-TrendsMin5.init()
-TrendsMin30.init()
-TrendsHour1.init()
-TrendsDay1.init()
+Promise.all([
+  TrendsMin1.init(),
+  TrendsMin3.init(),
+  TrendsMin5.init(),
+  TrendsMin30.init(),
+  TrendsHour1.init(),
+  TrendsDay1.init()
+])

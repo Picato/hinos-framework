@@ -1,6 +1,6 @@
 import { MONGO, Mongo } from "hinos-mongo/lib/mongo"
 import { Redis, REDIS } from "hinos-redis/lib/redis"
-import { BittrexTrading } from "../AI/TrendsCommon";
+import { BittrexTrading, Publisher } from "../AI/TrendsCommon";
 import { TradingTemp } from "./RawHandler";
 import { Event } from "../Event";
 
@@ -108,7 +108,7 @@ export default class AbsHandlerMin {
       await this.mongo.insert<TradingMin>(`TradingMin${this.skip}`, data)
       await this.redis.set(`${this.constructor.name}.lastUpdateDB`, this.lastUpdateDB)
       await this.redis.set(`${this.constructor.name}.newestTrading`, JSON.stringify(data))
-      Event.HandlerMin.emit(`updateData#${this.constructor.name}`)
+      await Publisher.publish(`updateData#${this.constructor.name}`, '')
     } else {
       for (let e of tradings) {
         if (!caches[e.key]) caches[e.key] = {}

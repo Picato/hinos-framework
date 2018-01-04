@@ -1,8 +1,7 @@
 import { MONGO, Mongo } from "hinos-mongo/lib/mongo"
 import { TradingMin } from "../Crawler/AbsHandlerMin";
-import { TrendsCommon } from "./TrendsCommon";
+import { TrendsCommon, Subscriber } from "./TrendsCommon";
 import { TrendsMessageService } from "./TrendsMessage";
-import { Event } from "../Event";
 
 export default class AbsTrendsMin extends TrendsCommon {
   @MONGO('coin')
@@ -14,8 +13,9 @@ export default class AbsTrendsMin extends TrendsCommon {
 
   public async init() {
     const self = this
-    Event.HandlerMin.on(`updateData#${self.tblName}`, async () => {
+    Subscriber.subscribe(`updateData#${self.tblName}`, async (err) => {
       console.log(`#Trends ${self.tblName}`)
+      if (err) return console.error(err)
       let beforeThat = new Date()
       beforeThat.setMinutes(beforeThat.getMinutes() - 30)
       const data = await self.mongo.find<TradingMin>(self.tblName, {
