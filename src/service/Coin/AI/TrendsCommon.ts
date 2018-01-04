@@ -1,5 +1,5 @@
 import { Uuid } from "hinos-mongo/lib/mongo"
-import { TrendsMessageService } from "./TrendsMessage";
+import BittrexApi from "../Bittrex/BittrexApi";
 
 export class BittrexTrading {
   _id?: Uuid
@@ -16,26 +16,22 @@ export class BittrexTrading {
 
 export class TrendsCommon {
 
-  constructor(private keyMessage) {
-    
-  }
+  // public async execute(tradings: { [key: string]: BittrexTrading[] }) {
+  //   for (let key in tradings) {
+  //     const items = tradings[key]
 
-  public async execute(tradings: { [key: string]: BittrexTrading[] }) {
-    for (let key in tradings) {
-      const items = tradings[key]
+  //     let msgs = await Promise.all([
+  //       this.check55Percent(key, items[0]),
+  //       this.checkRecentlySame(key, items),
+  //       this.checkBaseVolume(key, items)
+  //     ]) as any[]
 
-      let msgs = await Promise.all([
-        this.check55Percent(key, items[0]),
-        this.checkRecentlySame(key, items),
-        this.checkBaseVolume(key, items)
-      ]) as any[]
-
-      msgs = msgs.reduce((sum: any[], msgs: any[]) => sum.concat(msgs), [])
-      if (msgs.length > 0) {
-        await TrendsMessageService.insert(msgs, this.keyMessage)
-      }
-    }
-  }
+  //     msgs = msgs.reduce((sum: any[], msgs: any[]) => sum.concat(msgs), [])
+  //     if (msgs.length > 0) {
+  //       await TrendsMessageService.insert(msgs, this.keyMessage)
+  //     }
+  //   }
+  // }
 
   checkBaseVolume(key, tradings: BittrexTrading[]) {
     return new Promise((resolve) => {
@@ -89,16 +85,16 @@ export class TrendsCommon {
       if (item.candlePercent >= Percent) {
         if (item.candlePrev > 0 && item.candleLast < 0) {
           // Dang giam
-          msgs.push({ key, txt: `Thị trường đảo chiều đang giảm ${item.candlePercent}%` })
+          msgs.push({ key, txt: `Thị trường đảo chiều đang giảm ${BittrexApi.formatNumber(item.candlePercent)}%` })
         } else if (item.candlePrev < 0 && item.candleLast > 0) {
           // Dang tang
-          msgs.push({ key, txt: `Thị trường đảo chiều đang tăng ${item.candlePercent}%` })
+          msgs.push({ key, txt: `Thị trường đảo chiều đang tăng ${BittrexApi.formatNumber(item.candlePercent)}%` })
         } else if (item.candlePrev < 0 && item.candleLast < 0) {
           // Trends giam
-          msgs.push({ key, txt: `Có thể trends giảm (${item.candlePercent}%)` })
+          msgs.push({ key, txt: `Có thể trends giảm (${BittrexApi.formatNumber(item.candlePercent)}%)` })
         } else {
           // Trends tang
-          msgs.push({ key, txt: `Có thể trends tăng (${item.candlePercent}%)` })
+          msgs.push({ key, txt: `Có thể trends tăng (${BittrexApi.formatNumber(item.candlePercent)}%)` })
         }
       }
       resolve(msgs)

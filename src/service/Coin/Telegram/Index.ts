@@ -1,11 +1,15 @@
-import './config'
+import '../../../config'
 import { Server } from 'hinos'
 import { Redis } from 'hinos-redis'
 
-require(`./env.${Server.env}`)
+require(`../../../env.${Server.env}`)
 
 Redis(AppConfig.redis)
 
-import TelegramCommand from './TelegramCommand'
+console.log('---------------- SETUP TELEGRAM BOT ----------------')
 
-TelegramCommand.init()
+import BittrexVNBot from './BittrexVNBot'
+import BittrexAnalyticsBot from './BittrexAnalyticsBot'
+
+BittrexVNBot.init()
+BittrexAnalyticsBot.init()

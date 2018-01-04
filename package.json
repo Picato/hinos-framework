@@ -43,10 +43,13 @@
       "baseOnRequest": true
     },
     "app": {
+      "telegram": {
+        "BittrexVNBot": "",
+        "BittrexAnalyticsBot": ""
+      },
       "bittrex": {
         "apikey": "",
         "apisecret": "",
-        "telegramBot": "",
         "scanCurrency": 300000,
         "scanChecking": 5000
       },

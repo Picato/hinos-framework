@@ -1,7 +1,7 @@
 import { Redis, REDIS } from "hinos-redis/lib/redis"
 import { TradingTemp } from './RawHandler'
-import { BittrexTrading, TrendsCommon } from "../AI/TrendsCommon"
-import { TrendsMessage, TrendsMessageService } from "../AI/TrendsMessage"
+import { BittrexTrading } from "../AI/TrendsCommon"
+import { Event } from "../Event";
 
 export class TradingMin1 extends BittrexTrading {
   name: string
@@ -10,7 +10,7 @@ export class TradingMin1 extends BittrexTrading {
   baseVolume: number
 }
 
-class HandlerMin1 extends TrendsCommon {
+class HandlerMin1 {
   @REDIS()
   private redis: Redis
 
@@ -20,11 +20,6 @@ class HandlerMin1 extends TrendsCommon {
   private lastUpdateDB
   private caches
 
-  constructor(keyMessage: string) {
-    super(keyMessage)
-    this.init()
-  }
-
   async init() {
     console.log(`#${this.constructor.name}`, 'Initial')
     this.lastUpdateDB = await this.redis.get('this.lastUpdateDB')
@@ -33,14 +28,20 @@ class HandlerMin1 extends TrendsCommon {
     const caches = await this.redis.get('this.cached')
     if (caches) this.caches = JSON.parse(caches)
     else this.caches = {}
+
+    const self = this
+    Event.RawHandler.on('updateData', (tradings: TradingTemp[], now: Date) => {
+      self.handle(tradings, now)
+    })
   }
+  
   async getTradings() {
     return JSON.parse(await this.redis.get('this.newestTrading') || '[]')
   }
 
   async handle(tradings: TradingTemp[], now: Date) {
+    console.log(`#${this.constructor.name}`, 'Begin handle data')
     if (!this.lastUpdateDB || (this.lastUpdateDB.getMinutes() !== now.getMinutes() && now.getMinutes() % 1 === 0)) {
-      console.log(`#${this.constructor.name}`, 'Inserting trading')
 
       this.lastUpdateDB = now
       let data = [] as TradingMin1[]
@@ -76,33 +77,10 @@ class HandlerMin1 extends TrendsCommon {
       await this.redis.set('this.lastUpdateDB', this.lastUpdateDB)
       await this.redis.set('this.newestTrading', JSON.stringify(data))
       await this.redis.set('this.cached', JSON.stringify(this.caches))
-      this.execute(data)
+      Event.HandlerMin.emit(`updateData#${this.constructor.name}`, data)
     }
-  }
-
-  async execute(data) {
-    let msgs = []
-    let maxPercent = data
-      .sort((a, b) => (b.percent > 0 ? b.percent : (b.percent * -1)) - (a.percent > 0 ? a.percent : (a.percent * -1)))
-      .filter(e => e.percent > 2)
-      .slice(0, 6)
-    msgs = msgs.concat(maxPercent.map(e => {
-      return { key: e.key, txt: `Đang ${e.percent > 0 ? 'tăng' : 'giảm'} ${e.percent}%` }
-    }) as TrendsMessage[])
-
-
-    const maxVolume = data
-      .sort((a, b) => (b.baseVolumePercent > 0 ? b.baseVolumePercent : (b.baseVolumePercent * -1)) - (a.baseVolumePercent > 0 ? a.baseVolumePercent : (a.baseVolumePercent * -1)))
-      .filter(e => e.percent > 0)
-      .slice(0, 6)
-    msgs = msgs.concat(maxVolume.map(e => {
-      if (e.baseVolumePercent > 0)
-        return { key: e.key, txt: `Thị trường đã được đổ thêm ${e.baseVolumePercent}%`, style: 'VOLUME' }
-      return { key: e.key, txt: `Thị trường đã bị rút ra ${e.baseVolumePercent}%`, style: 'VOLUME' }
-    }) as TrendsMessage[])
-
-    if (msgs.length > 0) await TrendsMessageService.insert(msgs, 'min1')
+    console.log(`#${this.constructor.name}`, 'Finished handle data')
   }
 }
 
-export default new HandlerMin1('min1')
+export default new HandlerMin1()

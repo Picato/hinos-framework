@@ -1,6 +1,6 @@
 import AbsHandlerMin from "./AbsHandlerMin";
 
-class _HandlerMin30 extends AbsHandlerMin {
+class HandlerMin30 extends AbsHandlerMin {
 
   constructor() {
     super(30)
@@ -8,5 +8,4 @@ class _HandlerMin30 extends AbsHandlerMin {
 
 }
 
-const HandlerMin30 = new _HandlerMin30()
-export default HandlerMin30
+export default new HandlerMin30()

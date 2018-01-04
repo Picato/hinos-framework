@@ -23,8 +23,11 @@ interface IAppConfig {
     helmet?: boolean
   }
   app: {
+    telegram: {
+      BittrexVNBot: string
+      BittrexAnalyticsBot: string
+    },
     bittrex: {
-      telegramBot: string
       scanChecking: number
       scanCurrency: number
       apikey: string

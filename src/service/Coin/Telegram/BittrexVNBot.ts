@@ -6,9 +6,9 @@ import * as Extra from 'telegraf/extra'
 import RawTrading from '../Crawler/RawHandler'
 // import * as Markup from 'telegraf/markup'
 
-export default class TelegramCommand {
+export default class BittrexVNBot {
 
-  static Bot = new BotCommand(AppConfig.app.bittrex.telegramBot)
+  static Bot = new BotCommand(AppConfig.app.telegram.BittrexVNBot)
 
   static async init() {
     await Promise.all([
@@ -16,41 +16,108 @@ export default class TelegramCommand {
       BittrexAlert.reloadFromCached()
     ])
     // Refer https://github.com/telegraf/telegraf/blob/develop/docs/examples/keyboard-bot.js
-    TelegramCommand.registerLogin()
-    TelegramCommand.registerGetMyWalletStatus()
-    TelegramCommand.registerGetMyWalletID()
-    TelegramCommand.registerGetRate()
-    TelegramCommand.registerGetCoinInfo()
-    TelegramCommand.registerAddAlert()
-    TelegramCommand.registerGetAlerts()
-    TelegramCommand.registerRmAlert()
-    TelegramCommand.registerClearAlert()
-    TelegramCommand.registerBuy()
-    TelegramCommand.registerSell()
-    TelegramCommand.registerStart()
+    BittrexVNBot.registerLogin()
+    BittrexVNBot.registerGetMyWalletStatus()
+    BittrexVNBot.registerGetMyWalletID()
+    BittrexVNBot.registerGetRate()
+    BittrexVNBot.registerGetCoinInfo()
+    BittrexVNBot.registerAddAlert()
+    BittrexVNBot.registerGetAlerts()
+    BittrexVNBot.registerRmAlert()
+    BittrexVNBot.registerClearAlert()
+    BittrexVNBot.registerBuy()
+    BittrexVNBot.registerSell()
+    BittrexVNBot.registerLSBuy()
+    BittrexVNBot.registerLSSell()
+    BittrexVNBot.registerStart()
   }
 
   private static registerStart() {
-    TelegramCommand.Bot.start(async (ctx) => {
+    BittrexVNBot.Bot.start(async (ctx) => {
       const { reply, chat } = ctx
       await reply(`[${chat.id}] Welcome to BittrexBotVN!`)
     })
-    TelegramCommand.Bot.startPolling()
+    BittrexVNBot.Bot.startPolling()
   }
 
   private static registerLogin() {
-    TelegramCommand.Bot.command('login', async (ctx) => {
-      const { reply, from, message, chat } = ctx
+    BittrexVNBot.Bot.command('login', async (ctx) => {
+      const { reply, from, message, chat, deleteMessage } = ctx
       const [, apikey, secretKey] = message.text.split(' ')
       if (!apikey) return await reply('Apikey is required')
       if (!secretKey) return await reply('SecretKey is required')
       await BittrexUser.add(from.id.toString(), apikey, secretKey, chat.id)
-      await reply(`[${from.id}] Hi ${from.first_name} ${from.last_name}.\nYour account is registed via bittrex apikey\nLet's remove your token which you have just input`)
+      await deleteMessage()
+      await reply(`[${from.id}] Hi ${from.first_name} ${from.last_name}.\nYour account is registed via bittrex apikey`)
+    })
+  }
+
+  private static registerLSSell() {
+    BittrexVNBot.Bot.action(/lssell:(pagi) .+/, async (ctx) => {
+      const { editMessageText, reply, match, from } = ctx
+      try {
+        let [, key, page, recordsPerPage] = match[0].split(' ')
+        page = +page
+        recordsPerPage = +recordsPerPage
+        let msgs = await BittrexVNBot.getOrderBook(from.id.toString(), key, page, recordsPerPage, 'sell')
+        return await editMessageText(msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard([1, 2, 3, 4, 5].map(e => {
+          return m.callbackButton(`${e}${e === page ? '✔️' : ''}`, `lssell:pagi ${key} ${e} ${recordsPerPage}`)
+        }))))
+      } catch (e) {
+        await reply(e.message || e)
+      }
+    })
+    BittrexVNBot.Bot.command('lssell', async (ctx) => {
+      const { reply, message, from, replyWithMarkdown } = ctx
+      try {
+        let [, key, page = 1, recordsPerPage = 10] = message.text.split(' ')
+        page = +page
+        recordsPerPage = +recordsPerPage
+        if (!key) return await reply('Not found market-coin')
+        let msgs = await BittrexVNBot.getOrderBook(from.id.toString(), key, page, recordsPerPage, 'sell')        
+        return await replyWithMarkdown(msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard([1, 2, 3, 4, 5].map(e => {
+          return m.callbackButton(`${e}${e === page ? '✔️' : ''}`, `lssell:pagi ${key} ${e} ${recordsPerPage}`)
+        }))))
+      } catch (e) {
+        await reply(e.message || e)
+      }
+    })
+  }
+
+  private static registerLSBuy() {
+    BittrexVNBot.Bot.action(/lsbuy:(pagi) .+/, async (ctx) => {
+      const { editMessageText, reply, match, from } = ctx
+      try {
+        let [, key, page, recordsPerPage] = match[0].split(' ')
+        page = +page
+        recordsPerPage = +recordsPerPage
+        let msgs = await BittrexVNBot.getOrderBook(from.id.toString(), key, page, recordsPerPage, 'buy')
+        return await editMessageText(msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard([1, 2, 3, 4, 5].map(e => {
+          return m.callbackButton(`${e}${e === page ? '✔️' : ''}`, `lsbuy:pagi ${key} ${e} ${recordsPerPage}`)
+        }))))
+      } catch (e) {
+        await reply(e.message || e)
+      }
+    })
+    BittrexVNBot.Bot.command('lsbuy', async (ctx) => {
+      const { reply, message, from, replyWithMarkdown } = ctx
+      try {
+        let [, key, page = 1, recordsPerPage = 10] = message.text.split(' ')
+        page = +page
+        recordsPerPage = +recordsPerPage
+        if (!key) return await reply('Not found market-coin')
+        let msgs = await BittrexVNBot.getOrderBook(from.id.toString(), key, page, recordsPerPage, 'buy')        
+        return await replyWithMarkdown(msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard([1, 2, 3, 4, 5].map(e => {
+          return m.callbackButton(`${e}${e === page ? '✔️' : ''}`, `lsbuy:pagi ${key} ${e} ${recordsPerPage}`)
+        }))))
+      } catch (e) {
+        await reply(e.message || e)
+      }
     })
   }
 
   private static registerBuy() {
-    TelegramCommand.Bot.action(/buy:(yes|no|cancel) .+/, async (ctx) => {
+    BittrexVNBot.Bot.action(/buy:(yes|no|cancel) .+/, async (ctx) => {
       const { editMessageText, editMessageReplyMarkup, reply, match, from, chat, callbackQuery } = ctx
       try {
         const [action, ...prms] = match[0].split(' ')
@@ -85,7 +152,7 @@ export default class TelegramCommand {
         await editMessageText(e.message || e)
       }
     })
-    TelegramCommand.Bot.command('buy', async (ctx) => {
+    BittrexVNBot.Bot.command('buy', async (ctx) => {
       const { reply, message, from, replyWithMarkdown } = ctx
       try {
         // buy btc-xdn 1 1000
@@ -146,7 +213,7 @@ export default class TelegramCommand {
   }
 
   private static registerSell() {
-    TelegramCommand.Bot.action(/sell:(yes|no|cancel) .+/, async (ctx) => {
+    BittrexVNBot.Bot.action(/sell:(yes|no|cancel) .+/, async (ctx) => {
       const { editMessageText, editMessageReplyMarkup, reply, match, from, chat, callbackQuery } = ctx
       try {
         const [action, ...prms] = match[0].split(' ')
@@ -180,7 +247,7 @@ export default class TelegramCommand {
         await editMessageText(e.message || e)
       }
     })
-    TelegramCommand.Bot.command('sell', async (ctx) => {
+    BittrexVNBot.Bot.command('sell', async (ctx) => {
       const { reply, message, from, replyWithMarkdown } = ctx
       try {
         // sell btc-xdn 1 1000
@@ -241,7 +308,7 @@ export default class TelegramCommand {
   }
 
   private static registerAddAlert() {
-    TelegramCommand.Bot.command('nw', async (ctx) => {
+    BittrexVNBot.Bot.command('nw', async (ctx) => {
       const { reply, replyWithMarkdown, from, message } = ctx
       try {
         const [kf, des] = message.text.split('\n')
@@ -250,34 +317,34 @@ export default class TelegramCommand {
         if (!key || !formula) return await reply('Not found market-coin or formular')
         if (!formula.includes('<') && !formula.includes('>') && !formula.includes('=')) return await reply('Formula need includes atlest 1 in ">", "<", ">=", "<=", "=="')
         await BittrexAlert.addAlert(from.id.toString(), new BittrexAlert(key, formula, des))
-        const tmp = await TelegramCommand.getAlertMsgs(from.id.toString(), key)
+        const tmp = await BittrexVNBot.getAlertMsgs(from.id.toString(), key)
         if (tmp.length === 0) return await reply('No alert')
         await replyWithMarkdown(tmp.join('\n'))
       } catch (e) {
-        await reply(e)
+        await reply(e.message || e)
       }
     })
   }
 
   private static registerGetAlerts() {
-    TelegramCommand.Bot.command('ls', async (ctx) => {
+    BittrexVNBot.Bot.command('ls', async (ctx) => {
       const { reply, replyWithMarkdown, from, message } = ctx
       try {
         const alert = BittrexAlert.getAlerts(from.id.toString())
         if (!alert || Object.keys(alert).length === 0) return await reply('No alert')
         let [, _key] = message.text.split(' ')
         if (_key) _key = _key.toUpperCase()
-        const tmp = await TelegramCommand.getAlertMsgs(from.id.toString(), _key)
+        const tmp = await BittrexVNBot.getAlertMsgs(from.id.toString(), _key)
         if (tmp.length === 0) return await reply('No alert')
         await replyWithMarkdown(tmp.join('\n'))
       } catch (e) {
-        await reply(e)
+        await reply(e.message || e)
       }
     })
   }
 
   private static registerRmAlert() {
-    TelegramCommand.Bot.command('rm', async (ctx) => {
+    BittrexVNBot.Bot.command('rm', async (ctx) => {
       const { reply, replyWithMarkdown, from, message } = ctx
       try {
         let [, key, i] = message.text.split(' ')
@@ -285,33 +352,33 @@ export default class TelegramCommand {
         if (i === undefined) return await reply('Not found index to remove')
         key = key.toUpperCase()
         await BittrexAlert.rmAlert(from.id.toString(), key, +i)
-        const tmp = await TelegramCommand.getAlertMsgs(from.id.toString(), key)
+        const tmp = await BittrexVNBot.getAlertMsgs(from.id.toString(), key)
         if (tmp.length === 0) return await reply('No alert')
         await replyWithMarkdown(tmp.join('\n'))
       } catch (e) {
-        await reply(e)
+        await reply(e.message || e)
       }
     })
   }
 
   private static registerClearAlert() {
-    TelegramCommand.Bot.command('cls', async (ctx) => {
+    BittrexVNBot.Bot.command('cls', async (ctx) => {
       const { reply, replyWithMarkdown, from, message } = ctx
       try {
         let [, key] = message.text.split(' ')
         if (key) key = key.toUpperCase()
         await BittrexAlert.rmAlert(from.id.toString(), key, -1)
-        const tmp = await TelegramCommand.getAlertMsgs(from.id.toString(), undefined)
+        const tmp = await BittrexVNBot.getAlertMsgs(from.id.toString(), undefined)
         if (tmp.length === 0) return await reply('No alert')
         await replyWithMarkdown(tmp.join('\n'))
       } catch (e) {
-        await reply(e)
+        await reply(e.message || e)
       }
     })
   }
 
   private static registerGetCoinInfo() {
-    TelegramCommand.Bot.hears(/^#.+$/i, async (ctx) => {
+    BittrexVNBot.Bot.hears(/^#.+$/i, async (ctx) => {
       const { reply, replyWithMarkdown, message } = ctx
       try {
         let coin = message.text.split('#')[1];
@@ -327,13 +394,13 @@ export default class TelegramCommand {
         if (txt.length > 0) return await replyWithMarkdown(txt.join('\n'))
         await reply('Could not found this coin')
       } catch (e) {
-        await reply(e)
+        await reply(e.message || e)
       }
     })
   }
 
   private static registerGetRate() {
-    TelegramCommand.Bot.command('rate', async (ctx) => {
+    BittrexVNBot.Bot.command('rate', async (ctx) => {
       const { replyWithMarkdown, reply } = ctx
       try {
         const rate = await RawTrading.getRate()
@@ -345,13 +412,13 @@ export default class TelegramCommand {
         ]
         await replyWithMarkdown(msgs.join('\n'))
       } catch (e) {
-        await reply(e)
+        await reply(e.message || e)
       }
     })
   }
 
   private static registerGetMyWalletStatus() {
-    TelegramCommand.Bot.command('wallet', async (ctx) => {
+    BittrexVNBot.Bot.command('wallet', async (ctx) => {
       const { replyWithMarkdown, from, reply } = ctx
       try {
         const balances = await BittrexUser.getMyBalances(from.id.toString())
@@ -362,22 +429,60 @@ export default class TelegramCommand {
         })].join('\n')
         await replyWithMarkdown(msg)
       } catch (e) {
-        await reply(e)
+        await reply(e.message || e)
       }
     })
   }
 
   private static registerGetMyWalletID() {
-    TelegramCommand.Bot.command('walletid', async (ctx) => {
+    BittrexVNBot.Bot.command('walletid', async (ctx) => {
       const { replyWithMarkdown, from, reply } = ctx
       try {
         const balances = await BittrexUser.getMyBalances(from.id.toString())
         const msg = balances.filter(e => e.Available).map(e => `*${e.Currency}* _${e.CryptoAddress || ''}_`).join('\n')
         await replyWithMarkdown(msg)
       } catch (e) {
-        await reply(e)
+        await reply(e.message || e)
       }
     })
+  }
+
+  // private static async suggestPrice(data) {
+  //   const last30 = data.splice(0, 30)
+  //   let mid = []
+  //   let max = [] as any[]
+  //   last30.map((e, i) => {
+  //     e.i = i
+  //     return e
+  //   }).sort((a, b) => b.Quantity - a.Quantity)
+
+  // }
+
+  private static async getOrderBook(username: string, key: string, page = 1, recordsPerPage = 10, type: 'sell' | 'buy') {
+    const formatMessages = (data) => {
+      let max = 0
+      let maxI = -1
+      return [...data.slice((page - 1) * recordsPerPage, page * recordsPerPage).map((e, i) => {
+        if (e.Quantity > max) {
+          max = e.Quantity
+          maxI = i
+        }
+        return e
+      }).map((e, i0) => {
+        let i = ((page - 1) * recordsPerPage) + i0 + 1
+        return ` *${i > 9 ? i : ('0' + i)}.* ${maxI === i0 ? '*' : ''}📯${BittrexApi.formatNumber(e.Quantity)}${maxI === i0 ? '*' : ''} 💰${BittrexApi.formatNumber(e.Rate)}`
+      })]
+    }
+    const user = BittrexUser.users[username]
+    if (!user) throw new Error('User has not login yet')
+
+    const orders = await user.getOrderBook(key, type)
+    let msgs = [
+      `*LASTEST ORDER ${type === 'buy' ? 'BUYING' : 'SELLING'} BOOKS*`,
+      '----------------------------------------------',
+      ...formatMessages(orders)
+    ]
+    return msgs
   }
 
   private static async getAlertMsgs(username: string, _key: string) {

@@ -4,7 +4,7 @@ import { BittrexTrading } from "../AI/TrendsCommon";
 import { TradingTemp } from "./RawHandler";
 import { Event } from "../Event";
 
-export class TradingMin extends BittrexTrading {
+export class TradingHour extends BittrexTrading {
   name: string
   market: string
   raw_time: Date
@@ -12,14 +12,13 @@ export class TradingMin extends BittrexTrading {
   month: number
   year: number
   hours: number
-  minutes: number
   open: number
   baseVolume: number
   low: number
   high: number
 }
 
-export default class AbsHandlerMin {
+export default class AbsHandlerHour {
   @REDIS()
   protected redis: Redis
 
@@ -42,7 +41,7 @@ export default class AbsHandlerMin {
   }
 
   async find(fil) {
-    return await this.mongo.find<TradingMin>(`TradingMin${this.skip}`, fil)
+    return await this.mongo.find<TradingHour>(`TradingHour${this.skip}`, fil)
   }
 
   async getTradings() {
@@ -54,7 +53,7 @@ export default class AbsHandlerMin {
     let caches = await this.redis.get(`${this.constructor.name}.cached`)
     if (caches) caches = JSON.parse(caches)
     else caches = {}
-    if (!this.lastUpdateDB || (this.lastUpdateDB.getMinutes() !== now.getMinutes() && now.getMinutes() % this.skip === 0)) {
+    if (!this.lastUpdateDB || (this.lastUpdateDB.getHours() !== now.getHours() && now.getHours() % this.skip === 0)) {
       this.lastUpdateDB = now
       let data = []
       for (let e of tradings) {
@@ -67,7 +66,7 @@ export default class AbsHandlerMin {
         if (cached.low === undefined) cached.low = e.last
         if (cached.high === undefined) cached.high = e.last
 
-        const tr = {} as TradingMin
+        const tr = {} as TradingHour
         tr._id = e._id
         tr.key = e.key
         tr.name = e.name
@@ -78,7 +77,6 @@ export default class AbsHandlerMin {
         tr.month = e.time.getMonth()
         tr.year = e.time.getFullYear()
         tr.hours = e.time.getHours()
-        tr.minutes = e.time.getMinutes()
         tr.baseVolume = e.baseVolume
         tr.last = e.last
 
@@ -105,10 +103,10 @@ export default class AbsHandlerMin {
         cached.candlePrev = tr.last - tr.open
         cached.baseVolume = tr.baseVolume
       }
-      await this.mongo.insert<TradingMin>(`TradingMin${this.skip}`, data)
+      await this.mongo.insert<TradingHour>(`TradingHour${this.skip}`, data)
       await this.redis.set(`${this.constructor.name}.lastUpdateDB`, this.lastUpdateDB)
       await this.redis.set(`${this.constructor.name}.newestTrading`, JSON.stringify(data))
-      Event.HandlerMin.emit(`updateData#${this.constructor.name}`)
+      Event.HandlerHour.emit(`updateData#${this.constructor.name}`)
     } else {
       for (let e of tradings) {
         if (!caches[e.key]) caches[e.key] = {}

@@ -1,14 +1,7 @@
 import { REDIS, Redis } from "hinos-redis/lib/redis"
 import { Mongo, Uuid } from "hinos-mongo/lib/mongo"
-import HandlerMin1 from "./HandlerMin1"
-import HandlerMin5 from './HandlerMin5'
-import HandlerMin3 from './HandlerMin3'
-import HandlerMin30 from './HandlerMin30'
-// import HandlerHour1 from './HandlerHour1'
-// import HandlerDay1 from "./HandlerDay1"
-// import BittrexAlert from "./BittrexAlert";
 import BittrexUser from "../Bittrex/BittrexUser";
-import { EventEmitter } from "events";
+import { Event } from "../Event";
 
 export class TradingTemp {
   _id?: Uuid
@@ -27,33 +20,17 @@ export class TradingTemp {
   volume: number
 }
 
-class _RawTrading {
+class RawTrading {
 
   @REDIS()
   private redis: Redis
-
-  public event = new EventEmitter()
 
   constructor() {
 
   }
 
-  async init() {
-    await Promise.all([
-      HandlerMin1.init(),
-      HandlerMin3.init(),
-      HandlerMin5.init(),
-      HandlerMin30.init(),
-      // HandlerHour1.init(),
-      // HandlerDay1.init()
-    ])
-
-    this.event.on('updateData', (tradings: TradingTemp[], now: Date) => HandlerMin1.handle.call(HandlerMin1, tradings, now))
-    this.event.on('updateData', (tradings: TradingTemp[], now: Date) => HandlerMin3.handle.call(HandlerMin3, tradings, now))
-    this.event.on('updateData', (tradings: TradingTemp[], now: Date) => HandlerMin5.handle.call(HandlerMin5, tradings, now))
-    this.event.on('updateData', (tradings: TradingTemp[], now: Date) => HandlerMin30.handle.call(HandlerMin30, tradings, now))
-
-    this.prepareStartExecute.apply(this)
+  public init() {
+    this.prepareStartExecute()
   }
 
   public async getTradings() {
@@ -76,10 +53,10 @@ class _RawTrading {
       const tradings = await this.handleData(data, now)
       await this.redis.set('RawTrading.newestTrading', JSON.stringify(tradings))
 
-      this.event.emit('updateData', tradings, now)
+      Event.RawHandler.emit('updateData', tradings, now)
       // Promise.all([
       //   // HandlerMin1.insert(tradings, now),
-      //   this.storeMin3.insert(tradings, now),
+      //   this.HandlerMin3.insert(tradings, now),
       //   // HandlerMin5.insert(tradings, now),
       //   // HandlerMin30.insert(tradings, now),
       //   // HandlerHour1.insert(tradings, now),
@@ -93,9 +70,10 @@ class _RawTrading {
   }
 
   private prepareStartExecute() {
+    const self = this
     // if (new Date().getSeconds() !== 0) return setTimeout(this.prepareStartExecute, 1000)
     setInterval(() => {
-      this.execute.apply(this)
+      this.execute.apply(self)
     }, AppConfig.app.bittrex.scanChecking)
   }
 
@@ -156,5 +134,4 @@ class _RawTrading {
     return tradings
   }
 }
-const RawTrading = new _RawTrading()
-export default RawTrading
+export default new RawTrading()

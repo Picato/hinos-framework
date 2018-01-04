@@ -1,6 +1,6 @@
 import { Redis, REDIS } from 'hinos-redis/lib/redis';
 import { TradingTemp } from '../Crawler/RawHandler';
-import TelegramCommand from '../Telegram/TelegramCommand';
+import BittrexVNBot from '../Telegram/BittrexVNBot';
 import BittrexApi from './BittrexApi';
 import BittrexUser from './BittrexUser';
 
@@ -38,11 +38,11 @@ export default class BittrexAlert {
                   if (isok) {
                     const msgs = [`📣📣📣 *${key}* = *${BittrexApi.formatNumber(t.last)}* ${e.formula} 📣📣📣`]
                     if (e.des) msgs.push(`_${e.des}_`)
-                    await TelegramCommand.Bot.send(user.chatId, `${msgs.join('\n')}`, { parse_mode: 'Markdown' })
+                    await BittrexVNBot.Bot.send(user.chatId, `${msgs.join('\n')}`, { parse_mode: 'Markdown' })
                     await BittrexAlert.rmAlert(username, key, i)
                   }
                 } catch (_e) {
-                  await TelegramCommand.Bot.send(user.chatId, `Formula *${e.formula}* got problem`, { parse_mode: 'Markdown' })
+                  await BittrexVNBot.Bot.send(user.chatId, `Formula *${e.formula}* got problem`, { parse_mode: 'Markdown' })
                 }
               }
             }
@@ -64,10 +64,10 @@ export default class BittrexAlert {
             try {
               if (od.CancelInitiated) {
                 // User Canceled
-                await TelegramCommand.Bot.editMessageText(chatId, messageId, undefined, '🚫 The order was canceled by another', { parse_mode: 'Markdown' })
+                await BittrexVNBot.Bot.editMessageText(chatId, messageId, undefined, '🚫 The order was canceled by another', { parse_mode: 'Markdown' })
               } else {
                 // Success
-                await TelegramCommand.Bot.editMessageReplyMarkup(chatId, messageId, undefined, {
+                await BittrexVNBot.Bot.editMessageReplyMarkup(chatId, messageId, undefined, {
                   inline_keyboard: [[{ text: 'THIS ORDER HAS DONE 👍', url: 'https://bittrex.com/History' }]]
                 })
               }
