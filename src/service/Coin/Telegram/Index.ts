@@ -1,10 +1,10 @@
-import '../../../config'
-import { Server } from 'hinos'
-import { Redis } from 'hinos-redis'
+// import '../../../config'
+// import { Server } from 'hinos'
+// import { Redis } from 'hinos-redis'
 
-require(`../../../env.${Server.env}`)
+// require(`../../../env.${Server.env}`)
 
-Redis(AppConfig.redis)
+// Redis(AppConfig.redis)
 
 console.log('---------------- SETUP TELEGRAM BOT ----------------')
 

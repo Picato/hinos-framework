@@ -32,5 +32,4 @@ Server.listen(AppConfig.port, async () => {
 // GoldService.autoSync();
 
 import './service/Coin/Crawler/Index'
-import './service/Coin/AI/Index'
 import './service/Coin/Telegram/Index'
