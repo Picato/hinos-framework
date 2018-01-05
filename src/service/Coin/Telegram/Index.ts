@@ -9,7 +9,4 @@ Redis(AppConfig.redis)
 console.log('---------------- SETUP TELEGRAM BOT ----------------')
 
 import BittrexVNBot from './BittrexVNBot'
-import BittrexAnalyticsBot from './BittrexAnalyticsBot'
-
 BittrexVNBot.init()
-BittrexAnalyticsBot.init()
