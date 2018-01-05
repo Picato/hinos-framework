@@ -1,5 +1,5 @@
 import { Mongo, MONGO, Uuid, Collection } from "hinos-mongo/lib/mongo"
-import BittrexAnalyticsBot from "../Telegram/BittrexAnalyticsBot";
+import BittrexAnalyticsBot from "./Telegram/BittrexAnalyticsBot";
 
 @Collection('TrendsMessage')
 export class TrendsMessage {

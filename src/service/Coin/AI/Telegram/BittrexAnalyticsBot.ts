@@ -1,5 +1,5 @@
 import { Redis, REDIS } from 'hinos-redis/lib/redis';
-import { BotCommand } from '../Telegram/Telegram';
+import { BotCommand } from '../../Telegram/Telegram';
 // import * as Markup from 'telegraf/markup'
 
 class BittrexAnalyticsBot {

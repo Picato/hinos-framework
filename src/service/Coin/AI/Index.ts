@@ -10,7 +10,7 @@ Redis(AppConfig.redis)
 
 console.log('---------------- SETUP AI ----------------')
 
-import BittrexAnalyticsBot from './BittrexAnalyticsBot'
+import BittrexAnalyticsBot from './Telegram/BittrexAnalyticsBot'
 import TrendsMin1 from './TrendsMin1'
 import TrendsMin3 from './TrendsMin3'
 import TrendsMin5 from './TrendsMin5'
