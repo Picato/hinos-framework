@@ -4,6 +4,8 @@ export class BotCommand extends Telegraf {
 
   constructor(token) {
     super(token)
+    const self = this as any
+    self.catch(err => console.error(err))
   }
 
   send(chatid: number, message: string, options?) {

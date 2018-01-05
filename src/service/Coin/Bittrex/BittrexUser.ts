@@ -145,6 +145,28 @@ export default class BittrexUser {
     })
   }
 
+  static getMyOrders(username: string, market?: string) {
+    const user = BittrexUser.users[username]
+    if (!user) return Promise.reject('Not found apikey')
+    return new Promise<any[]>((resolve, reject) => {
+      user.bittrex.getopenorders({ market }, function (err, data) {
+        if (err) return reject(err)
+        resolve(data.result)
+      });
+    })
+  }
+
+  static getMyOrder(username: string, orderId: string) {
+    const user = BittrexUser.users[username]
+    if (!user) return Promise.reject('Not found apikey')
+    return new Promise<any[]>((resolve, reject) => {
+      user.bittrex.getorder({ uuid: orderId }, function (err, data) {
+        if (err) return reject(err)
+        resolve(data.result)
+      });
+    })
+  }
+
   static getMyBalances(username: string) {
     const user = BittrexUser.users[username]
     if (!user) return Promise.reject('Not found apikey')
