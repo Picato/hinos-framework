@@ -23,10 +23,10 @@ class HandlerMin1 {
 
   async init() {
     console.log(`#${this.constructor.name}`, 'Initial')
-    this.lastUpdateDB = await this.redis.get('this.lastUpdateDB')
+    this.lastUpdateDB = await this.redis.get(`${this.constructor.name}.lastUpdateDB`)
     if (this.lastUpdateDB) this.lastUpdateDB = new Date(this.lastUpdateDB)
 
-    const caches = await this.redis.get('this.cached')
+    const caches = await this.redis.get(`${this.constructor.name}.cached`)
     if (caches) this.caches = JSON.parse(caches)
     else this.caches = {}
 
@@ -38,7 +38,7 @@ class HandlerMin1 {
   }
 
   async getTradings() {
-    return JSON.parse(await this.redis.get('this.newestTrading') || '[]')
+    return JSON.parse(await this.redis.get(`${this.constructor.name}.newestTrading`) || '[]')
   }
 
   async handle(tradings: TradingTemp[], now: Date) {
@@ -76,9 +76,9 @@ class HandlerMin1 {
         cached.prev = tr.last
         cached.baseVolume = tr.baseVolume
       }
-      await this.redis.set('this.lastUpdateDB', this.lastUpdateDB)
-      await this.redis.set('this.newestTrading', JSON.stringify(data))
-      await this.redis.set('this.cached', JSON.stringify(this.caches))
+      await this.redis.set(`${this.constructor.name}.lastUpdateDB`, this.lastUpdateDB)
+      await this.redis.set(`${this.constructor.name}.newestTrading`, JSON.stringify(data))
+      await this.redis.set(`${this.constructor.name}.cached`, JSON.stringify(this.caches))
       await this.redis.publish(`updateData#${this.constructor.name}`, JSON.stringify(data))
     }
     console.log(`#${this.constructor.name}`, 'Finished handle data')
