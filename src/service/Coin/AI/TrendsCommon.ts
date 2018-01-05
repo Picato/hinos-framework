@@ -1,9 +1,5 @@
 import { Uuid } from "hinos-mongo/lib/mongo"
-import BittrexApi from "../Bittrex/BittrexApi";
-import { Redis } from "hinos-redis/lib/redis";
-
-export const Subscriber = Redis.newClient(AppConfig.redis)
-export const Publisher = Redis.newClient(AppConfig.redis)
+import BittrexApi from "../Bittrex/BittrexApi"
 
 export class BittrexTrading {
   _id?: Uuid

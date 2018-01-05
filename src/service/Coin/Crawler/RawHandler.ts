@@ -1,7 +1,7 @@
 import { REDIS, Redis } from "hinos-redis/lib/redis"
 import { Mongo, Uuid } from "hinos-mongo/lib/mongo"
 import BittrexUser from "../Bittrex/BittrexUser";
-import { Event } from "../Event";
+// import { Event } from "../Event";
 
 export class TradingTemp {
   _id?: Uuid
@@ -53,7 +53,7 @@ class RawTrading {
       const tradings = await this.handleData(data, now)
       await this.redis.set('RawTrading.newestTrading', JSON.stringify(tradings))
 
-      Event.RawHandler.emit('updateData', tradings, now)
+      this.redis.publish('updateData', JSON.stringify({ tradings, now }))
       // Promise.all([
       //   // HandlerMin1.insert(tradings, now),
       //   this.HandlerMin3.insert(tradings, now),
@@ -134,4 +134,5 @@ class RawTrading {
     return tradings
   }
 }
+
 export default new RawTrading()

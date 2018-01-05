@@ -1,8 +1,8 @@
-import { EventEmitter } from "events";
+// import { Redis } from "hinos-redis/lib/redis";
 
 export namespace Event {
-  export const RawHandler = new EventEmitter()
-  export const HandlerMin = new EventEmitter()
-  export const HandlerHour = new EventEmitter()
-  export const HandlerDay = new EventEmitter()
+  // export const RawHandler = Redis.newClient(AppConfig.redis)
+  // export const HandlerMin = Redis.newClient(AppConfig.redis)
+  // export const HandlerHour = Redis.newClient(AppConfig.redis)
+  // export const HandlerDay = Redis.newClient(AppConfig.redis)
 }

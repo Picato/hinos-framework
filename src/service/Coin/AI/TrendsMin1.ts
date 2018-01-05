@@ -1,6 +1,6 @@
 import { TrendsMessageService, TrendsMessage } from "./TrendsMessage";
 import BittrexApi from "../Bittrex/BittrexApi";
-import { Subscriber } from "./TrendsCommon";
+import { Redis } from "hinos-redis/lib/redis";
 
 // import { REDIS, Redis } from "hinos-redis/lib/redis";
 
@@ -10,23 +10,18 @@ class TrendsMin1 {
 
   async init() {
     const self = this
-    Subscriber.subscribe(`updateData#HandlerMin1`, async (err, data) => {
+    Redis.subscribe('updateData#HandlerMin1', async (data) => {
       console.log('#Trends HandlerMin1')
-      if (err) return console.error(err)
-      try {
-        data = JSON.parse(data)
-        let tmp = await Promise.all([
-          self.topVolumeChanging(data),
-          self.topPercentChanging(data)
-        ])
-        const msgs = tmp.reduce((sum: any[], msgs: any[]) => sum.concat(msgs), [])
-        if (msgs.length > 0) {
-          await TrendsMessageService.insert(msgs, 'HandlerMin1')
-        }
-      } catch (e) {
-        console.error(e)
+      data = JSON.parse(data)
+      let tmp = await Promise.all([
+        self.topVolumeChanging(data),
+        self.topPercentChanging(data)
+      ])
+      const msgs = tmp.reduce((sum: any[], msgs: any[]) => sum.concat(msgs), [])
+      if (msgs.length > 0) {
+        await TrendsMessageService.insert(msgs, 'HandlerMin1')
       }
-    })
+    }, AppConfig.redis)
   }
 
   async topVolumeChanging(data) {

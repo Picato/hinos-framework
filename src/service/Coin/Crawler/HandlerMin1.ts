@@ -1,7 +1,8 @@
 import { Redis, REDIS } from "hinos-redis/lib/redis"
 import { TradingTemp } from './RawHandler'
-import { BittrexTrading, Publisher } from "../AI/TrendsCommon"
-import { Event } from "../Event";
+import { BittrexTrading } from "../AI/TrendsCommon"
+import Utils from "../../../common/Utils";
+// import { Event } from "../Event";
 
 export class TradingMin1 extends BittrexTrading {
   name: string
@@ -30,9 +31,10 @@ class HandlerMin1 {
     else this.caches = {}
 
     const self = this
-    Event.RawHandler.on('updateData', (tradings: TradingTemp[], now: Date) => {
+    Redis.subscribe('updateData', (data) => {
+      const { tradings, now } = Utils.JSONParse(data)
       self.handle(tradings, now)
-    })
+    }, AppConfig.redis)
   }
 
   async getTradings() {
@@ -77,7 +79,7 @@ class HandlerMin1 {
       await this.redis.set('this.lastUpdateDB', this.lastUpdateDB)
       await this.redis.set('this.newestTrading', JSON.stringify(data))
       await this.redis.set('this.cached', JSON.stringify(this.caches))
-      await Publisher.publish(`updateData#${this.constructor.name}`, JSON.stringify(data))
+      await this.redis.publish(`updateData#${this.constructor.name}`, JSON.stringify(data))
     }
     console.log(`#${this.constructor.name}`, 'Finished handle data')
   }

@@ -31,19 +31,6 @@ Server.listen(AppConfig.port, async () => {
 
 // GoldService.autoSync();
 
-// const pub = Redis.newClient(AppConfig.redis)
-// const sub = Redis.newClient(AppConfig.redis)
-
-// sub.subscribe("a#123", (err, data) => {
-//   console.log("a#123", data)
-// })
-// sub.subscribe("b#123", (err, data) => {
-//   console.log("b#123", data)
-// })
-
-// pub.publish("a nice channel", "I am sending a message.")
-// pub.publish("b#123", "I am sending a message.")
-// pub.publish("a#123", "I am sending a message.")
 // import './service/Coin/Crawler/Index'
-import './service/Coin/AI/Index'
+// import './service/Coin/AI/Index'
 // import './service/Coin/Telegram/Index'

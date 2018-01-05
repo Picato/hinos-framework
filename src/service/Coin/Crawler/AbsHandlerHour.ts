@@ -1,8 +1,9 @@
 import { MONGO, Mongo } from "hinos-mongo/lib/mongo"
 import { Redis, REDIS } from "hinos-redis/lib/redis"
-import { BittrexTrading, Publisher } from "../AI/TrendsCommon";
+import { BittrexTrading } from "../AI/TrendsCommon";
 import { TradingTemp } from "./RawHandler";
-import { Event } from "../Event";
+import Utils from "../../../common/Utils";
+// import { Event } from "../Event";
 
 export class TradingHour extends BittrexTrading {
   name: string
@@ -35,9 +36,10 @@ export default class AbsHandlerHour {
     if (this.lastUpdateDB) this.lastUpdateDB = new Date(this.lastUpdateDB)
 
     const self = this
-    Event.RawHandler.on('updateData', (tradings: TradingTemp[], now: Date) => {
+    Redis.subscribe('updateData', (data) => {
+      const { tradings, now } = Utils.JSONParse(data)
       self.handle(tradings, now)
-    })
+    }, AppConfig.redis)
   }
 
   async find(fil) {
@@ -106,7 +108,7 @@ export default class AbsHandlerHour {
       await this.mongo.insert<TradingHour>(`TradingHour${this.skip}`, data)
       await this.redis.set(`${this.constructor.name}.lastUpdateDB`, this.lastUpdateDB)
       await this.redis.set(`${this.constructor.name}.newestTrading`, JSON.stringify(data))
-      await Publisher.publish(`updateData#${this.constructor.name}`, '')
+      await this.redis.publish(`updateData#${this.constructor.name}`, '')
     } else {
       for (let e of tradings) {
         if (!caches[e.key]) caches[e.key] = {}
