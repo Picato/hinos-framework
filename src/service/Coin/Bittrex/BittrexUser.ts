@@ -7,6 +7,10 @@ Bittrex.options({
   inverse_callback_arguments: true
 })
 
+export class BittrexAlert {
+  constructor(public key: string, public formula: string, public des: string) { }
+}
+
 export default class BittrexUser {
   @REDIS()
   private static redis: Redis
@@ -14,7 +18,7 @@ export default class BittrexUser {
   static users = {} as { [username: string]: BittrexUser }
   bittrex: any
 
-  constructor(private username, private apikey, private secretkey, public chatId, public orderIds = []) {
+  constructor(private username, private apikey, private secretkey, public chatId, public orderIds = [], public alerts = {}) {
     this.bittrex = require('node-bittrex-api') as any;
     const self = this
     this.bittrex.options({
@@ -27,8 +31,8 @@ export default class BittrexUser {
   static async reloadFromCached() {
     const bots = await BittrexUser.redis.hget(`bittrex.users`)
     for (let username in bots) {
-      const { apikey, secretkey, orderIds, chatId } = JSON.parse(bots[username])
-      const user = new BittrexUser(username, apikey, secretkey, chatId, orderIds)
+      const { apikey, secretkey, orderIds, chatId, alerts } = JSON.parse(bots[username])
+      const user = new BittrexUser(username, apikey, secretkey, chatId, orderIds, alerts)
       BittrexUser.users[username] = user
     }
   }
@@ -48,9 +52,32 @@ export default class BittrexUser {
         apikey: self.apikey,
         secretkey: self.secretkey,
         chatId: self.chatId,
-        orderIds: self.orderIds
+        orderIds: self.orderIds,
+        alerts: self.alerts
       })
     })
+  }
+
+  async rmAlert(key: string, i: number) {
+    if (this.alerts) {
+      if (!key) {
+        this.alerts = {}
+        await this.saveToCached()
+      } else if (this.alerts[key] && i < this.alerts[key].length) {
+        if (i >= 0) {
+          this.alerts[key].splice(i, 1)
+          if (this.alerts[key].length === 0) delete this.alerts[key]
+        } else delete this.alerts[key]
+        await this.saveToCached()
+      }
+    }
+  }
+
+  async addAlert(data: BittrexAlert) {
+    if (!this.alerts[data.key]) this.alerts[data.key] = []
+    this.alerts[data.key].push(data)
+    await this.saveToCached()
+    return this.alerts[data.key].length - 1
   }
 
   getOrderBook(key, type: 'both' | 'sell' | 'buy') {
@@ -80,7 +107,13 @@ export default class BittrexUser {
   }
 
   async addOrder(orderId, chatId, messageId) {
-    this.orderIds.push({ orderId, chatId, messageId })
+    const existed = this.orderIds.find(id => id === orderId)
+    if (existed) {
+      existed.chatId = chatId
+      existed.messageId = messageId
+    } else {
+      this.orderIds.push({ orderId, chatId, messageId })
+    }
     await this.saveToCached()
   }
 
@@ -145,33 +178,20 @@ export default class BittrexUser {
     })
   }
 
-  static getMyOrders(username: string, market?: string) {
-    const user = BittrexUser.users[username]
-    if (!user) return Promise.reject('Not found apikey')
+  getMyOrders(market = '') {
+    const self = this
     return new Promise<any[]>((resolve, reject) => {
-      user.bittrex.getopenorders({ market }, function (err, data) {
+      self.bittrex.getopenorders({ market }, function (err, data) {
         if (err) return reject(err)
         resolve(data.result)
       });
     })
   }
 
-  static getMyOrder(username: string, orderId: string) {
-    const user = BittrexUser.users[username]
-    if (!user) return Promise.reject('Not found apikey')
+  getMyBalances() {
+    const self = this
     return new Promise<any[]>((resolve, reject) => {
-      user.bittrex.getorder({ uuid: orderId }, function (err, data) {
-        if (err) return reject(err)
-        resolve(data.result)
-      });
-    })
-  }
-
-  static getMyBalances(username: string) {
-    const user = BittrexUser.users[username]
-    if (!user) return Promise.reject('Not found apikey')
-    return new Promise<any[]>((resolve, reject) => {
-      user.bittrex.getbalances(function (err, data) {
+      self.bittrex.getbalances(function (err, data) {
         if (err) return reject(err)
         resolve(data.result)
       });

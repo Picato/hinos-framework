@@ -10,7 +10,7 @@ export default class BittrexApi {
     return price * (rate[`${market}-USDT`] || 1)
   }
   static formatNumber(value) {
-    return Number(value).toLocaleString(undefined, { maximumFractionDigits: 8 })
+    return Number(value).toLocaleString(undefined, { maximumFractionDigits: 8, minimumFractionDigits: 8 })
   }
 
 }
