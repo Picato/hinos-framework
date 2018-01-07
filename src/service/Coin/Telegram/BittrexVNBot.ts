@@ -567,17 +567,13 @@ export default class BittrexVNBot {
       '*ALERTS*',
       '-----------------------------------------'
     ]
-    if (!alert || !alert[_key] || alert[_key].length === 0) {
-      tmp.push('No alert')
-    } else {
-      for (let key in alert) {
-        if (_key && key !== _key) continue
-        const newestTrading = await RawTrading.getTradings()
-        const f = newestTrading.find(e => e.key === key)
-        tmp.push(`[${key}](https://bittrex.com/Market/Index?MarketName=${key}) = ${f ? BittrexApi.formatNumber(f.last) : ''}`)
-        tmp.push(alert[key].map((e, i) => ` ${i} | * $${e.formula}* | _${e.des || ''} _`).join('\n'))
-        tmp.push('')
-      }
+    for (let key in alert) {
+      if (_key && key !== _key) continue
+      const newestTrading = await RawTrading.getTradings()
+      const f = newestTrading.find(e => e.key === key)
+      tmp.push(`[${key}](https://bittrex.com/Market/Index?MarketName=${key}) = ${f ? BittrexApi.formatNumber(f.last) : ''}`)
+      tmp.push(alert[key].map((e, i) => ` ${i} | * $${e.formula}* | _${e.des || ''} _`).join('\n'))
+      tmp.push('')
     }
     return tmp
   }
