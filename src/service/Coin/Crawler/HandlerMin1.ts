@@ -8,7 +8,6 @@ export class TradingMin1 extends BittrexTrading {
   name: string
   market: string
   raw_time: Date
-  baseVolume: number
 }
 
 class HandlerMin1 {
@@ -65,7 +64,10 @@ class HandlerMin1 {
         tr.raw_time = e.raw_time
         tr.time = e.time
         tr.baseVolume = e.baseVolume
+        tr.prevBaseVolume = cached.baseVolume        
+        tr.baseVolumeNum = tr.baseVolume - tr.prevBaseVolume
         tr.last = e.last
+        tr.num = e.last - cached.prev
 
         tr.prev = cached.prev !== undefined ? cached.prev : tr.last
         tr.baseVolumePercent = cached.baseVolume !== undefined ? ((tr.baseVolume - cached.baseVolume) * 100 / cached.baseVolume) : 0

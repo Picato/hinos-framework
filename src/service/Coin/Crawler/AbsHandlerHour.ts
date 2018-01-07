@@ -14,7 +14,6 @@ export class TradingHour extends BittrexTrading {
   year: number
   hours: number
   open: number
-  baseVolume: number
   low: number
   high: number
 }
@@ -80,7 +79,10 @@ export default class AbsHandlerHour {
         tr.year = e.time.getFullYear()
         tr.hours = e.time.getHours()
         tr.baseVolume = e.baseVolume
+        tr.prevBaseVolume = cached.baseVolume        
+        tr.baseVolumeNum = tr.baseVolume - tr.prevBaseVolume
         tr.last = e.last
+        tr.num = e.last - cached.prev
 
         tr.low = tr.last > cached.low ? cached.low : tr.last
         tr.high = tr.last < cached.high ? cached.high : tr.last

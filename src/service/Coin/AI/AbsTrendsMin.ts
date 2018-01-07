@@ -40,14 +40,14 @@ export default class AbsTrendsMin extends TrendsCommon {
       for (let key in tradings) {
         const items = tradings[key]
         let allmsgs = await Promise.all([
-          this.check55Percent(key, items[0]),
-          this.checkRecentlySame(key, items),
-          this.checkBaseVolume(key, items)
+          self.check55Percent(key, items[0]),
+          self.checkRecentlySame(key, items),
+          self.checkBaseVolume(key, items)
         ]) as any[]
         msgs = msgs.concat(allmsgs.reduce((sum: any[], msgs: any[]) => sum.concat(msgs), []))
       }
       if (msgs.length > 0) {
-        await TrendsMessageService.insert(msgs, `${this.tblName}`)
+        await TrendsMessageService.insert(msgs, `${self.tblName}`)
       }
     }, AppConfig.redis)
   }

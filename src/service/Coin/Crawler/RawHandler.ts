@@ -12,11 +12,14 @@ export class TradingTemp {
   time: Date
   prev: number
   last: number
+  num: number // last-prev
   percent: number
   bid: number
   ask: number
+  prevBaseVolume: number
   baseVolume: number
   baseVolumePercent: number
+  baseVolumeNum: number
   volume: number
 }
 
@@ -54,16 +57,6 @@ class RawTrading {
       await this.redis.set('RawTrading.newestTrading', JSON.stringify(tradings))
 
       this.redis.publish('updateData', JSON.stringify({ tradings, now }))
-      // Promise.all([
-      //   // HandlerMin1.insert(tradings, now),
-      //   this.HandlerMin3.insert(tradings, now),
-      //   // HandlerMin5.insert(tradings, now),
-      //   // HandlerMin30.insert(tradings, now),
-      //   // HandlerHour1.insert(tradings, now),
-      //   // HandlerDay1.insert(tradings, now),
-      //   // BittrexAlert.checkOrder(),
-      //   // BittrexAlert.checkAlert(tradings, now)
-      // ])
     } catch (e) {
       console.error(e)
     }
@@ -128,7 +121,10 @@ class RawTrading {
       const cached = oldTradings.find(e => e.key === trading.key)
       trading.prev = !cached ? trading.last : cached.last
       trading.percent = !cached ? 0 : (trading.last - cached.last) * 100 / cached.last
-      trading.baseVolumePercent = !cached ? 0 : (trading.baseVolume - cached.baseVolume) * 100 / cached.baseVolume
+      trading.num = trading.last - trading.prev
+      trading.prevBaseVolume = !cached ? trading.baseVolume : cached.baseVolume
+      trading.baseVolumePercent = (trading.baseVolume - trading.prevBaseVolume) * 100 / cached.baseVolume
+      trading.baseVolumeNum = trading.baseVolume - cached.baseVolume
       tradings.push(trading)
     }
     return tradings

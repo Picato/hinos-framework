@@ -25,11 +25,9 @@ export class TrendsMessageService {
     }))
   }
 
-  static async find(_fil: any, type: string) {
+  static async find(fil: any) {
     return await TrendsMessageService.mongo.find<TrendsMessage>(TrendsMessage, {
-      $where: {
-        type
-      },
+      $where: fil,
       $sort: {
         updated_at: -1
       }

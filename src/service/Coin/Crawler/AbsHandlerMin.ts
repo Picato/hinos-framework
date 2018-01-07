@@ -15,7 +15,6 @@ export class TradingMin extends BittrexTrading {
   hours: number
   minutes: number
   open: number
-  baseVolume: number
   low: number
   high: number
 }
@@ -82,7 +81,10 @@ export default class AbsHandlerMin {
         tr.hours = e.time.getHours()
         tr.minutes = e.time.getMinutes()
         tr.baseVolume = e.baseVolume
+        tr.prevBaseVolume = cached.baseVolume        
+        tr.baseVolumeNum = tr.baseVolume - tr.prevBaseVolume
         tr.last = e.last
+        tr.num = e.last - cached.prev
 
         tr.low = tr.last > cached.low ? cached.low : tr.last
         tr.high = tr.last < cached.high ? cached.high : tr.last

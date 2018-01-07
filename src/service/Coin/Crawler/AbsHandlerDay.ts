@@ -12,9 +12,7 @@ export class TradingDay extends BittrexTrading {
   date: number
   month: number
   year: number
-  hours: number
-  open: number
-  baseVolume: number
+  open: number  
   low: number
   high: number
 }
@@ -55,7 +53,7 @@ export default class AbsHandlerDay {
     let caches = await this.redis.get(`${this.constructor.name}.cached`)
     if (caches) caches = JSON.parse(caches)
     else caches = {}
-    if (!this.lastUpdateDB || (this.lastUpdateDB.getHours() !== now.getHours() && now.getHours() % this.skip === 0)) {
+    if (!this.lastUpdateDB || (this.lastUpdateDB.getDate() !== now.getDate() && now.getDate() % this.skip === 0)) {
       this.lastUpdateDB = now
       let data = []
       for (let e of tradings) {
@@ -78,9 +76,11 @@ export default class AbsHandlerDay {
         tr.date = e.time.getDate()
         tr.month = e.time.getMonth()
         tr.year = e.time.getFullYear()
-        tr.hours = e.time.getHours()
         tr.baseVolume = e.baseVolume
+        tr.prevBaseVolume = cached.baseVolume        
+        tr.baseVolumeNum = tr.baseVolume - tr.prevBaseVolume
         tr.last = e.last
+        tr.num = e.last - cached.prev
 
         tr.low = tr.last > cached.low ? cached.low : tr.last
         tr.high = tr.last < cached.high ? cached.high : tr.last

@@ -15,25 +15,58 @@ import HandlerMin1 from '../service/Coin/Crawler/HandlerMin1';
 
 export default class CoinController {
 
-  @GET('/market')
+  @GET('/market/:key')
   @RESTRICT({
+    params: {
+      key: k => k.toUpperCase(),
+    },
     query: {
       type: String
     }
   })
-  static async getMarket({ query }) {
+  static async getDetailMarket({ query, params }) {
     let rs
-    if (query.type === 'min1') rs = await HandlerMin1.getTradings()
-    else if (query.type === 'min3') rs = await HandlerMin3.getTradings()
-    else if (query.type === 'min5') rs = await HandlerMin5.getTradings()
-    else if (query.type === 'min30') rs = await HandlerMin30.getTradings()
-    else if (query.type === 'hour') rs = await HandlerHour1.getTradings()
-    else if (query.type === 'day') rs = await HandlerDay1.getTradings()
+    let { type } = query
+    let { key } = params
+    if (type === 'HandlerMin1') rs = await HandlerMin1.getTradings()
+    else if (type === 'HandlerMin3') rs = await HandlerMin3.getTradings()
+    else if (type === 'HandlerMin5') rs = await HandlerMin5.getTradings()
+    else if (type === 'HandlerMin30') rs = await HandlerMin30.getTradings()
+    else if (type === 'HandlerHour1') rs = await HandlerHour1.getTradings()
+    else if (type === 'HandlerDay1') rs = await HandlerDay1.getTradings()
     else rs = await RawTrading.getTradings()
-    return rs.sort((a, b) => Math.abs(b.percent - a.percent))
+    return rs.find(e => e.key === key)
   }
 
-  @GET('/market/:coinName')
+  @GET('/markets')
+  @RESTRICT({
+    query: {
+      market: String,
+      top: String,
+      sort: Number,
+      type: String,
+      page: Number,
+      recordsPerPage: Number
+    }
+  })
+  static async getMarket({ query }) {
+    let rs
+    let { top, sort, type, recordsPerPage = 20, page = 1, market } = query
+    if (type === 'HandlerMin1') rs = await HandlerMin1.getTradings()
+    else if (type === 'HandlerMin3') rs = await HandlerMin3.getTradings()
+    else if (type === 'HandlerMin5') rs = await HandlerMin5.getTradings()
+    else if (type === 'HandlerMin30') rs = await HandlerMin30.getTradings()
+    else if (type === 'HandlerHour1') rs = await HandlerHour1.getTradings()
+    else if (type === 'HandlerDay1') rs = await HandlerDay1.getTradings()
+    else rs = await RawTrading.getTradings()
+    if (market) rs = rs.filter(e => e.key.indexOf(`${market}-`) === 0)
+    if (top) rs.sort((a, b) => sort === -1 ? (b[top] - a[top]) : a[top] - b[top])
+    else rs.sort((a, b) => Math.abs(b[top] - a[top]))
+    if (recordsPerPage) rs = rs.slice((page - 1) * recordsPerPage, page * recordsPerPage)
+    return rs
+  }
+
+  @GET('/markets/:coinName')
   @RESTRICT({
     query: {
       type: String
@@ -43,7 +76,7 @@ export default class CoinController {
     }
   })
   static async getMarketDetails({ query, params }) {
-    if (query.type === 'min3') return HandlerMin3.find({
+    if (query.type === 'HandlerMin3') return HandlerMin3.find({
       $where: {
         key: params.coinName.toUpperCase()
       },
@@ -52,7 +85,7 @@ export default class CoinController {
       },
       $recordsPerPage: 30
     })
-    if (query.type === 'min5') return HandlerMin5.find({
+    if (query.type === 'HandlerMin5') return HandlerMin5.find({
       $where: {
         key: params.coinName.toUpperCase()
       },
@@ -61,7 +94,7 @@ export default class CoinController {
       },
       $recordsPerPage: 30
     })
-    if (query.type === 'min30') return HandlerMin30.find({
+    if (query.type === 'HandlerMin30') return HandlerMin30.find({
       $where: {
         key: params.coinName.toUpperCase()
       },
@@ -70,7 +103,7 @@ export default class CoinController {
       },
       $recordsPerPage: 30
     })
-    if (query.type === 'hour') return HandlerHour1.find({
+    if (query.type === 'HandlerHour1') return HandlerHour1.find({
       $where: {
         key: params.coinName.toUpperCase()
       },
@@ -79,7 +112,7 @@ export default class CoinController {
       },
       $recordsPerPage: 24
     })
-    if (query.type === 'day') return HandlerDay1.find({
+    if (query.type === 'HandlerDay1') return HandlerDay1.find({
       $where: {
         key: params.coinName.toUpperCase()
       },
@@ -108,11 +141,16 @@ export default class CoinController {
   @GET('/trending-message')
   @RESTRICT({
     query: {
+      key: k => k.toUpperCase(),
       type: String
     }
   })
   static async getTrendingMessage({ query }) {
-    return TrendsMessageService.find({}, query.type)
+    let where = {
+      type: query.type
+    } as any
+    if (query.key) where.key = query.key
+    return TrendsMessageService.find(where)
   }
 
   // @GET('/bittrex-trading')
