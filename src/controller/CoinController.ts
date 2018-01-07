@@ -83,7 +83,7 @@ export default class CoinController {
       $sort: {
         time: -1
       },
-      $recordsPerPage: 30
+      $recordsPerPage: 100
     })
     if (query.type === 'HandlerMin5') return HandlerMin5.find({
       $where: {
@@ -92,7 +92,7 @@ export default class CoinController {
       $sort: {
         time: -1
       },
-      $recordsPerPage: 30
+      $recordsPerPage: 100
     })
     if (query.type === 'HandlerMin30') return HandlerMin30.find({
       $where: {
@@ -101,7 +101,7 @@ export default class CoinController {
       $sort: {
         time: -1
       },
-      $recordsPerPage: 30
+      $recordsPerPage: 100
     })
     if (query.type === 'HandlerHour1') return HandlerHour1.find({
       $where: {
@@ -110,7 +110,7 @@ export default class CoinController {
       $sort: {
         time: -1
       },
-      $recordsPerPage: 24
+      $recordsPerPage: 100
     })
     if (query.type === 'HandlerDay1') return HandlerDay1.find({
       $where: {
@@ -119,7 +119,7 @@ export default class CoinController {
       $sort: {
         time: -1
       },
-      $recordsPerPage: 31
+      $recordsPerPage: 100
     })
   }
 
