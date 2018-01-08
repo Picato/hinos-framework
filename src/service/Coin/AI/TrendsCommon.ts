@@ -19,14 +19,7 @@ export class BittrexTrading {
 }
 
 export class TrendsCommon {
-
-  private cached = {} as {
-    [key: string]: {
-      topVolumeChanging: any,
-      topPercentChanging: any
-    }
-  }
-
+  
   // public async execute(tradings: { [key: string]: BittrexTrading[] }) {
   //   for (let key in tradings) {
   //     const items = tradings[key]
