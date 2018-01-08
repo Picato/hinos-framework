@@ -42,7 +42,7 @@ export default class AbsHandlerHour {
   }
 
   async find(fil) {
-    return await this.mongo.find<TradingHour>(`TradingHour${this.skip}`, fil)
+    return await this.mongo.find<TradingHour>(`${this.constructor.name}`, fil)
   }
 
   async getTradings() {
@@ -107,7 +107,7 @@ export default class AbsHandlerHour {
         cached.candlePrev = tr.last - tr.open
         cached.baseVolume = tr.baseVolume
       }
-      await this.mongo.insert<TradingHour>(`TradingHour${this.skip}`, data)
+      await this.mongo.insert<TradingHour>(`${this.constructor.name}`, data)
       await this.redis.set(`${this.constructor.name}.lastUpdateDB`, this.lastUpdateDB)
       await this.redis.set(`${this.constructor.name}.newestTrading`, JSON.stringify(data))
       await this.redis.publish(`updateData#${this.constructor.name}`, '')

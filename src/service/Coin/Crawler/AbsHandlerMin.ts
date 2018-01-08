@@ -43,7 +43,7 @@ export default class AbsHandlerMin {
   }
 
   async find(fil) {
-    return await this.mongo.find<TradingMin>(`TradingMin${this.skip}`, fil)
+    return await this.mongo.find<TradingMin>(`${this.constructor.name}`, fil)
   }
 
   async getTradings() {
@@ -109,7 +109,7 @@ export default class AbsHandlerMin {
         cached.candlePrev = tr.last - tr.open
         cached.baseVolume = tr.baseVolume
       }
-      await this.mongo.insert<TradingMin>(`TradingMin${this.skip}`, data)
+      await this.mongo.insert<TradingMin>(`${this.constructor.name}`, data)
       await this.redis.set(`${this.constructor.name}.lastUpdateDB`, this.lastUpdateDB)
       await this.redis.set(`${this.constructor.name}.newestTrading`, JSON.stringify(data))
       await this.redis.publish(`updateData#${this.constructor.name}`, '')

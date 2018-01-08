@@ -20,6 +20,13 @@ export class BittrexTrading {
 
 export class TrendsCommon {
 
+  private cached = {} as {
+    [key: string]: {
+      topVolumeChanging: any,
+      topPercentChanging: any
+    }
+  }
+
   // public async execute(tradings: { [key: string]: BittrexTrading[] }) {
   //   for (let key in tradings) {
   //     const items = tradings[key]
@@ -55,9 +62,16 @@ export class TrendsCommon {
       }
       if (c >= 2) {
         if (sign > 0) {
-          msgs.push({ key, txt: `Thị trường đang được đổ tiền vào ${c} lần liên tiếp`, style: 'VOLUME' })
+          msgs.push({ key, txt: `[${c} lần liên tiếp] Thị trường đang được đổ tiền vào`, style: 'VOLUME' })
         } else {
-          msgs.push({ key, txt: `Thị trường đang bị rút tiền ra ${c} lần liên tiếp`, style: 'VOLUME' })
+          msgs.push({ key, txt: `[${c} lần liên tiếp] Thị trường đang bị rút tiền ra`, style: 'VOLUME' })
+        }
+      }
+      if (tradings[0] && tradings[0].baseVolumePercent >= 50) {
+        if (sign > 0) {
+          msgs.push({ key, txt: `[${tradings[0].baseVolumePercent}%] Thị trường đang được đổ tiền MẠNH`, style: 'VOLUME' })
+        } else {
+          msgs.push({ key, txt: `[${tradings[0].baseVolumePercent}%] Thị trường đang bị rút tiền MẠNH`, style: 'VOLUME' })
         }
       }
       resolve(msgs)
