@@ -32,7 +32,7 @@ export default class CoinController {
       key: String
     }
   })
-  static async getMarketsByTime({ query, params }) {
+  static async getMarketsByTime({ query }) {
     let rs
     let { type, market, key } = query
     // let { key } = params
