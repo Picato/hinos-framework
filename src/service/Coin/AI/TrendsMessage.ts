@@ -1,5 +1,5 @@
 import { Mongo, MONGO, Uuid, Collection } from "hinos-mongo/lib/mongo"
-import BittrexAnalyticsBot from "./Telegram/BittrexAnalyticsBot";
+// import BittrexAnalyticsBot from "./Telegram/BittrexAnalyticsBot";
 
 @Collection('TrendsMessage')
 export class TrendsMessage {
@@ -16,14 +16,14 @@ export class TrendsMessageService {
   private static mongo: Mongo
 
   static async insert(msgs: TrendsMessage[], type: string) {
-    const telemsgs = msgs.reduce((sum, item) => {
-      if (!sum[item.key]) sum[item.key] = []
-      sum[item.key].push(item)
-      return sum
-    }, {})
-    for(let key in telemsgs) {
-      await BittrexAnalyticsBot.postMessage(telemsgs[key].map(e => `*${key}* _${e.txt}_`).join(`\n`), type)
-    }
+    // const telemsgs = msgs.reduce((sum, item) => {
+    //   if (!sum[item.key]) sum[item.key] = []
+    //   sum[item.key].push(item)
+    //   return sum
+    // }, {})
+    // for(let key in telemsgs) {
+    //   await BittrexAnalyticsBot.postMessage(telemsgs[key].map(e => `*${key}* _${e.txt}_`).join(`\n`), type)
+    // }
     await TrendsMessageService.mongo.insert<TrendsMessage>(TrendsMessage, msgs.map(e => {
       e.type = type
       if (!e.style) e.style = 'COIN'
