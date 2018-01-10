@@ -9,10 +9,11 @@ export class TradingDay extends BittrexTrading {
   name: string
   market: string
   raw_time: Date
+  day: number
   date: number
   month: number
   year: number
-  open: number  
+  open: number
   low: number
   high: number
 }
@@ -38,6 +39,41 @@ export default class AbsHandlerDay {
       const { tradings, now } = Utils.JSONParse(data)
       self.handle(tradings, now)
     }, AppConfig.redis)
+  }
+
+  async groupByTime(key, market) {
+    let beforeThat = new Date()
+    beforeThat.setMonth(beforeThat.getMonth() - 1)
+    // beforeThat.setDate(beforeThat.getDate() - 30)
+    let where = {} as any
+    if (key) where.key = key
+    else if (market) where.market = market
+    return await this.mongo.manual(`${this.constructor.name}`, async (collection) => {
+      const rs = collection.aggregate(
+        [
+          {
+            $match: Object.assign(where, {
+              time: {
+                $gte: beforeThat
+              }
+            })
+          },
+          {
+            $group: {
+              _id: { day: '$day' },
+              avgLowPrice: { $avg: "$low" },
+              avgHighPrice: { $avg: "$high" }
+            }
+          },
+          {
+            $sort: {
+              '_id.date': 1
+            }
+          }
+        ]
+      )
+      return await rs.toArray()
+    })
   }
 
   async find(fil) {
@@ -67,17 +103,18 @@ export default class AbsHandlerDay {
         if (cached.high === undefined) cached.high = e.last
 
         const tr = {} as TradingDay
-        tr._id = e._id
+        tr._id = Mongo.uuid(e._id)
         tr.key = e.key
         tr.name = e.name
         tr.market = e.market
         tr.raw_time = e.raw_time
         tr.time = e.time
+        tr.day = e.time.getDay()
         tr.date = e.time.getDate()
         tr.month = e.time.getMonth()
         tr.year = e.time.getFullYear()
         tr.baseVolume = e.baseVolume
-        tr.prevBaseVolume = cached.baseVolume        
+        tr.prevBaseVolume = cached.baseVolume
         tr.baseVolumeNum = tr.baseVolume - tr.prevBaseVolume
         tr.last = e.last
         tr.num = e.last - cached.prev

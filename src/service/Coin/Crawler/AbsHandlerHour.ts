@@ -9,6 +9,7 @@ export class TradingHour extends BittrexTrading {
   name: string
   market: string
   raw_time: Date
+  day: number
   date: number
   month: number
   year: number
@@ -41,6 +42,40 @@ export default class AbsHandlerHour {
     }, AppConfig.redis)
   }
 
+  async groupByTime(key, market) {
+    let beforeThat = new Date()
+    beforeThat.setDate(beforeThat.getDate() - 7)
+    let where = {} as any
+    if (key) where.key = key
+    else if (market) where.market = market
+    return await this.mongo.manual(`${this.constructor.name}`, async (collection) => {
+      const rs = collection.aggregate(
+        [
+          {
+            $match: Object.assign(where, {
+              time: {
+                $gte: beforeThat
+              }
+            })
+          },
+          {
+            $group: {
+              _id: { hours: '$hours' },
+              avgLowPrice: { $avg: "$low" },
+              avgHighPrice: { $avg: "$high" }
+            }
+          },
+          {
+            $sort: {
+              '_id.hours': 1
+            }
+          }
+        ]
+      )
+      return await rs.toArray()
+    })
+  }
+
   async find(fil) {
     return await this.mongo.find<TradingHour>(`${this.constructor.name}`, fil)
   }
@@ -68,18 +103,19 @@ export default class AbsHandlerHour {
         if (cached.high === undefined) cached.high = e.last
 
         const tr = {} as TradingHour
-        tr._id = e._id
+        tr._id = Mongo.uuid(e._id)
         tr.key = e.key
         tr.name = e.name
         tr.market = e.market
         tr.raw_time = e.raw_time
         tr.time = e.time
+        tr.day = e.time.getDay()
         tr.date = e.time.getDate()
         tr.month = e.time.getMonth()
         tr.year = e.time.getFullYear()
         tr.hours = e.time.getHours()
         tr.baseVolume = e.baseVolume
-        tr.prevBaseVolume = cached.baseVolume        
+        tr.prevBaseVolume = cached.baseVolume
         tr.baseVolumeNum = tr.baseVolume - tr.prevBaseVolume
         tr.last = e.last
         tr.num = e.last - cached.prev

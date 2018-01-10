@@ -9,6 +9,7 @@ export class TradingMin extends BittrexTrading {
   name: string
   market: string
   raw_time: Date
+  day: number
   date: number
   month: number
   year: number
@@ -42,6 +43,60 @@ export default class AbsHandlerMin {
     }, AppConfig.redis)
   }
 
+  async merge() {
+    await this.mergeTime('HandlerMin3')
+    await this.mergeTime('HandlerMin5')
+    await this.mergeTime('HandlerMin30')
+    await this.mergeTime('HandlerHour1')
+    await this.mergeTime('HandlerDay1')
+  }
+
+  async mergeTime(tbl) {
+    await this.mongo.manual(tbl, col => {
+      col.find().forEach(e => {
+        col.remove({ _id: e._id })
+        e._id = Mongo.uuid()
+        e.day = new Date(e.time).getDay()
+        col.insert(e)
+      });
+    })
+  }
+
+  async groupByTime(key, market) {
+    let beforeThat = new Date()
+    beforeThat.setDate(beforeThat.getDate() - 3)
+    let where = {} as any
+    if (key) where.key = key
+    else if (market) where.market = market
+    return await this.mongo.manual(`${this.constructor.name}`, async (collection) => {
+      const rs = collection.aggregate(
+        [
+          {
+            $match: Object.assign(where, {
+              time: {
+                $gte: beforeThat
+              }
+            })
+          },
+          {
+            $group: {
+              _id: { hours: '$hours', minutes: '$minutes' },
+              avgLowPrice: { $avg: "$low" },
+              avgHighPrice: { $avg: "$high" }
+            }
+          },
+          {
+            $sort: {
+              '_id.hours': 1,
+              '_id.minutes': 1
+            }
+          }
+        ]
+      )
+      return await rs.toArray()
+    })
+  }
+
   async find(fil) {
     return await this.mongo.find<TradingMin>(`${this.constructor.name}`, fil)
   }
@@ -69,19 +124,20 @@ export default class AbsHandlerMin {
         if (cached.high === undefined) cached.high = e.last
 
         const tr = {} as TradingMin
-        tr._id = e._id
+        tr._id = Mongo.uuid(e._id)
         tr.key = e.key
         tr.name = e.name
         tr.market = e.market
         tr.raw_time = e.raw_time
         tr.time = e.time
+        tr.day = e.time.getDay()
         tr.date = e.time.getDate()
         tr.month = e.time.getMonth()
         tr.year = e.time.getFullYear()
         tr.hours = e.time.getHours()
         tr.minutes = e.time.getMinutes()
         tr.baseVolume = e.baseVolume
-        tr.prevBaseVolume = cached.baseVolume        
+        tr.prevBaseVolume = cached.baseVolume
         tr.baseVolumeNum = tr.baseVolume - tr.prevBaseVolume
         tr.last = e.last
         tr.num = e.last - cached.prev

@@ -15,6 +15,37 @@ import HandlerMin1 from '../service/Coin/Crawler/HandlerMin1';
 
 export default class CoinController {
 
+  @GET('/statistic/merge')
+  static async merge() {
+    await HandlerMin30.merge()
+    return 'ok'
+  }
+
+  @GET('/statistic/markets-by-time')
+  @RESTRICT({
+    params: {
+      key: k => k.toUpperCase(),
+    },
+    query: {
+      type: String,
+      market: String,
+      key: String
+    }
+  })
+  static async getMarketsByTime({ query, params }) {
+    let rs
+    let { type, market, key } = query
+    // let { key } = params
+    if (type === 'HandlerMin30') {
+      rs = await HandlerMin30.groupByTime(key, market)
+    } else if (type === 'HandlerHour1') {
+      rs = await HandlerHour1.groupByTime(key, market)
+    } else if (type === 'HandlerDay1') {
+      rs = await HandlerDay1.groupByTime(key, market)
+    }
+    return rs
+  }
+
   @GET('/market/:key')
   @RESTRICT({
     params: {
