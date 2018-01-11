@@ -1,6 +1,6 @@
 import { GET } from 'hinos-route'
 import { RESTRICT } from 'hinos-bodyparser/restrict'
-import HandlerMin5 from '../service/Coin/Crawler/HandlerMin5'
+import HandlerMin15 from '../service/Coin/Crawler/HandlerMin15'
 import HandlerMin3 from '../service/Coin/Crawler/HandlerMin3'
 import HandlerMin30 from '../service/Coin/Crawler/HandlerMin30'
 import HandlerHour1 from '../service/Coin/Crawler/HandlerHour1'
@@ -61,7 +61,7 @@ export default class CoinController {
     let { key } = params
     if (type === 'HandlerMin1') rs = await HandlerMin1.getTradings()
     else if (type === 'HandlerMin3') rs = await HandlerMin3.getTradings()
-    else if (type === 'HandlerMin5') rs = await HandlerMin5.getTradings()
+    else if (type === 'HandlerMin15') rs = await HandlerMin15.getTradings()
     else if (type === 'HandlerMin30') rs = await HandlerMin30.getTradings()
     else if (type === 'HandlerHour1') rs = await HandlerHour1.getTradings()
     else if (type === 'HandlerDay1') rs = await HandlerDay1.getTradings()
@@ -85,7 +85,7 @@ export default class CoinController {
     let { top, sort, type, recordsPerPage = 20, page = 1, market } = query
     if (type === 'HandlerMin1') rs = await HandlerMin1.getTradings()
     else if (type === 'HandlerMin3') rs = await HandlerMin3.getTradings()
-    else if (type === 'HandlerMin5') rs = await HandlerMin5.getTradings()
+    else if (type === 'HandlerMin15') rs = await HandlerMin15.getTradings()
     else if (type === 'HandlerMin30') rs = await HandlerMin30.getTradings()
     else if (type === 'HandlerHour1') rs = await HandlerHour1.getTradings()
     else if (type === 'HandlerDay1') rs = await HandlerDay1.getTradings()
@@ -116,7 +116,7 @@ export default class CoinController {
       },
       $recordsPerPage: 100
     })
-    if (query.type === 'HandlerMin5') return HandlerMin5.find({
+    if (query.type === 'HandlerMin15') return HandlerMin15.find({
       $where: {
         key: params.coinName.toUpperCase()
       },

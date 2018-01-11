@@ -45,7 +45,7 @@ export default class AbsHandlerMin {
 
   async merge() {
     await this.mergeTime('HandlerMin3')
-    await this.mergeTime('HandlerMin5')
+    await this.mergeTime('HandlerMin15')
     await this.mergeTime('HandlerMin30')
     await this.mergeTime('HandlerHour1')
     await this.mergeTime('HandlerDay1')
