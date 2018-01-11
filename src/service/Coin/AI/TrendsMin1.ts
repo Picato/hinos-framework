@@ -1,6 +1,7 @@
 import { TrendsMessageService, TrendsMessage } from "./TrendsMessage";
 import BittrexApi from "../Bittrex/BittrexApi";
 import { Redis } from "hinos-redis/lib/redis";
+import HandlerMin1 from "../Crawler/HandlerMin1";
 
 // import { REDIS, Redis } from "hinos-redis/lib/redis";
 
@@ -17,9 +18,9 @@ class TrendsMin1 {
 
   async init() {
     const self = this
-    Redis.subscribe('updateData#HandlerMin1', async (data) => {
+    Redis.subscribe('updateData#HandlerMin1', async () => {
       console.log('#Trends HandlerMin1')
-      data = JSON.parse(data)
+      const data = await HandlerMin1.getTradings()
       let tmp = await Promise.all([
         self.topVolumeChanging(data),
         self.topPercentChanging(data)

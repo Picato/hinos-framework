@@ -42,8 +42,7 @@ class HandlerMin1 {
 
   async handle(tradings: TradingTemp[], now: Date) {
     console.log(`#${this.constructor.name}`, 'Begin handle data')
-    if (!this.lastUpdateDB || (this.lastUpdateDB.getMinutes() !== now.getMinutes() && now.getMinutes() % 1 === 0)) {
-
+    if (!this.lastUpdateDB || (this.lastUpdateDB.getMinutes() !== now.getMinutes())) {
       this.lastUpdateDB = now
       let data = [] as TradingMin1[]
       for (let e of tradings) {
@@ -81,7 +80,7 @@ class HandlerMin1 {
       await this.redis.set(`${this.constructor.name}.lastUpdateDB`, this.lastUpdateDB)
       await this.redis.set(`${this.constructor.name}.newestTrading`, JSON.stringify(data))
       await this.redis.set(`${this.constructor.name}.cached`, JSON.stringify(this.caches))
-      await this.redis.publish(`updateData#${this.constructor.name}`, JSON.stringify(data))
+      await this.redis.publish(`updateData#${this.constructor.name}`, '')
     }
     console.log(`#${this.constructor.name}`, 'Finished handle data')
   }
