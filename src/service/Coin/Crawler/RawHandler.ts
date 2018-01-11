@@ -122,11 +122,11 @@ class RawTrading {
       trading.volume = e.Volume
       const cached = oldTradings.find(e => e.key === trading.key)
       trading.prev = !cached ? trading.last : cached.last
-      trading.percent = !cached ? 0 : (trading.last - cached.last) * 100 / cached.last
+      trading.percent = !cached ? 0 : (trading.last - trading.prev) * 100 / trading.prev
       trading.num = trading.last - trading.prev
       trading.prevBaseVolume = !cached ? trading.baseVolume : cached.baseVolume
-      trading.baseVolumePercent = (trading.baseVolume - trading.prevBaseVolume) * 100 / cached.baseVolume
-      trading.baseVolumeNum = trading.baseVolume - cached.baseVolume
+      trading.baseVolumePercent = (trading.baseVolume - trading.prevBaseVolume) * 100 / trading.prevBaseVolume
+      trading.baseVolumeNum = trading.baseVolume - trading.prevBaseVolume
       tradings.push(trading)
     }
     return tradings

@@ -130,7 +130,7 @@ export default class AbsHandlerHour {
         tr.percent = (tr.last - tr.prev) * 100 / tr.prev
 
         tr.candleLast = tr.last - tr.open
-        tr.candlePrev = cached.candlePrev !== undefined ? cached.candlePrev : (tr.last - tr.open)
+        tr.candlePrev = cached.candlePrev !== undefined ? cached.candlePrev : tr.candleLast
         const candlePrev = tr.candlePrev * (tr.candlePrev < 0 ? -1 : 1)
         const candleLast = tr.candleLast * (tr.candleLast < 0 ? -1 : 1)
         tr.candlePercent = candleLast * 100 / (candlePrev || 1)
@@ -140,7 +140,7 @@ export default class AbsHandlerHour {
         cached.low = undefined
         cached.high = undefined
         cached.prev = tr.last
-        cached.candlePrev = tr.last - tr.open
+        cached.candlePrev = tr.candleLast
         cached.baseVolume = tr.baseVolume
       }
       await this.mongo.insert<TradingHour>(`${this.constructor.name}`, data)
