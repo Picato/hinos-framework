@@ -85,7 +85,7 @@ export default class BittrexVNBot {
         const user = BittrexUser.users[from.id.toString()]
         if (!user) return reply('User not login yet')
         const orders = await user.getMyOrders()
-        if (orders.length === 0) return await reply('Have no any order')
+        if (orders.length === 0 && user.botOrders.length === 0) return await reply('Have no any order')
         const balances = await user.getMyBalances()
         const rate = 0.0025
         for (let o of orders) {
@@ -103,6 +103,22 @@ export default class BittrexVNBot {
             m.callbackButton('🚫 CANCEL THIS ORDER', `order:cancel ${o.OrderUuid}`),
           ])))
           await user.addOrder(o.OrderUuid, m.chat.id, m.message_id)
+        }
+        for (let o of user.botOrders) {
+          const key = o.key
+          const price = o.price
+          const quantity = o.quantity
+          const [market, coin] = key.split('-')
+          const w = balances.find(e => e.Currency === market)
+          const wbuy = balances.find(e => e.Currency === coin) || { Available: 0 }
+          const subTotal = +(quantity * price).toFixed(8)
+          const commission = +(subTotal * rate).toFixed(8)
+          const bufferRate = o.rate
+
+          const { msgs, isOk } = o.action === 'buy' ? await BittrexVNBot.formatBuyForm(key, quantity, price, subTotal, commission, w, wbuy, false, bufferRate) : await BittrexVNBot.formatSellForm(key, quantity, price, subTotal, commission, w, wbuy, false, bufferRate)
+          await replyWithMarkdown(msgs.join('\n'), !isOk ? undefined : Extra.markdown().markup(m => m.inlineKeyboard([
+            m.callbackButton('🚫 CANCEL THIS BOT ORDER', `order:botcancel ${o._id}`)
+          ])))
         }
       } catch (e) {
         await reply(e.message || e)
@@ -174,7 +190,7 @@ export default class BittrexVNBot {
     })
   }
 
-  private static async formatBuyForm(key, quantity, price, subTotal, commission, w, wbuy, isCheckWallet) {
+  private static async formatBuyForm(key, quantity, price, subTotal, commission, w, wbuy, isCheckWallet, bufferRate?) {
     const [market, coin] = key.split('-')
     const total = +(subTotal + commission).toFixed(8)
     const newestTrading = await RawTrading.getTradings()
@@ -187,6 +203,7 @@ export default class BittrexVNBot {
     msgs.push(`*Market*              [${key}](https://bittrex.com/Market/Index?MarketName=${key})`)
     msgs.push(`*Quantity*         *+${BittrexApi.formatNumber(quantity)}* ${coin}`)
     msgs.push(`                      🚀 _${BittrexApi.formatNumber(trading.last)} ${market}_ 🚀`)
+    if (bufferRate) msgs.push(`               _Buffer: ${BittrexApi.formatNumber(bufferRate)}_`)
     msgs.push(`*Price*                   *${BittrexApi.formatNumber(price)}* ${market}`)
     msgs.push(`*Total*                 *-${BittrexApi.formatNumber(total)}* ${market}`)
     let isOk = true
@@ -214,7 +231,7 @@ export default class BittrexVNBot {
     return { msgs, isOk }
   }
 
-  private static async formatSellForm(key, quantity, price, subTotal, commission, w, wsell, isCheckWallet) {
+  private static async formatSellForm(key, quantity, price, subTotal, commission, w, wsell, isCheckWallet, bufferRate?) {
     const [market, coin] = key.split('-')
     const total = +(subTotal - commission).toFixed(8)
     const newestTrading = await RawTrading.getTradings()
@@ -227,6 +244,7 @@ export default class BittrexVNBot {
     msgs.push(`*Market*              [${key}](https://bittrex.com/Market/Index?MarketName=${key})`)
     msgs.push(`*Quantity*          *-${BittrexApi.formatNumber(quantity)}* ${coin}`)
     msgs.push(`                      🚀 _${BittrexApi.formatNumber(trading.last)} ${market}_ 🚀`)
+    if (bufferRate) msgs.push(`               _Buffer: ${BittrexApi.formatNumber(bufferRate)}_`)
     msgs.push(`*Price*                   *${BittrexApi.formatNumber(price)}* ${market}`)
     msgs.push(`*Total*                *+${BittrexApi.formatNumber(total)}* ${market}`)
     let isOk = true
@@ -265,7 +283,7 @@ export default class BittrexVNBot {
             const user = BittrexUser.users[from.id.toString()]
             if (!user) throw new Error('User has not login yet')
 
-            const rs = await user.buy(key, +quantity, +price, type) as any
+            const rs = await user.buy(key, +quantity, +price, BittrexUser.ORDER_TYPE[+type]) as any
             await user.addOrder(rs.OrderId, chat.id, callbackQuery.message.message_id)
 
             return await editMessageReplyMarkup({
@@ -316,12 +334,15 @@ export default class BittrexVNBot {
         const subTotal = +(quantity * price).toFixed(8)
         const commission = +(subTotal * rate).toFixed(8)
 
-        const { msgs, isOk } = await BittrexVNBot.formatBuyForm(key, quantity, price, subTotal, commission, w, wbuy, true)
+        const { msgs, isOk } = await BittrexVNBot.formatBuyForm(key, quantity, price, subTotal, commission, w, wbuy, true, bufferRate)
 
+        if (!bufferRate) bufferRate = 0
+        else bufferRate = +bufferRate
+        if (isNaN(bufferRate)) bufferRate = 0
         await replyWithMarkdown(msgs.join('\n'), !isOk ? undefined : Extra.markdown().markup(m => m.inlineKeyboard([
-          m.callbackButton('✅ GOOD_TIL_CANCELLED', `buy:yes ${key} ${quantity} ${price} GOOD_TIL_CANCELLED`),
-          m.callbackButton('🚀 IMMEDIATE', `buy:yes ${key} ${quantity} ${price} IMMEDIATE_OR_CANCEL`),
-          m.callbackButton('👻 BOT HELP', `buy:bot ${key} ${quantity} ${price} IMMEDIATE_OR_CANCEL ${bufferRate || 0}`),
+          m.callbackButton('✅ BID', `buy:yes ${key} ${quantity} ${price} 1`),
+          m.callbackButton('🚀 IMMEDIATE', `buy:yes ${key} ${quantity} ${price} 0`),
+          m.callbackButton('👻 BOT', `buy:bot ${key} ${quantity} ${price} 0 ${bufferRate}`),
           m.callbackButton('🚫 CANCEL', `buy:no ${key} ${quantity} ${price}`),
         ]))
         )
@@ -342,7 +363,7 @@ export default class BittrexVNBot {
             const user = BittrexUser.users[from.id.toString()]
             if (!user) throw new Error('User has not login yet')
 
-            const rs = await user.sell(key, +quantity, +price, type) as any
+            const rs = await user.sell(key, +quantity, +price, BittrexUser.ORDER_TYPE[+type]) as any
             await user.addOrder(rs.OrderId, chat.id, callbackQuery.message.message_id)
 
             return await editMessageReplyMarkup({
@@ -393,12 +414,15 @@ export default class BittrexVNBot {
         const subTotal = +(quantity * price).toFixed(8)
         const commission = +(subTotal * rate).toFixed(8)
 
-        const { msgs, isOk } = await BittrexVNBot.formatSellForm(key, quantity, price, subTotal, commission, w, wsell, true)
+        const { msgs, isOk } = await BittrexVNBot.formatSellForm(key, quantity, price, subTotal, commission, w, wsell, true, bufferRate)
 
+        if (!bufferRate) bufferRate = 0
+        else bufferRate = +bufferRate
+        if (isNaN(bufferRate)) bufferRate = 0
         await replyWithMarkdown(msgs.join('\n'), !isOk ? undefined : Extra.markdown().markup(m => m.inlineKeyboard([
-          m.callbackButton('✅ GOOD_TIL_CANCELLED', `sell:yes ${key} ${quantity} ${price} GOOD_TIL_CANCELLED`),
-          m.callbackButton('🚀 IMMEDIATE', `sell:yes ${key} ${quantity} ${price} IMMEDIATE_OR_CANCEL`),
-          m.callbackButton('👻 BOT HELP', `sell:bot ${key} ${quantity} ${price} IMMEDIATE_OR_CANCEL ${bufferRate || 0}`),
+          m.callbackButton('✅ BID', `sell:yes ${key} ${quantity} ${price} 1`),
+          m.callbackButton('🚀 IMMEDIATE', `sell:yes ${key} ${quantity} ${price} 0`),
+          m.callbackButton('👻 BOT', `sell:bot ${key} ${quantity} ${price} 0 ${bufferRate}`),
           m.callbackButton('🚫 CANCEL', `sell:no ${key} ${quantity} ${price}`),
         ]))
         )

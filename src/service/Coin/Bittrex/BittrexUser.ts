@@ -13,21 +13,44 @@ export class BittrexAlert {
 }
 
 export class BittrexOrder {
-  type = 'IMMEDIATE_OR_CANCEL'
+  type = BittrexUser.ORDER_TYPE[0]
   _id = Mongo.uuid().toString()
 
-  constructor(public key: string, public quantity: number, public price: number, public rate: number, public type: 'buy' | 'sell', public chatId: any, public messageId: any) {
+  limit: number
+  changedLimit = false
+
+  constructor(public key: string, public quantity: number, public price: number, public rate: number, public action: 'buy' | 'sell', public chatId: any, public messageId: any) {
 
   }
 
   canBeOrder(price: number) {
-    if (this.type === 'buy') {
-      if (price <= this.price) {
-        return true
+    if (this.action === 'buy') {
+      if (!this.limit) {
+        if (price <= this.price) {
+          this.changedLimit = true
+          this.limit = price
+        }
+      } else {
+        if (price < this.limit) {
+          this.changedLimit = true
+          this.limit = price
+        } else if (price >= this.limit + this.rate) {
+          return true
+        }
       }
     } else {
-      if (price >= this.price) {
-        return true
+      if (!this.limit) {
+        if (price >= this.price) {
+          this.changedLimit = true
+          this.limit = price
+        }
+      } else {
+        if (price > this.limit) {
+          this.changedLimit = true
+          this.limit = price
+        } else if (price <= +(this.limit - this.rate).toFixed(8)) {
+          return true
+        }
       }
     }
     return false
@@ -38,11 +61,12 @@ export default class BittrexUser {
   @REDIS()
   private static redis: Redis
 
+  static readonly ORDER_TYPE = ['IMMEDIATE_OR_CANCEL', 'GOOD_TIL_CANCELLED', 'FILL_OR_KILL']
+
   static users = {} as { [username: string]: BittrexUser }
   bittrex: any
-  botOrders = [] as BittrexOrder[]
 
-  constructor(private username, private apikey, private secretkey, public chatId, public orderIds = [], public alerts = {}) {
+  constructor(private username, private apikey, private secretkey, public chatId, public orderIds = [], public alerts = {}, public botOrders = [] as BittrexOrder[]) {
     this.bittrex = require('node-bittrex-api') as any;
     const self = this
     this.bittrex.options({
@@ -55,8 +79,8 @@ export default class BittrexUser {
   static async reloadFromCached() {
     const bots = await BittrexUser.redis.hget(`bittrex.users`)
     for (let username in bots) {
-      const { apikey, secretkey, orderIds, chatId, alerts } = JSON.parse(bots[username])
-      const user = new BittrexUser(username, apikey, secretkey, chatId, orderIds, alerts)
+      const { apikey, secretkey, orderIds, chatId, alerts, botOrders } = JSON.parse(bots[username])
+      const user = new BittrexUser(username, apikey, secretkey, chatId, orderIds, alerts, botOrders.map(e => new BittrexOrder(e.key, e.quantity, e.price, e.rate, e.action, e.chatId, e.messageId)))
       BittrexUser.users[username] = user
     }
   }
@@ -77,7 +101,8 @@ export default class BittrexUser {
         secretkey: self.secretkey,
         chatId: self.chatId,
         orderIds: self.orderIds,
-        alerts: self.alerts
+        alerts: self.alerts,
+        botOrders: self.botOrders
       })
     })
   }
@@ -154,6 +179,7 @@ export default class BittrexUser {
     if (!money) return Promise.reject('Not found money')
     const o = new BittrexOrder(key, quantity, money, rate, 'buy', chatId, messageId)
     this.botOrders.push(o)
+    this.saveToCached()
     return o
   }
 
@@ -162,12 +188,16 @@ export default class BittrexUser {
     if (!money) return Promise.reject('Not found money')
     const o = new BittrexOrder(key, quantity, money, rate, 'sell', chatId, messageId)
     this.botOrders.push(o)
+    this.saveToCached()
     return o
   }
 
   botCancel(_id) {
     const idx = this.botOrders.findIndex(e => e._id === _id)
-    if (idx !== -1) this.botOrders.splice(idx, 1)
+    if (idx !== -1) {
+      this.botOrders.splice(idx, 1)
+      this.saveToCached()
+    }
   }
 
   buy(key: string, quantity: number, money: number, type = 'GOOD_TIL_CANCELLED') {
