@@ -47,16 +47,17 @@ class RawTrading {
   public async execute() {
     try {
       // await this.redis.del('bittrex.trace')
-      const data = await BittrexUser.getMarketSummaries()
       const now = new Date()
-
+      const self = this
+      const data = await BittrexUser.getMarketSummaries()
       const rate = await this.handleRate(data)
-      await this.redis.set('RawTrading.rate', JSON.stringify(rate))
-
       const tradings = await this.handleData(data, now)
-      await this.redis.set('RawTrading.newestTrading', JSON.stringify(tradings))
 
-      this.redis.publish('updateData', JSON.stringify({ tradings, now }))
+      this.redis.manual(async redis => {
+        await self.redis._set(redis, 'RawTrading.rate', JSON.stringify(rate))
+        await self.redis._set(redis, 'RawTrading.newestTrading', JSON.stringify(tradings))
+        await self.redis._publish(redis, 'updateData', now.toString())
+      })
     } catch (e) {
       console.error(e)
     }

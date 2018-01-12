@@ -1,8 +1,7 @@
 import { MONGO, Mongo } from "hinos-mongo/lib/mongo"
 import { Redis, REDIS } from "hinos-redis/lib/redis"
 import { BittrexTrading } from "../AI/TrendsCommon";
-import { TradingTemp } from "./RawHandler";
-import Utils from "../../../common/Utils";
+import RawHandler from "./RawHandler";
 // import { Event } from "../Event";
 
 export class TradingMin extends BittrexTrading {
@@ -34,16 +33,21 @@ export default class AbsHandlerMin {
 
   public async init() {
     console.log(`#${this.constructor.name}`, 'Initial')
-    this.lastUpdateDB = await this.redis.get(`${this.constructor.name}.lastUpdateDB`)
-    if (this.lastUpdateDB) this.lastUpdateDB = new Date(this.lastUpdateDB)
-
-    let caches = await this.redis.get(`${this.constructor.name}.cached`)
-    this.caches = caches ? JSON.parse(caches) : {}
-
     const self = this
-    Redis.subscribe('updateData', (data) => {
-      const { tradings, now } = Utils.JSONParse(data)
-      self.handle(tradings, now)
+
+    const [lastUpdateDB, caches] = await this.redis.manual(async redis => {
+      let lastUpdateDB = await self.redis._get(redis, `${self.constructor.name}.lastUpdateDB`)
+      lastUpdateDB = lastUpdateDB ? new Date(lastUpdateDB) : undefined
+      let caches = await self.redis._get(redis, `${self.constructor.name}.cached`)
+      caches = caches ? JSON.parse(caches) : {}
+
+      return [lastUpdateDB, caches]
+    })
+    this.lastUpdateDB = lastUpdateDB
+    this.caches = caches
+
+    Redis.subscribe('updateData', (now) => {
+      self.handle(new Date(now))
     }, AppConfig.redis)
   }
 
@@ -109,11 +113,13 @@ export default class AbsHandlerMin {
     return JSON.parse(await this.redis.get(`${this.constructor.name}.newestTrading`) || '[]')
   }
 
-  async handle(tradings: TradingTemp[], now: Date) {
+  async handle(now: Date) {
     console.log(`#${this.constructor.name}`, 'Begin handle data')
+    const tradings = await RawHandler.getTradings()
     if (!this.lastUpdateDB || (this.lastUpdateDB.getMinutes() !== now.getMinutes() && now.getMinutes() % this.skip === 0)) {
       this.lastUpdateDB = now
       let data = []
+      const self = this
       for (let e of tradings) {
         if (!this.caches[e.key]) this.caches[e.key] = {}
         let cached = this.caches[e.key]
@@ -167,9 +173,12 @@ export default class AbsHandlerMin {
         cached.baseVolume = tr.baseVolume
       }
       await this.mongo.insert<TradingMin>(`${this.constructor.name}`, data)
-      await this.redis.set(`${this.constructor.name}.lastUpdateDB`, this.lastUpdateDB)
-      await this.redis.set(`${this.constructor.name}.newestTrading`, JSON.stringify(data))
-      await this.redis.publish(`updateData#${this.constructor.name}`, '')
+      await this.redis.manual(async redis => {
+        await self.redis._set(redis, `${self.constructor.name}.lastUpdateDB`, self.lastUpdateDB)
+        await self.redis._set(redis, `${self.constructor.name}.newestTrading`, JSON.stringify(data))
+        await self.redis._publish(redis, `updateData#${self.constructor.name}`, '')
+        await self.redis._set(redis, `${self.constructor.name}.cached`, JSON.stringify(self.caches))
+      })
       data = null
     } else {
       for (let e of tradings) {
@@ -184,8 +193,8 @@ export default class AbsHandlerMin {
         if (cached.high === undefined) cached.high = e.last
         else cached.high = e.last < cached.high ? cached.high : e.last
       }
+      await this.redis.set(`${this.constructor.name}.cached`, JSON.stringify(this.caches))
     }
-    await this.redis.set(`${this.constructor.name}.cached`, JSON.stringify(this.caches))
     console.log(`#${this.constructor.name}`, 'Finished handle data')
   }
 }

@@ -1,20 +1,20 @@
 import { Redis } from 'hinos-redis/lib/redis';
-import { TradingTemp } from '../Crawler/RawHandler';
+import RawHandler from '../Crawler/RawHandler';
 import BittrexVNBot from '../Telegram/BittrexVNBot';
 import BittrexApi from './BittrexApi';
 import BittrexUser from './BittrexUser';
-import Utils from '../../../common/Utils';
 
 export default class BittrexOrderAlertChecking {
 
   // Run in RawTrading after each updae new data
   static async checkAlert() {
     console.log('#TELEGRAM_BOT', 'CHECK ALERT')
-    Redis.subscribe('updateData', async (data) => {
-      const { tradings } = Utils.JSONParse(data) as { tradings: TradingTemp[] }
+    Redis.subscribe('updateData', async () => {
+      let tradings
       for (let username in BittrexUser.users) {
         for (let key in BittrexUser.users[username].alerts) {
           const alertFormulas = BittrexUser.users[username].alerts[key]
+          if (!tradings) tradings = await RawHandler.getTradings()
           const t = tradings.find(e => e.key === key)
           if (t) {
             const $ = t.last
