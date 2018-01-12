@@ -1,5 +1,4 @@
 import { Redis } from 'hinos-redis/lib/redis';
-import RawHandler from '../Crawler/RawHandler';
 import BittrexVNBot from '../Telegram/BittrexVNBot';
 import BittrexApi from './BittrexApi';
 import BittrexUser from './BittrexUser';
@@ -9,12 +8,39 @@ export default class BittrexOrderAlertChecking {
   // Run in RawTrading after each updae new data
   static async checkAlert() {
     console.log('#TELEGRAM_BOT', 'CHECK ALERT')
-    Redis.subscribe('updateData', async () => {
+    Redis.subscribe('updateData', async (data) => {
       let tradings
       for (let username in BittrexUser.users) {
+        const user = BittrexUser.users[username]
+        for (let o of user.botOrders) {
+          if (!tradings) tradings = JSON.parse(data).tradings
+          const t = tradings.find(e => e.key === o.key)
+          if (t) {
+            if (!o.canBeOrder(t.last)) {
+              const { key, quantity, price, type, chatId, messageId } = o
+              if (type === 'sell') {
+                // await BittrexVNBot.Bot.sendChatAction(o.chatId, `sell:yes ${o.key} ${o.quantity} ${o.price} IMMEDIATE_OR_CANCEL`)
+                const rs = await user.sell(key, +quantity, +price, type) as any
+                await user.addOrder(rs.OrderId, chatId, messageId)
+
+                await BittrexVNBot.Bot.editMessageReplyMarkup(chatId, messageId, undefined, {
+                  inline_keyboard: [[{ text: '🚫 CANCEL THIS ORDER', callback_data: `order:cancel ${rs.OrderId}` }]]
+                })
+              } else {
+                const rs = await user.buy(key, +quantity, +price, type) as any
+                await user.addOrder(rs.OrderId, chatId, messageId)
+
+                await BittrexVNBot.Bot.editMessageReplyMarkup(o.chatId, o.messageId, undefined, {
+                  inline_keyboard: [[{ text: '🚫 CANCEL THIS ORDER', callback_data: `order:cancel ${rs.OrderId}` }]]
+                })
+              }
+              user.botCancel(o._id)
+            }
+          }
+        }
         for (let key in BittrexUser.users[username].alerts) {
           const alertFormulas = BittrexUser.users[username].alerts[key]
-          if (!tradings) tradings = await RawHandler.getTradings()
+          if (!tradings) tradings = JSON.parse(data).tradings
           const t = tradings.find(e => e.key === key)
           if (t) {
             const $ = t.last

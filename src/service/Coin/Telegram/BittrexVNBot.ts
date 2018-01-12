@@ -59,16 +59,20 @@ export default class BittrexVNBot {
   }
 
   private static async registerMyOrders() {
-    BittrexVNBot.Bot.action(/order:cancel .+/, async (ctx) => {
+    BittrexVNBot.Bot.action(/order:(cancel|botcancel) .+/, async (ctx) => {
       const { editMessageText, match, from } = ctx
       try {
-        const [, orderId] = match[0].split(' ')
+        const [action, orderId] = match[0].split(' ')
 
         const user = BittrexUser.users[from.id.toString()]
         if (!user) throw new Error('User has not login yet')
 
-        await user.cancel(orderId)
-        await user.removeOrder(orderId)
+        if (action === 'order:cancel') {
+          await user.cancel(orderId)
+          await user.removeOrder(orderId)
+        } else {
+          user.botCancel(orderId)
+        }
 
         await editMessageText(`🚫 Canceled the order`)
       } catch (e) {
@@ -251,7 +255,7 @@ export default class BittrexVNBot {
   }
 
   private static registerBuy() {
-    BittrexVNBot.Bot.action(/buy:(yes|no) .+/, async (ctx) => {
+    BittrexVNBot.Bot.action(/buy:(yes|no|bot) .+/, async (ctx) => {
       const { editMessageText, editMessageReplyMarkup, reply, match, from, chat, callbackQuery } = ctx
       try {
         const [action, ...prms] = match[0].split(' ')
@@ -269,9 +273,22 @@ export default class BittrexVNBot {
             })
           }
           await reply('Market, quantity, price is required')
+        } else if (action === 'buy:bot') {
+          const [key, quantity, price, , bufferRate] = prms
+          if (key && quantity && price) {
+            const user = BittrexUser.users[from.id.toString()]
+            if (!user) throw new Error('User has not login yet')
+
+            const rs = await user.botBuy(key, +quantity, +price, +bufferRate, chat.id, callbackQuery.message.message_id) as any
+
+            return await editMessageReplyMarkup({
+              inline_keyboard: [[{ text: '🚫 CANCEL THIS BOT ORDER', callback_data: `order:botcancel ${rs._id}` }]]
+            })
+          }
+          await reply('Market, quantity, price is required')
         } else {
           const [key, quantity, price] = prms
-          await editMessageText(`🚫 Canceled order [${key}](https://bittrex.com/Market/Index?MarketName=${key}) buy *${quantity}* statoshi with price *${price}*`)
+          await editMessageText(`🚫 Canceled order [${key}](https://bittrex.com/Market/Index?MarketName=${key}) buy *${quantity}* coins with price *${price}*`, Extra.markdown())
         }
       } catch (e) {
         await editMessageText(e.message || e)
@@ -282,7 +299,7 @@ export default class BittrexVNBot {
       try {
         const user = BittrexUser.users[from.id.toString()]
         if (!user) return reply('User not login yet')
-        let [, key, quantity, price] = message.text.split(' ')
+        let [, key, quantity, price, bufferRate] = message.text.split(' ')
         if (!key) return await reply('Not found market-coin')
         if (!quantity) return await reply('Not found quantity')
         if (!price) return await reply('Not found price')
@@ -304,6 +321,7 @@ export default class BittrexVNBot {
         await replyWithMarkdown(msgs.join('\n'), !isOk ? undefined : Extra.markdown().markup(m => m.inlineKeyboard([
           m.callbackButton('✅ GOOD_TIL_CANCELLED', `buy:yes ${key} ${quantity} ${price} GOOD_TIL_CANCELLED`),
           m.callbackButton('🚀 IMMEDIATE', `buy:yes ${key} ${quantity} ${price} IMMEDIATE_OR_CANCEL`),
+          m.callbackButton('👻 BOT HELP', `buy:bot ${key} ${quantity} ${price} IMMEDIATE_OR_CANCEL ${bufferRate || 0}`),
           m.callbackButton('🚫 CANCEL', `buy:no ${key} ${quantity} ${price}`),
         ]))
         )
@@ -314,7 +332,7 @@ export default class BittrexVNBot {
   }
 
   private static registerSell() {
-    BittrexVNBot.Bot.action(/sell:(yes|no) .+/, async (ctx) => {
+    BittrexVNBot.Bot.action(/sell:(yes|no|bot) .+/, async (ctx) => {
       const { editMessageText, editMessageReplyMarkup, reply, match, from, chat, callbackQuery } = ctx
       try {
         const [action, ...prms] = match[0].split(' ')
@@ -332,9 +350,22 @@ export default class BittrexVNBot {
             })
           }
           await reply('Market, quantity, price is required')
+        } else if (action === 'sell:bot') {
+          const [key, quantity, price, , bufferRate] = prms
+          if (key && quantity && price) {
+            const user = BittrexUser.users[from.id.toString()]
+            if (!user) throw new Error('User has not login yet')
+
+            const rs = await user.botSell(key, +quantity, +price, +bufferRate, chat.id, callbackQuery.message.message_id) as any
+
+            return await editMessageReplyMarkup({
+              inline_keyboard: [[{ text: '🚫 CANCEL THIS BOT ORDER', callback_data: `order:botcancel ${rs._id}` }]]
+            })
+          }
+          await reply('Market, quantity, price is required')
         } else {
           const [key, quantity, price] = prms
-          await editMessageText(`🚫 Canceled order [${key}](https://bittrex.com/Market/Index?MarketName=${key}) buy *${quantity}* statoshi with price *${price}*`)
+          await editMessageText(`🚫 Canceled order [${key}](https://bittrex.com/Market/Index?MarketName=${key}) buy *${quantity}* coins with price *${price}*`, Extra.markdown())
         }
       } catch (e) {
         await editMessageText(e.message || e)
@@ -345,7 +376,7 @@ export default class BittrexVNBot {
       try {
         const user = BittrexUser.users[from.id.toString()]
         if (!user) return reply('User not login yet')
-        let [, key, quantity, price] = message.text.split(' ')
+        let [, key, quantity, price, bufferRate] = message.text.split(' ')
         if (!key) return await reply('Not found market-coin')
         if (!quantity) return await reply('Not found quantity')
         if (!price) return await reply('Not found price')
@@ -367,6 +398,7 @@ export default class BittrexVNBot {
         await replyWithMarkdown(msgs.join('\n'), !isOk ? undefined : Extra.markdown().markup(m => m.inlineKeyboard([
           m.callbackButton('✅ GOOD_TIL_CANCELLED', `sell:yes ${key} ${quantity} ${price} GOOD_TIL_CANCELLED`),
           m.callbackButton('🚀 IMMEDIATE', `sell:yes ${key} ${quantity} ${price} IMMEDIATE_OR_CANCEL`),
+          m.callbackButton('👻 BOT HELP', `sell:bot ${key} ${quantity} ${price} IMMEDIATE_OR_CANCEL ${bufferRate || 0}`),
           m.callbackButton('🚫 CANCEL', `sell:no ${key} ${quantity} ${price}`),
         ]))
         )

@@ -7,7 +7,9 @@ export class BotCommand extends Telegraf {
     const self = this as any
     self.catch(err => console.error(err))
   }
-
+  async sendChatAction(chatid: number, action) {
+    await this['telegram'].sendChatAction(chatid, action)
+  }
   send(chatid: number, message: string, options?) {
     this['telegram'].sendMessage(chatid, message, options)
   }
@@ -20,7 +22,7 @@ export class BotCommand extends Telegraf {
   start(cb: (ctx) => void) {
     return super.start(cb)
   }
-  command(cmd: string, cb: (ctx) => void) {
+  command(cmd: string | RegExp, cb: (ctx) => void) {
     return super.command(cmd, cb)
   }
   hears(cmd: string | RegExp, cb: (ctx) => void) {

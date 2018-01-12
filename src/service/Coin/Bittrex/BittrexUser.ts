@@ -1,4 +1,5 @@
 import { Redis, REDIS } from 'hinos-redis/lib/redis'
+import { Mongo } from 'hinos-mongo/lib/mongo';
 
 const Bittrex = require('node-bittrex-api')
 Bittrex.options({
@@ -11,12 +12,35 @@ export class BittrexAlert {
   constructor(public key: string, public formula: string, public des: string) { }
 }
 
+export class BittrexOrder {
+  type = 'IMMEDIATE_OR_CANCEL'
+  _id = Mongo.uuid().toString()
+
+  constructor(public key: string, public quantity: number, public price: number, public rate: number, public type: 'buy' | 'sell', public chatId: any, public messageId: any) {
+
+  }
+
+  canBeOrder(price: number) {
+    if (this.type === 'buy') {
+      if (price <= this.price) {
+        return true
+      }
+    } else {
+      if (price >= this.price) {
+        return true
+      }
+    }
+    return false
+  }
+}
+
 export default class BittrexUser {
   @REDIS()
   private static redis: Redis
 
   static users = {} as { [username: string]: BittrexUser }
   bittrex: any
+  botOrders = [] as BittrexOrder[]
 
   constructor(private username, private apikey, private secretkey, public chatId, public orderIds = [], public alerts = {}) {
     this.bittrex = require('node-bittrex-api') as any;
@@ -123,6 +147,27 @@ export default class BittrexUser {
       this.orderIds.splice(idx, 1)
       await this.saveToCached()
     }
+  }
+
+  botBuy(key: string, quantity: number, money: number, rate: number, chatId: any, messageId: any) {
+    if (!key) return Promise.reject('Not found Market-Coin')
+    if (!money) return Promise.reject('Not found money')
+    const o = new BittrexOrder(key, quantity, money, rate, 'buy', chatId, messageId)
+    this.botOrders.push(o)
+    return o
+  }
+
+  botSell(key: string, quantity: number, money: number, rate: number, chatId: any, messageId: any) {
+    if (!key) return Promise.reject('Not found Market-Coin')
+    if (!money) return Promise.reject('Not found money')
+    const o = new BittrexOrder(key, quantity, money, rate, 'sell', chatId, messageId)
+    this.botOrders.push(o)
+    return o
+  }
+
+  botCancel(_id) {
+    const idx = this.botOrders.findIndex(e => e._id === _id)
+    if (idx !== -1) this.botOrders.splice(idx, 1)
   }
 
   buy(key: string, quantity: number, money: number, type = 'GOOD_TIL_CANCELLED') {
