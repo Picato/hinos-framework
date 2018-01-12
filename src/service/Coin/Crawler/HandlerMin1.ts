@@ -1,5 +1,5 @@
 import { Redis, REDIS } from "hinos-redis/lib/redis"
-import RawHandler from './RawHandler'
+import { TradingTemp } from './RawHandler'
 import { BittrexTrading } from "../AI/TrendsCommon"
 // import { Event } from "../Event";
 
@@ -34,8 +34,9 @@ class HandlerMin1 {
     this.lastUpdateDB = lastUpdateDB
     this.caches = caches
 
-    Redis.subscribe('updateData', (now) => {
-      self.handle(new Date(now))
+    Redis.subscribe('updateData', (data) => {
+      const { tradings, now } = JSON.parse(data)
+      self.handle(tradings, new Date(now))
     }, AppConfig.redis)
   }
 
@@ -43,10 +44,9 @@ class HandlerMin1 {
     return JSON.parse(await this.redis.get(`${this.constructor.name}.newestTrading`) || '[]')
   }
 
-  async handle(now: Date) {
-    console.log(`#${this.constructor.name}`, 'Begin handle data')
-    const tradings = await RawHandler.getTradings()
+  async handle(tradings: TradingTemp[], now: Date) {
     if (!this.lastUpdateDB || (this.lastUpdateDB.getMinutes() !== now.getMinutes())) {
+      console.log(`#${this.constructor.name}`, 'Begin handle data')
       this.lastUpdateDB = now
       let data = [] as TradingMin1[]
       const self = this
@@ -65,8 +65,8 @@ class HandlerMin1 {
         tr.key = e.key
         tr.name = e.name
         tr.market = e.market
-        tr.raw_time = e.raw_time
-        tr.time = e.time
+        tr.raw_time = new Date(e.raw_time)
+        tr.time = new Date(e.time)
         tr.baseVolume = e.baseVolume
         tr.prevBaseVolume = cached.baseVolume
         tr.baseVolumeNum = tr.baseVolume - tr.prevBaseVolume
@@ -89,7 +89,6 @@ class HandlerMin1 {
         await self.redis._publish(redis, `updateData#${self.constructor.name}`, '')
       })
     }
-    console.log(`#${this.constructor.name}`, 'Finished handle data')
   }
 }
 

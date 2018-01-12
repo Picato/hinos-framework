@@ -56,7 +56,7 @@ class RawTrading {
       this.redis.manual(async redis => {
         await self.redis._set(redis, 'RawTrading.rate', JSON.stringify(rate))
         await self.redis._set(redis, 'RawTrading.newestTrading', JSON.stringify(tradings))
-        await self.redis._publish(redis, 'updateData', now.toString())
+        await self.redis._publish(redis, 'updateData', JSON.stringify({ tradings: tradings, now: now }))
       })
     } catch (e) {
       console.error(e)

@@ -1,7 +1,7 @@
 import { MONGO, Mongo } from "hinos-mongo/lib/mongo"
 import { Redis, REDIS } from "hinos-redis/lib/redis"
 import { BittrexTrading } from "../AI/TrendsCommon";
-import RawHandler from "./RawHandler";
+import { TradingTemp } from "./RawHandler";
 // import { Event } from "../Event";
 
 export class TradingDay extends BittrexTrading {
@@ -44,8 +44,9 @@ export default class AbsHandlerDay {
     this.lastUpdateDB = lastUpdateDB
     this.caches = caches
 
-    Redis.subscribe('updateData', (now) => {
-      self.handle(new Date(now))
+    Redis.subscribe('updateData', (data) => {
+      const { tradings, now } = JSON.parse(data)
+      self.handle(tradings, new Date(now))
     }, AppConfig.redis)
   }
 
@@ -92,10 +93,9 @@ export default class AbsHandlerDay {
     return JSON.parse(await this.redis.get(`${this.constructor.name}.newestTrading`) || '[]')
   }
 
-  async handle(now: Date) {
-    console.log(`#${this.constructor.name}`, 'Begin handle data')
-    const tradings = await RawHandler.getTradings()
+  async handle(tradings: TradingTemp[], now: Date) {
     if (!this.lastUpdateDB || (this.lastUpdateDB.getDate() !== now.getDate() && now.getDate() % this.skip === 0)) {
+      console.log(`#${this.constructor.name}`, 'Begin handle data')
       this.lastUpdateDB = now
       let data = []
       const self = this
@@ -114,12 +114,12 @@ export default class AbsHandlerDay {
         tr.key = e.key
         tr.name = e.name
         tr.market = e.market
-        tr.raw_time = e.raw_time
-        tr.time = e.time
-        tr.day = e.time.getDay()
-        tr.date = e.time.getDate()
-        tr.month = e.time.getMonth()
-        tr.year = e.time.getFullYear()
+        tr.raw_time = new Date(e.raw_time)
+        tr.time = new Date(e.time)
+        tr.day = tr.time.getDay()
+        tr.date = tr.time.getDate()
+        tr.month = tr.time.getMonth()
+        tr.year = tr.time.getFullYear()
         tr.baseVolume = e.baseVolume
         tr.prevBaseVolume = cached.baseVolume
         tr.baseVolumeNum = tr.baseVolume - tr.prevBaseVolume
@@ -172,6 +172,5 @@ export default class AbsHandlerDay {
       }
       await this.redis.set(`${this.constructor.name}.cached`, JSON.stringify(this.caches))
     }
-    console.log(`#${this.constructor.name}`, 'Finished handle data')
   }
 }
