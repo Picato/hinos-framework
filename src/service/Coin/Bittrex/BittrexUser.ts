@@ -80,7 +80,7 @@ export default class BittrexUser {
     const bots = await BittrexUser.redis.hget(`bittrex.users`)
     for (let username in bots) {
       const { apikey, secretkey, orderIds, chatId, alerts, botOrders } = JSON.parse(bots[username])
-      const user = new BittrexUser(username, apikey, secretkey, chatId, orderIds, alerts, botOrders.map(e => new BittrexOrder(e.key, e.quantity, e.price, e.rate, e.action, e.chatId, e.messageId)))
+      const user = new BittrexUser(username, apikey, secretkey, chatId, orderIds, alerts, !botOrders ? undefined : botOrders.map(e => new BittrexOrder(e.key, e.quantity, e.price, e.rate, e.action, e.chatId, e.messageId)))
       BittrexUser.users[username] = user
     }
   }

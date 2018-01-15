@@ -42,7 +42,8 @@ export default class AbsTrendsMin extends TrendsCommon {
         let allmsgs = await Promise.all([
           self.check55Percent(key, items[0]),
           self.checkRecentlySame(key, items),
-          self.checkBaseVolume(key, items)
+          self.checkBaseVolume(key, items),
+          self.checkMatrix(key, items, self.tblName)
         ]) as any[]
         msgs = msgs.concat(allmsgs.reduce((sum: any[], msgs: any[]) => sum.concat(msgs), []))
       }
@@ -50,5 +51,15 @@ export default class AbsTrendsMin extends TrendsCommon {
         await TrendsMessageService.insert(msgs, `${self.tblName}`)
       }
     }, AppConfig.redis)
+
+    const data = await self.mongo.find<TradingMin>(self.tblName, {
+      $recordsPerPage: 0,
+      $fields: { _id: 1, key: 1, percent: 1, candlePercent: 1, baseVolumePercent: 1 },
+      $sort: {
+        key: 1,
+        time: -1
+      }
+    })
+    await this.loadMatrixIntoCached(self.tblName, data)
   }
 }
