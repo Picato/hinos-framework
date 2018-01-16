@@ -3,6 +3,9 @@ import BittrexApi from "../Bittrex/BittrexApi"
 import { TradingMin } from "../Crawler/AbsHandlerMin";
 // import { Redis, REDIS } from "hinos-redis/lib/redis";
 
+// const RATE_CANDLE_PERCENT = 0.5
+const RATE_PERCENT = 0.8
+
 export class BittrexTrading {
   _id?: Uuid
   key: string
@@ -28,7 +31,7 @@ export class TrendsCommon {
   matrix = {} as {
     [key: string]: {
       percent: number[]
-      candlePercent: number[]
+      // candlePercent: number[]
     }
   }
 
@@ -47,7 +50,7 @@ export class TrendsCommon {
           if (!self.matrix[key]) {
             self.matrix[key] = {
               percent: [],
-              candlePercent: []
+              // candlePercent: []
             }
           }
           self.matrix[key].percent = self.matrix[key].percent.concat(line.percent)
@@ -61,7 +64,7 @@ export class TrendsCommon {
       if (!self.matrix[key]) {
         self.matrix[key] = {
           percent: [],
-          candlePercent: []
+          // candlePercent: []
         }
       }
       self.matrix[key].percent = self.matrix[key].percent.concat(line.percent)
@@ -192,17 +195,16 @@ export class TrendsCommon {
 
     if (!this.matrix[key]) this.matrix[key] = {
       percent: [],
-      candlePercent: []
+      // candlePercent: []
     }
-    if (tradings[0].percent !== this.matrix[key].percent[0] && tradings[0].candlePercent !== this.matrix[key].candlePercent[0]) {
-      this.matrix[key].percent.splice(0, 0, tradings[0].percent)
-      this.matrix[key].candlePercent.splice(0, 0, tradings[0].candlePercent)
-      // await this.redis.hset(`matrix.${tblName}`, {
-      //   percent: JSON.stringify(self.matrix.percent),
-      //   candlePercent: JSON.stringify(self.matrix.candlePercent),
-      // })
-      // }
-    }
+
+    this.matrix[key].percent.splice(0, 0, tradings[0].percent)
+    // this.matrix[key].candlePercent.splice(0, 0, tradings[0].candlePercent)
+    // await this.redis.hset(`matrix.${tblName}`, {
+    //   percent: JSON.stringify(self.matrix.percent),
+    //   candlePercent: JSON.stringify(self.matrix.candlePercent),
+    // })
+    // }
 
     const data = {
       percent: tradings.map(e => e.percent),
@@ -212,11 +214,11 @@ export class TrendsCommon {
     let rsCandlePercent = []
     for (let key in this.matrix) {
       const marketPercents = this.matrix[key]
-      rsPercent = this.calculate(data.percent, marketPercents.percent, 0.5, rsPercent)
-      rsCandlePercent = this.calculate(data.candlePercent, marketPercents.candlePercent, 0.5, rsCandlePercent)
+      rsPercent = this.calculate(data.percent, marketPercents.percent, RATE_PERCENT, rsPercent)
+      // rsCandlePercent = this.calculate(data.candlePercent, marketPercents.candlePercent, RATE_CANDLE_PERCENT, rsCandlePercent)
     }
-    rsPercent = rsPercent.filter(e => e.weight >= 3).sort((a, b) => b.weight - a.weight).slice(0, 5)
-    rsCandlePercent = rsPercent.filter(e => e.weight >= 3).sort((a, b) => b.weight - a.weight).slice(0, 5)
+    rsPercent = rsPercent.filter(e => e.weight > 5).sort((a, b) => b.weight - a.weight).slice(0, 5)
+    rsCandlePercent = rsPercent.filter(e => e.weight > 5).sort((a, b) => b.weight - a.weight).slice(0, 5)
     const last = tradings[0].last
     msgs = msgs.concat(rsPercent.map(e => {
       return { key, txt: `[Tỉ lệ (price) ${e.weight}] Giá dự đoán ${BittrexApi.formatNumber(+last + (+last * +e.value))} (${BittrexApi.formatNumber(e.value)}%)`, style: 'MATRIX' }
