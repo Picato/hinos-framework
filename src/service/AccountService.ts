@@ -436,7 +436,7 @@ export class AccountService {
     }) as Account
     if (!old) throw HttpError.NOT_FOUND('Could not found item to update')
     // Check if password was updated
-    if (body.password && old.password !== body.password) {
+    if (body.native && body.password && old.password !== body.password) {
       await ProjectService.update({
         _id: old.project_id,
         owner: `${old.username}/******`
