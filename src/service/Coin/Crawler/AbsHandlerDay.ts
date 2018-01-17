@@ -63,20 +63,23 @@ export default class AbsHandlerDay {
 
   async groupByTime(key, market, time) {
     let beforeThat = new Date()
+    let now = new Date()
     let rs = {} as any
     let where = {} as any
     if (key) where.key = key
     else if (market) where.market = market
     return await this.mongo.manual(`${this.constructor.name}`, async (collection) => {
+      let i = 1
       while (time >= 0) {
-        beforeThat.setMonth(beforeThat.getMonth() - 1)
+        beforeThat.setDate(beforeThat.getDate() - 7 * i++)        
         const rs0 = collection.aggregate(
           [
             {
               $match: Object.assign(where, {
-                date: beforeThat.getDate(),
-                month: beforeThat.getMonth(),
-                year: beforeThat.getFullYear()
+                time: {
+                  $gt: beforeThat,
+                  $lte: now
+                }
               })
             },
             {
@@ -88,13 +91,13 @@ export default class AbsHandlerDay {
             },
             {
               $sort: {
-                '_id.hours': 1,
-                '_id.minutes': 1
+                '_id.date': 1
               }
             }
           ]
         )
         rs[beforeThat.toString()] = await rs0.toArray()
+        now.setDate(beforeThat.getTime())
         time--
       }
       return rs

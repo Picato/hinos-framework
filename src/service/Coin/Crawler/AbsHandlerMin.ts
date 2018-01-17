@@ -109,8 +109,7 @@ export default class AbsHandlerMin {
             },
             {
               $sort: {
-                '_id.hours': 1,
-                '_id.minutes': 1
+                '_id.date': 1
               }
             }
           ]
