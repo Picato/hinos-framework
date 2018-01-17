@@ -37,11 +37,9 @@ export default class CoinController {
     let { type, market, key } = query
     // let { key } = params
     if (type === 'HandlerMin30') {
-      rs = await HandlerMin30.groupByTime(key, market)
-    } else if (type === 'HandlerHour1') {
-      rs = await HandlerHour1.groupByTime(key, market)
+      rs = await HandlerMin30.groupByTime(key, market, 2)
     } else if (type === 'HandlerDay1') {
-      rs = await HandlerDay1.groupByTime(key, market)
+      rs = await HandlerDay1.groupByTime(key, market, 2)
     }
     return rs
   }

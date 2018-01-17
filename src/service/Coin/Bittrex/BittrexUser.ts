@@ -129,19 +129,6 @@ export default class BittrexUser {
     return this.alerts[data.key].length - 1
   }
 
-  getOrderBook(key, type: 'both' | 'sell' | 'buy') {
-    const self = this
-    return new Promise<any>((resolve, reject) => {
-      self.bittrex.getorderbook({
-        type,
-        market: key
-      }, function (err, data) {
-        if (err) return reject(err.message)
-        resolve(data.result)
-      })
-    })
-  }
-
   getOrder(orderId: string) {
     if (!orderId) return Promise.reject('Not found orderID')
     const self = this
@@ -270,6 +257,18 @@ export default class BittrexUser {
         if (err) return reject(err)
         resolve(data.result)
       });
+    })
+  }
+
+  static getOrderBook(key, type: 'both' | 'sell' | 'buy') {
+    return new Promise<any>((resolve, reject) => {
+      Bittrex.getorderbook({
+        type,
+        market: key
+      }, function (err, data) {
+        if (err) return reject(err.message)
+        resolve(data.result)
+      })
     })
   }
 

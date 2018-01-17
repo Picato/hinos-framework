@@ -2,6 +2,7 @@ import { MONGO, Mongo } from "hinos-mongo/lib/mongo"
 import { Redis, REDIS } from "hinos-redis/lib/redis"
 import { BittrexTrading } from "../AI/TrendsCommon";
 import { TradingTemp } from "./RawHandler";
+import BittrexUser from "../Bittrex/BittrexUser";
 // import { Event } from "../Event";
 
 export class TradingMin extends BittrexTrading {
@@ -17,6 +18,16 @@ export class TradingMin extends BittrexTrading {
   open: number
   low: number
   high: number
+  book: {
+    buy: {
+      quantity: number
+      price: number
+    }
+    sell: {
+      quantity: number
+      price: number
+    }
+  }
 }
 
 export default class AbsHandlerMin {
@@ -71,38 +82,43 @@ export default class AbsHandlerMin {
   //   })
   // }
 
-  async groupByTime(key, market) {
+  async groupByTime(key, market, time) {
     let beforeThat = new Date()
-    beforeThat.setDate(beforeThat.getDate() - 1)
+    let rs = {} as any
     let where = {} as any
     if (key) where.key = key
     else if (market) where.market = market
     return await this.mongo.manual(`${this.constructor.name}`, async (collection) => {
-      const rs = collection.aggregate(
-        [
-          {
-            $match: Object.assign(where, {
-              time: {
-                $gte: beforeThat
+      while (time >= 0) {
+        beforeThat.setDate(beforeThat.getDate() - 1)
+        const rs0 = collection.aggregate(
+          [
+            {
+              $match: Object.assign(where, {
+                date: beforeThat.getDate(),
+                month: beforeThat.getMonth(),
+                year: beforeThat.getFullYear()
+              })
+            },
+            {
+              $group: {
+                _id: { hours: '$hours', minutes: '$minutes' },
+                avgLowPrice: { $avg: "$low" },
+                avgHighPrice: { $avg: "$high" }
               }
-            })
-          },
-          {
-            $group: {
-              _id: { hours: '$hours', minutes: '$minutes' },
-              avgLowPrice: { $avg: "$low" },
-              avgHighPrice: { $avg: "$high" }
+            },
+            {
+              $sort: {
+                '_id.hours': 1,
+                '_id.minutes': 1
+              }
             }
-          },
-          {
-            $sort: {
-              '_id.hours': 1,
-              '_id.minutes': 1
-            }
-          }
-        ]
-      )
-      return await rs.toArray()
+          ]
+        )
+        rs[beforeThat.toString()] = await rs0.toArray()
+        time--
+      }
+      return rs
     })
   }
 
@@ -163,6 +179,37 @@ export default class AbsHandlerMin {
         const candlePrev = tr.candlePrev * (tr.candlePrev < 0 ? -1 : 1)
         const candleLast = tr.candleLast * (tr.candleLast < 0 ? -1 : 1)
         tr.candlePercent = candleLast * 100 / (candlePrev || 1)
+
+        tr.book = {
+          buy: {
+            quantity: 0,
+            price: 0
+          },
+          sell: {
+            quantity: 0,
+            price: 0
+          }
+        }
+        try {
+          const { buy, sell } = await BittrexUser.getOrderBook(tr.key, 'both')
+          if (buy) {
+            tr.book.buy = buy.reduce((sum, e) => {
+              sum.quantity += e.Quantity
+              sum.price += e.Rate
+              return sum
+            }, { quantity: 0, price: 0 })
+          }
+          if (sell) {
+            tr.book.sell = sell.reduce((sum, e) => {
+              sum.quantity += e.Quantity
+              sum.price += e.Rate
+              return sum
+            }, { quantity: 0, price: 0 })
+          }
+        } catch (e) {
+          console.error(e)
+        }
+
         data.push(tr)
 
         cached.open = undefined

@@ -609,7 +609,7 @@ export default class BittrexVNBot {
     const user = BittrexUser.users[username]
     if (!user) throw new Error('User has not login yet')
 
-    const orders = await user.getOrderBook(key, type)
+    const orders = await BittrexUser.getOrderBook(key, type)
     let msgs = [
       `[${key}](https://bittrex.com/Market/Index?MarketName=${key}) LASTEST *${type === 'buy' ? 'BUYING' : 'SELLING'}*`,
       '----------------------------------------------',
