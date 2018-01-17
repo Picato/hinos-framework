@@ -53,7 +53,7 @@ export default class AbsHandlerHour {
 
   async groupByTime(key, market) {
     let beforeThat = new Date()
-    beforeThat.setDate(beforeThat.getDate() - 7)
+    beforeThat.setDate(beforeThat.getDate() - 1)
     let where = {} as any
     if (key) where.key = key
     else if (market) where.market = market
