@@ -69,7 +69,7 @@ export default class AbsHandlerDay {
     else if (market) where.market = market
     return await this.mongo.manual(`${this.constructor.name}`, async (collection) => {
       while (time >= 0) {
-        beforeThat.setDate(beforeThat.getMonth() - 1)
+        beforeThat.setMonth(beforeThat.getMonth() - 1)
         const rs0 = collection.aggregate(
           [
             {
