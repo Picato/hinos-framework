@@ -9,8 +9,10 @@ export default class BittrexApi {
   static toUSDT(price, market, rate) {
     return price * (rate[`${market}-USDT`] || 1)
   }
-  static formatNumber(value) {
-    return Number(value).toLocaleString(undefined, { maximumFractionDigits: 8, minimumFractionDigits: 8 })
+  static formatNumber(value, fm = false) {
+    let sign = ''
+    if (fm) sign = (value > 0 ? '+' : '')
+    return sign + Number(value).toLocaleString(undefined, { maximumFractionDigits: 8, minimumFractionDigits: 8 })
   }
 
 }

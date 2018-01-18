@@ -10,14 +10,20 @@ export class BotCommand extends Telegraf {
   async sendChatAction(chatid: number, action) {
     await this['telegram'].sendChatAction(chatid, action)
   }
-  send(chatid: number, message: string, options?) {
-    this['telegram'].sendMessage(chatid, message, options)
+  async send(chatid: number, message: string, options?) {
+    return await this['telegram'].sendMessage(chatid, message, options)
+  }
+  async pinChatMessage(chatId, messageId, extra) {
+    return this['telegram'].pinChatMessage(chatId, messageId, extra)
   }
   editMessageReplyMarkup(chatId, messageId, inlineMessageId, markup) {
     return this['telegram'].editMessageReplyMarkup(chatId, messageId, inlineMessageId, markup)
   }
   editMessageText(chatId, messageId, inlineMessageId, text, extra) {
     return this['telegram'].editMessageText(chatId, messageId, inlineMessageId, text, extra)
+  }
+  deleteMessage(chatId, messageId) {
+    return this['telegram'].deleteMessage(chatId, messageId)
   }
   start(cb: (ctx) => void) {
     return super.start(cb)

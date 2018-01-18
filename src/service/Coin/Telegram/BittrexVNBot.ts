@@ -1,9 +1,11 @@
 import { BotCommand } from './Telegram'
 import BittrexApi from '../Bittrex/BittrexApi'
-import BittrexUser, { BittrexAlert } from '../Bittrex/BittrexUser'
+import BittrexUser from '../Bittrex/BittrexUser'
 import * as Extra from 'telegraf/extra'
 import RawTrading from '../Crawler/RawHandler'
-import BittrexOrderAlertChecking from '../Bittrex/BittrexOrderAlertChecking';
+import BittrexOrder from '../Bittrex/BittrexOrder';
+import BittrexCoinWatcher from '../Bittrex/BittrexCoinWatcher';
+import BittrexAlert from '../Bittrex/BittrexAlert';
 // import * as Markup from 'telegraf/markup'
 
 export default class BittrexVNBot {
@@ -11,10 +13,6 @@ export default class BittrexVNBot {
   static Bot = new BotCommand(AppConfig.app.telegram.BittrexVNBot)
 
   static async init() {
-    await Promise.all([
-      BittrexUser.reloadFromCached(),
-      BittrexOrderAlertChecking.reloadFromCached()
-    ])
     // Refer https://github.com/telegraf/telegraf/blob/develop/docs/examples/keyboard-bot.js
     BittrexVNBot.registerLogin()
     BittrexVNBot.registerGetMyWalletStatus()
@@ -22,20 +20,21 @@ export default class BittrexVNBot {
     BittrexVNBot.registerGetRate()
     BittrexVNBot.registerGetCoinInfo()
     BittrexVNBot.registerAddAlert()
-    BittrexVNBot.registerGetAlerts()
-    BittrexVNBot.registerRmAlert()
-    BittrexVNBot.registerClearAlert()
+    // BittrexVNBot.registerGetAlerts()
+    // BittrexVNBot.registerRmAlert()
+    // BittrexVNBot.registerClearAlert()
     BittrexVNBot.registerBuy()
     BittrexVNBot.registerSell()
     BittrexVNBot.registerLSBuy()
     BittrexVNBot.registerLSSell()
     BittrexVNBot.registerMyOrders()
+    BittrexVNBot.registerWatch()
     BittrexVNBot.registerStart()
 
 
-    BittrexOrderAlertChecking.checkAlert()
+    // BittrexOrder.checkAlert()
     console.log('#TELEGRAM_BOT', 'CHECK ORDER')
-    BittrexOrderAlertChecking.checkOrder()
+    BittrexOrder.checkOrder()
   }
 
   private static registerStart() {
@@ -44,6 +43,53 @@ export default class BittrexVNBot {
       await reply(`[${chat.id}] Welcome to BittrexBotVN!`)
     })
     BittrexVNBot.Bot.startPolling()
+  }
+
+  private static registerWatch() {
+    BittrexVNBot.Bot.action(/unalert .+/, async (ctx) => {
+      const { reply, match } = ctx
+      try {
+        const [, key, _id] = match[0].split(' ')
+        if (!key) return await reply('Not found market-coin')
+        await BittrexAlert.remove(_id.split(','))
+      } catch (e) {
+        await reply(e.message || e)
+      }
+    })
+    BittrexVNBot.Bot.action(/unwatch .+/, async (ctx) => {
+      const { editMessageText, match } = ctx
+      try {
+        const [, key] = match[0].split(' ')
+        if (BittrexCoinWatcher.watchers[key]) await BittrexCoinWatcher.watchers[key].remove()
+        await editMessageText(`🚫 Unwatched ${key}`)
+        // await deleteMessage()
+      } catch (e) {
+        await editMessageText(e.message || e)
+      }
+    })
+    BittrexVNBot.Bot.command('watch', async (ctx) => {
+      const { reply, message, chat } = ctx
+      try {
+        let [, key] = message.text.split(' ')
+        if (key) {
+          key = key.toUpperCase()
+          const rs = await BittrexVNBot.Bot.send(chat.id, `Watching ${key}`, Extra.markdown().markup(m => m.inlineKeyboard([
+            m.callbackButton('🚫 UNWATCH', `unwatch ${key}`),
+          ])))
+          await BittrexCoinWatcher.add(chat.id, rs.message_id, key)
+        } else {
+          if (Object.keys(BittrexCoinWatcher.watchers).length <= 0) return await reply('No watcher')
+          for (let key in BittrexCoinWatcher.watchers) {
+            const rs = await BittrexVNBot.Bot.send(chat.id, `Watching ${key}`, Extra.markdown().markup(m => m.inlineKeyboard([
+              m.callbackButton('🚫 UNWATCH', `unwatch ${key}`),
+            ])))
+            await BittrexCoinWatcher.add(chat.id, rs.message_id, key)
+          }
+        }
+      } catch (e) {
+        await reply(e.message || e)
+      }
+    })
   }
 
   private static registerLogin() {
@@ -434,7 +480,7 @@ export default class BittrexVNBot {
 
   private static registerAddAlert() {
     BittrexVNBot.Bot.command('nw', async (ctx) => {
-      const { reply, replyWithMarkdown, from, message } = ctx
+      const { reply, replyWithMarkdown, from, message, chat } = ctx
       try {
         const user = BittrexUser.users[from.id.toString()]
         if (!user) return reply('User not login yet')
@@ -443,68 +489,68 @@ export default class BittrexVNBot {
         formula = formula.join('') as string
         if (!key || !formula) return await reply('Not found market-coin or formular')
         if (!formula.includes('<') && !formula.includes('>') && !formula.includes('=')) return await reply('Formula need includes atlest 1 in ">", "<", ">=", "<=", "=="')
-        await user.addAlert(new BittrexAlert(key, formula, des))
-        const tmp = await BittrexVNBot.getAlertMsgs(user.alerts, key)
-        await replyWithMarkdown(tmp.join('\n'))
+        const rs = await replyWithMarkdown('Added alert')
+        await BittrexAlert.add(undefined, chat.id, key, formula, des)
+        await BittrexCoinWatcher.add(chat.id, rs.message_id, key)
       } catch (e) {
         await reply(e.message || e)
       }
     })
   }
 
-  private static registerGetAlerts() {
-    BittrexVNBot.Bot.command('ls', async (ctx) => {
-      const { reply, replyWithMarkdown, from, message } = ctx
-      try {
-        const user = BittrexUser.users[from.id.toString()]
-        if (!user) return reply('User not login yet')
-        let [, _key] = message.text.split(' ')
-        if (_key) _key = _key.toUpperCase()
-        const tmp = await BittrexVNBot.getAlertMsgs(user.alerts, _key)
-        if (tmp.length === 0) return await reply('No alert')
-        await replyWithMarkdown(tmp.join('\n'))
-      } catch (e) {
-        await reply(e.message || e)
-      }
-    })
-  }
+  // private static registerGetAlerts() {
+  //   BittrexVNBot.Bot.command('ls', async (ctx) => {
+  //     const { reply, replyWithMarkdown, from, message } = ctx
+  //     try {
+  //       const user = BittrexUser.users[from.id.toString()]
+  //       if (!user) return reply('User not login yet')
+  //       let [, _key] = message.text.split(' ')
+  //       if (_key) _key = _key.toUpperCase()
+  //       const tmp = await BittrexVNBot.getAlertMsgs(user.alerts, _key)
+  //       if (tmp.length === 0) return await reply('No alert')
+  //       await replyWithMarkdown(tmp.join('\n'))
+  //     } catch (e) {
+  //       await reply(e.message || e)
+  //     }
+  //   })
+  // }
 
-  private static registerRmAlert() {
-    BittrexVNBot.Bot.command('rm', async (ctx) => {
-      const { reply, replyWithMarkdown, from, message } = ctx
-      try {
-        let [, key, i] = message.text.split(' ')
-        if (!key) return await reply('Not found Market-Coin')
-        if (i === undefined) return await reply('Not found index to remove')
-        key = key.toUpperCase()
-        const user = BittrexUser.users[from.id.toString()]
-        if (!user) return reply('User not login yet')
-        await user.rmAlert(key, +i)
-        const tmp = await BittrexVNBot.getAlertMsgs(user.alerts, key)
-        await replyWithMarkdown(tmp.join('\n'))
-      } catch (e) {
-        await reply(e.message || e)
-      }
-    })
-  }
+  // private static registerRmAlert() {
+  //   BittrexVNBot.Bot.command('rm', async (ctx) => {
+  //     const { reply, replyWithMarkdown, from, message } = ctx
+  //     try {
+  //       let [, key, i] = message.text.split(' ')
+  //       if (!key) return await reply('Not found Market-Coin')
+  //       if (i === undefined) return await reply('Not found index to remove')
+  //       key = key.toUpperCase()
+  //       const user = BittrexUser.users[from.id.toString()]
+  //       if (!user) return reply('User not login yet')
+  //       await user.rmAlert(key, +i)
+  //       const tmp = await BittrexVNBot.getAlertMsgs(user.alerts, key)
+  //       await replyWithMarkdown(tmp.join('\n'))
+  //     } catch (e) {
+  //       await reply(e.message || e)
+  //     }
+  //   })
+  // }
 
-  private static registerClearAlert() {
-    BittrexVNBot.Bot.command('cls', async (ctx) => {
-      const { reply, replyWithMarkdown, from, message } = ctx
-      try {
-        const user = BittrexUser.users[from.id.toString()]
-        if (!user) return reply('User not login yet')
-        let [, key] = message.text.split(' ')
-        if (key) key = key.toUpperCase()
-        await user.rmAlert(key, -1)
-        const tmp = await BittrexVNBot.getAlertMsgs(user.alerts, undefined)
-        if (tmp.length === 0) return await reply('No alert')
-        await replyWithMarkdown(tmp.join('\n'))
-      } catch (e) {
-        await reply(e.message || e)
-      }
-    })
-  }
+  // private static registerClearAlert() {
+  //   BittrexVNBot.Bot.command('cls', async (ctx) => {
+  //     const { reply, replyWithMarkdown, from, message } = ctx
+  //     try {
+  //       const user = BittrexUser.users[from.id.toString()]
+  //       if (!user) return reply('User not login yet')
+  //       let [, key] = message.text.split(' ')
+  //       if (key) key = key.toUpperCase()
+  //       await user.rmAlert(key, -1)
+  //       const tmp = await BittrexVNBot.getAlertMsgs(user.alerts, undefined)
+  //       if (tmp.length === 0) return await reply('No alert')
+  //       await replyWithMarkdown(tmp.join('\n'))
+  //     } catch (e) {
+  //       await reply(e.message || e)
+  //     }
+  //   })
+  // }
 
   private static registerGetCoinInfo() {
     BittrexVNBot.Bot.hears(/^#.+$/i, async (ctx) => {
@@ -618,20 +664,20 @@ export default class BittrexVNBot {
     return msgs
   }
 
-  private static async getAlertMsgs(alert, _key: string) {
-    const tmp = [
-      '*ALERTS*',
-      '-----------------------------------------'
-    ]
-    for (let key in alert) {
-      if (_key && key !== _key) continue
-      const newestTrading = await RawTrading.getTradings()
-      const f = newestTrading.find(e => e.key === key)
-      tmp.push(`[${key}](https://bittrex.com/Market/Index?MarketName=${key}) = ${f ? BittrexApi.formatNumber(f.last) : ''}`)
-      tmp.push(alert[key].map((e, i) => ` ${i} | * $${e.formula}* | _${e.des || ''} _`).join('\n'))
-      tmp.push('')
-    }
-    return tmp
-  }
+  // private static async getAlertMsgs(alert, _key: string) {
+  //   const tmp = [
+  //     '*ALERTS*',
+  //     '-----------------------------------------'
+  //   ]
+  //   for (let key in alert) {
+  //     if (_key && key !== _key) continue
+  //     const newestTrading = await RawTrading.getTradings()
+  //     const f = newestTrading.find(e => e.key === key)
+  //     tmp.push(`[${key}](https://bittrex.com/Market/Index?MarketName=${key}) = ${f ? BittrexApi.formatNumber(f.last) : ''}`)
+  //     tmp.push(alert[key].map((e, i) => ` ${i} | * $${e.formula}* | _${e.des || ''} _`).join('\n'))
+  //     tmp.push('')
+  //   }
+  //   return tmp
+  // }
 
 }

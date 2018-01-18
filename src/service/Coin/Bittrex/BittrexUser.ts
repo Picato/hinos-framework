@@ -8,10 +8,6 @@ Bittrex.options({
   inverse_callback_arguments: true
 })
 
-export class BittrexAlert {
-  constructor(public key: string, public formula: string, public des: string) { }
-}
-
 export class BittrexOrder {
   type = BittrexUser.ORDER_TYPE[0]
   _id = Mongo.uuid().toString()
@@ -66,7 +62,7 @@ export default class BittrexUser {
   static users = {} as { [username: string]: BittrexUser }
   bittrex: any
 
-  constructor(private username, private apikey, private secretkey, public chatId, public orderIds = [], public alerts = {}, public botOrders = [] as BittrexOrder[]) {
+  constructor(private username, private apikey, private secretkey, public chatId, public orderIds = [], public botOrders = [] as BittrexOrder[]) {
     this.bittrex = require('node-bittrex-api') as any;
     const self = this
     this.bittrex.options({
@@ -76,11 +72,11 @@ export default class BittrexUser {
     })
   }
 
-  static async reloadFromCached() {
+  static async init() {
     const bots = await BittrexUser.redis.hget(`bittrex.users`)
     for (let username in bots) {
-      const { apikey, secretkey, orderIds, chatId, alerts, botOrders } = JSON.parse(bots[username])
-      const user = new BittrexUser(username, apikey, secretkey, chatId, orderIds, alerts, !botOrders ? undefined : botOrders.map(e => new BittrexOrder(e.key, e.quantity, e.price, e.rate, e.action, e.chatId, e.messageId)))
+      const { apikey, secretkey, orderIds, chatId, botOrders } = JSON.parse(bots[username])
+      const user = new BittrexUser(username, apikey, secretkey, chatId, orderIds, !botOrders ? undefined : botOrders.map(e => new BittrexOrder(e.key, e.quantity, e.price, e.rate, e.action, e.chatId, e.messageId)))
       BittrexUser.users[username] = user
     }
   }
@@ -101,32 +97,9 @@ export default class BittrexUser {
         secretkey: self.secretkey,
         chatId: self.chatId,
         orderIds: self.orderIds,
-        alerts: self.alerts,
         botOrders: self.botOrders
       })
     })
-  }
-
-  async rmAlert(key: string, i: number) {
-    if (this.alerts) {
-      if (!key) {
-        this.alerts = {}
-        await this.saveToCached()
-      } else if (this.alerts[key] && i < this.alerts[key].length) {
-        if (i >= 0) {
-          this.alerts[key].splice(i, 1)
-          if (this.alerts[key].length === 0) delete this.alerts[key]
-        } else delete this.alerts[key]
-        await this.saveToCached()
-      }
-    }
-  }
-
-  async addAlert(data: BittrexAlert) {
-    if (!this.alerts[data.key]) this.alerts[data.key] = []
-    this.alerts[data.key].push(data)
-    await this.saveToCached()
-    return this.alerts[data.key].length - 1
   }
 
   getOrder(orderId: string) {
