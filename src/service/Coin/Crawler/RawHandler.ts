@@ -65,9 +65,9 @@ class RawTrading {
 
   private prepareStartExecute() {
     const self = this
-    if (new Date().getSeconds() !== 0) return setTimeout(() => {
-      this.prepareStartExecute.apply(self)
-    }, 1000)
+    // if (new Date().getSeconds() !== 0) return setTimeout(() => {
+    //   this.prepareStartExecute.apply(self)
+    // }, 1000)
     setInterval(() => {
       this.execute.apply(self)
     }, AppConfig.app.bittrex.scanChecking)

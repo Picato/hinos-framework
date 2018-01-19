@@ -78,9 +78,15 @@ export default class BittrexCoinWatcher {
     let btn = [[{ label: '🚫 UNWATCH', cmd: `unwatch ${t.key}` }]] as any[][]
     if (als.length > 0) {
       txt.push('-----------------------------------------')
-      txt.push(als.map((e, i) => `*${i}.* *${t.name}* ${e.formula} *${t.market}*_${e.des ? `\n     - ${e.des}` : ''}_`).join('\n'))
-
-      btn.splice(0, 0, als.map((e, i) => {
+      const sort = als.map((e: any) => {
+        eval(`e.buf = t.last - ${e.formula.num}`)
+        e.buf = e.buf * -1
+        e.sign = e.buf < 0 ? '' : '+'
+        return e
+      })
+      sort.sort((a, b) => a.buf - b.buf)
+      txt.push(sort.map((e, i) => `*${i}.* ${e.formula.operation} ${BittrexApi.formatNumber(e.formula.num)} *(${e.sign}${BittrexApi.formatNumber(e.buf)})* _${e.des ? `\n     - ${e.des}` : ''}_`).join('\n'))
+      btn.splice(0, 0, sort.map((e, i) => {
         return { label: `${i}`, cmd: `unalert ${t.key} ${e._id}` }
       }))
       btn[1].push({ label: '⚠️ CLEAR', cmd: `unalert ${t.key} ${als.map(e => e._id).join(',')}` })

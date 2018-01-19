@@ -14,7 +14,7 @@ export default class BittrexAlert {
     return ((+BittrexAlert.alerts[BittrexAlert.alerts.length - 1]._id) + 1).toString()
   }
 
-  constructor(public _id = BittrexAlert.getId(), public chatId, public key: string, public formula: string, public des: string) {
+  constructor(public _id = BittrexAlert.getId(), public chatId, public key: string, public formula: { operation: string, num: number }, public des: string) {
 
   }
 
@@ -70,15 +70,15 @@ export default class BittrexAlert {
         if ($) {
           let isok
           try {
-            eval(`isok = $ ${alert.formula}`)
+            eval(`isok = $ ${alert.formula.operation} ${alert.formula.num}`)
             if (isok) {
-              const msgs = [`🎉🎉🎉 [${alert.key}](https://bittrex.com/Market/Index?MarketName=${alert.key}) = *${BittrexApi.formatNumber(t.last)}* ${alert.formula} 🎉🎉🎉`]
+              const msgs = [`🎉🎉🎉 [${alert.key}](https://bittrex.com/Market/Index?MarketName=${alert.key}) = *${BittrexApi.formatNumber(t.last)}* ${alert.formula.operation} ${BittrexApi.formatNumber(alert.formula.num)} 🎉🎉🎉`]
               if (alert.des) msgs.push(`_${alert.des}_`)
               await BittrexVNBot.Bot.send(alert.chatId, `${msgs.join('\n')}`, { parse_mode: 'Markdown' })
               await BittrexAlert.remove(alert._id)
             }
           } catch (_e) {
-            await BittrexVNBot.Bot.send(alert.chatId, `Formula *${alert.formula}* got problem`, { parse_mode: 'Markdown' })
+            await BittrexVNBot.Bot.send(alert.chatId, `Formula *${alert.formula.operation} ${BittrexApi.formatNumber(alert.formula.num)}* got problem`, { parse_mode: 'Markdown' })
           }
         }
       }

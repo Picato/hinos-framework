@@ -14,7 +14,6 @@ import HandlerMin1 from '../service/Coin/Crawler/HandlerMin1';
  ************************************************/
 
 export default class CoinController {
-
   // @GET('/statistic/merge')
   // static async merge() {
   //   await HandlerMin30.merge()

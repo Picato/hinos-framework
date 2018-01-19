@@ -489,8 +489,9 @@ export default class BittrexVNBot {
         formula = formula.join('') as string
         if (!key || !formula) return await reply('Not found market-coin or formular')
         if (!formula.includes('<') && !formula.includes('>') && !formula.includes('=')) return await reply('Formula need includes atlest 1 in ">", "<", ">=", "<=", "=="')
+        const m = formula.match(/([^\d]+)([\d\.]+)/)
         const rs = await replyWithMarkdown('Added alert')
-        await BittrexAlert.add(undefined, chat.id, key, formula, des)
+        await BittrexAlert.add(undefined, chat.id, key, { operation: m[1], num: +m[2] }, des)
         await BittrexCoinWatcher.add(chat.id, rs.message_id, key)
       } catch (e) {
         await reply(e.message || e)
