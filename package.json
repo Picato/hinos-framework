@@ -6,6 +6,7 @@
   "scripts": {
     "once": "npm install -g typescript && npm install -g cross-var && npm install -g tslint-config-standard",
     "start": "node .",
+    "pm2:remitano": "pm2    start \".build/service/Coin/Remitano/Index.js\"  --env production --name \"blaz-remitano\"",
     "pm2:rawSyncCoin": "pm2    start \".build/service/Coin/Crawler/Index.main.js\"  --env production --name \"blaz-raw-sync-coin\"",
     "pm2:manualSyncCoin": "pm2 start \".build/service/Coin/Crawler/Index.js\"       --env production --name \"blaz-manual-sync-coin\"",
     "pm2:teleCmdBot": "pm2        start \".build/service/Coin/Telegram/Index.js\"      --env production --name \"blaz-telegram-command\"",
@@ -78,6 +79,7 @@
     "lodash": "^4.17.4",
     "node-bittrex-api": "^0.8.1",
     "node.bittrex.api": "^1.0.0",
+    "phantom": "^4.0.12",
     "qrcode": "^1.2.0",
     "speakeasy": "^2.0.0",
     "telegraf": "^3.17.3",
@@ -92,6 +94,7 @@
     "@types/lodash": "^4.14.92",
     "@types/mocha": "^2.2.46",
     "@types/node": "^7.0.52",
+    "@types/phantom": "^3.2.4",
     "axios": "^0.16.2",
     "chai": "^3.5.0",
     "mocha": "^3.5.3",

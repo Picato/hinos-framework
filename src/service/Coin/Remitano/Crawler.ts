@@ -1,47 +1,122 @@
-import { REDIS, Redis } from "hinos-redis/lib/redis";
 import { MONGO, Mongo, Collection } from "hinos-mongo/lib/mongo";
+import HttpError from "../../../common/HttpError";
+import { REDIS, Redis } from "hinos-redis/lib/redis";
 
 const phantom = require('phantom');
 
 @Collection()
 export class RemitanoRate {
-  currency: 'VND',
-  btc_bid: 288387000,
-  btc_ask: 294204467.52,
-  eth_bid: 26550909,
-  eth_ask: 26926057.125,
-  usdt_bid: 27324,
-  usdt_ask: 26159
+  currency: string
+  btc_bid: number
+  btc_ask: number
+  eth_bid: number
+  eth_ask: number
+  usdt_bid: number
+  usdt_ask: number
+  time: Date
+  day: number
+  date: number
+  month: number
+  year: number
+  hours: number
+  minutes: number
+  seconds: number
 }
 
-export class RemitanoCrawler {
+class RemitanoCrawler {
 
   @MONGO('coin')
-  protected mongo: Mongo
+  private mongo: Mongo
 
-  init() {
+  @REDIS()
+  private redis: Redis
+
+  page
+  lastUpdateDB
+
+  async getRate() {
+    return await this.redis.get('remitano.rate')
+  }
+
+  async find(fil?) {
+    return await this.mongo.find<RemitanoRate>(RemitanoRate, fil)
+  }
+
+  async groupByTime(beforeThat: Date, groupBy: any) { //{ hours: '$hours', minutes: '$minutes' }
+    return await this.mongo.manual(RemitanoRate, async (collection) => {
+      const rs0 = collection.aggregate(
+        [
+          {
+            $match: {
+              time: { $gte: beforeThat }
+            }
+          },
+          {
+            $group: groupBy
+          },
+          {
+            $sort: {
+              '_id.time': 1
+            }
+          }
+        ]
+      )
+      return await rs0.toArray()
+    })
+  }
+
+  constructor() {
     const self = this
     setInterval(() => {
       self.scan.apply(self)
     }, 10000)
   }
 
-  async scan() {
-    const instance = await phantom.create();
-    const page = await instance.createPage();
-    await page.on('onResourceRequested', function (requestData) {
-      console.info('Requesting', requestData.url);
-    });
+  async init() {
+    this.lastUpdateDB = await this.redis.manual(async redis => {
+      let lastUpdateDB = await this.redis._get(redis, `${this.constructor.name}.lastUpdateDB`)
+      lastUpdateDB = lastUpdateDB ? new Date(lastUpdateDB) : undefined
+      return lastUpdateDB
+    })
+  }
 
-    const status = await page.open('https://usdt.remitano.com/vn');
-    if (status === 200) {
-      const content = await page.property('content');
+  async scan() {
+    try {
+      let status
+      if (!this.page) {
+        const instance = await phantom.create(['--ignore-ssl-errors=yes', '--load-images=no', '--disk-cache=true'], {
+          // logger: yourCustomLogger,
+          logLevel: 'error',
+        });
+        this.page = await instance.createPage();
+        this.page.on('onResourceRequested', true, function (requestData, networkRequest) {
+          if (requestData.url.indexOf('remitano') === -1) return networkRequest.abort()
+        })
+        status = await this.page.open('https://usdt.remitano.com/vn');
+        if (status !== 'success') throw HttpError.BAD_REQUEST('Could not request to remitano')
+      } else {
+        await this.page.reload()
+      }
+      const content = await this.page.property('content')
       const m = content.match(/"btc_rates":.*?"vn":(\{[^\}]+\})/)
       const rate = JSON.parse(m[1])
-      this.mongo.insert(RemitanoRate, {
-
-      })
-      await instance.exit();
+      rate.time = new Date()
+      if (!this.lastUpdateDB || (this.lastUpdateDB.getMinutes() !== rate.time.getMinutes() && rate.time.getMinutes() % 5 == 0)) {
+        this.lastUpdateDB = rate.time
+        rate.day = rate.time.getDay()
+        rate.date = rate.time.getDate()
+        rate.month = rate.time.getMonth()
+        rate.year = rate.time.getFullYear()
+        rate.hours = rate.time.getHours()
+        rate.minutes = rate.time.getMinutes()
+        rate.seconds = rate.time.getSeconds()
+        await this.mongo.insert(RemitanoRate, rate)
+        await this.redis.set(`${this.constructor.name}.lastUpdateDB`, this.lastUpdateDB)
+      }
+      await this.redis.set('remitano.rate', JSON.stringify(rate))
+    } catch (e) {
+      console.error('phantom:remitano', e)
     }
   }
 }
+export default new RemitanoCrawler()

@@ -8,6 +8,7 @@ import HandlerDay1 from '../service/Coin/Crawler/HandlerDay1'
 import RawTrading from '../service/Coin/Crawler/RawHandler'
 import { TrendsMessageService } from '../service/Coin/AI/TrendsMessage';
 import HandlerMin1 from '../service/Coin/Crawler/HandlerMin1';
+import RemitanoCrawler from '../service/Coin/Remitano/Crawler';
 
 /************************************************
  ** GoldController || 4/10/2017, 10:19:24 AM **
@@ -41,6 +42,66 @@ export default class CoinController {
       rs = await HandlerDay1.groupByTime(key, market, 2)
     }
     return rs
+  }
+
+  @GET('/remitano/rate')
+  static async getRemitanoRate() {
+    return await RemitanoCrawler.getRate()
+  }
+
+  @GET('/remitano')
+  @RESTRICT({
+    query: {
+      type: String,
+      cur: String
+    }
+  })
+  static async getRemitanoPrice({ query }) {
+    if (query.type === 'byDay') {
+      const now = new Date()
+      now.setDate(now.getDate() - 7)
+      return await RemitanoCrawler.groupByTime(now, {
+        _id: {
+          day: '$day'
+        },
+        minAsk: { $min: `$${query.cur}_ask` },
+        minBid: { $min: `$${query.cur}_bid` },
+        maxAsk: { $max: `$${query.cur}_ask` },
+        maxBid: { $max: `$${query.cur}_bid` }
+      })
+    }
+    if (query.type === 'byDate') {
+      const now = new Date()
+      now.setMonth(now.getMonth() - 1)
+      return await RemitanoCrawler.groupByTime(now, {
+        _id: {
+          date: '$date', month: '$month', year: '$year'
+        },
+        minAsk: { $min: `$${query.cur}_ask` },
+        minBid: { $min: `$${query.cur}_bid` },
+        maxAsk: { $max: `$${query.cur}_ask` },
+        maxBid: { $max: `$${query.cur}_bid` }
+      })
+    }
+    if (query.type === 'byHour') {
+      const now = new Date()
+      now.setDate(now.getDate() - 1)
+      return await RemitanoCrawler.groupByTime(now, {
+        _id: {
+          hours: '$hours'
+        },
+        minAsk: { $min: `$${query.cur}_ask` },
+        minBid: { $min: `$${query.cur}_bid` },
+        maxAsk: { $max: `$${query.cur}_ask` },
+        maxBid: { $max: `$${query.cur}_bid` }
+      })
+    }
+    return await RemitanoCrawler.find({
+      $recordsPerPage: 60,
+      $sort: {
+        time: -1
+      }
+    })
   }
 
   @GET('/market/:key')

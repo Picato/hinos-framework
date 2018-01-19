@@ -1,12 +1,9 @@
+import '../../../config'
 import { Server } from 'hinos'
 import { Mongo } from 'hinos-mongo'
 import { Redis } from 'hinos-redis'
-// import { serve } from 'hinos-serve'
-import { cors } from 'hinos-cors'
-import './config'
-// import { GoldService } from './service/GoldService'
 
-require(`./env.${Server.env}`).default(Server)
+require(`../../../env.${Server.env}`)
 
 Mongo(AppConfig.mongo)
 Redis(AppConfig.redis)
