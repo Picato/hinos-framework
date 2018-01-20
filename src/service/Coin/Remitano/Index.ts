@@ -8,4 +8,6 @@ require(`../../../env.${Server.env}`)
 Mongo(AppConfig.mongo)
 Redis(AppConfig.redis)
 
-import './Crawler'
+import RemitanoCrawler from './Crawler'
+
+RemitanoCrawler.init()

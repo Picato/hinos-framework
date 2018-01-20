@@ -66,14 +66,13 @@ class RemitanoCrawler {
     })
   }
 
-  constructor() {
+  async init() {
     const self = this
+    
     setInterval(() => {
       self.scan.apply(self)
     }, AppConfig.app.bittrex.scanRemitano)
-  }
 
-  async init() {
     this.lastUpdateDB = await this.redis.manual(async redis => {
       let lastUpdateDB = await this.redis._get(redis, `${this.constructor.name}.lastUpdateDB`)
       lastUpdateDB = lastUpdateDB ? new Date(lastUpdateDB) : undefined

@@ -12,7 +12,7 @@
     "pm2:teleCmdBot": "pm2        start \".build/service/Coin/Telegram/Index.js\"      --env production --name \"blaz-telegram-command\"",
     "pm2:ai": "pm2             start \".build/service/Coin/AI/Index.js\"            --env production --name \"blaz-AI\"",
     "pm2:api": "pm2            start .                                              --env production --name \"blaz-api\"",
-    "pm2": "npm run pm2:rawSyncCoin && npm run pm2:manualSyncCoin && npm run pm2:teleCmdBot && npm run pm2:ai && npm run pm2:api",
+    "pm2": "npm run pm2:rawSyncCoin && npm run pm2:manualSyncCoin && npm run pm2:teleCmdBot && npm run pm2:remitano && npm run pm2:api",
     "prebuild": "rimraf .build .spec",
     "build": "tsc",
     "pretest": "rimraf .spec && tsc -p src/test/tsconfig.json",
