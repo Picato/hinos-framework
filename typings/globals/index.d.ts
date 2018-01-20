@@ -30,6 +30,7 @@ interface IAppConfig {
     bittrex: {
       scanChecking: number
       scanCurrency: number
+      scanRemitano: number
       apikey: string
       apisecret: string
     },

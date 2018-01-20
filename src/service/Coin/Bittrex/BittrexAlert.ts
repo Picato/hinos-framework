@@ -79,6 +79,7 @@ export default class BittrexAlert {
             }
           } catch (_e) {
             await BittrexVNBot.Bot.send(alert.chatId, `Formula *${alert.formula.operation} ${BittrexApi.formatNumber(alert.formula.num)}* got problem`, { parse_mode: 'Markdown' })
+            await BittrexAlert.remove(alert._id)
           }
         }
       }

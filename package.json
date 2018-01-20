@@ -54,7 +54,8 @@
         "apikey": "",
         "apisecret": "",
         "scanCurrency": 300000,
-        "scanChecking": 5000
+        "scanChecking": 5000,
+        "scanRemitano": 10000
       },
       "gold": {
         "scanTimeout": 900000

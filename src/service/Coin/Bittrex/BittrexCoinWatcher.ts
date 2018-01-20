@@ -42,9 +42,13 @@ export default class BittrexCoinWatcher {
     Redis.subscribe('updateData', async (data) => {
       const { tradings } = JSON.parse(data)
       for (let key in BittrexCoinWatcher.watchers) {
-        const t = tradings.find(e => e.key === key)
         const w = BittrexCoinWatcher.watchers[key]
-        if (t && w) await w.update(t)
+        if (key !== 'RATE') {
+          const t = tradings.find(e => e.key === key)
+          if (t) await w.update(t)
+        } else {
+          await w.updateRate()
+        }
       }
     }, AppConfig.redis)
   }
@@ -60,6 +64,21 @@ export default class BittrexCoinWatcher {
   async remove() {
     await BittrexCoinWatcher.redis.hdel(`bittrex.watchers`, [this.key])
     delete BittrexCoinWatcher.watchers[this.key]
+  }
+
+  async updateRate() {
+    const msgs = await BittrexVNBot.getRateStr()
+    let btn = [[{ label: '🚫 UNWATCH', cmd: `unwatch ${this.key}` }]] as any[][]
+    try {
+      return await BittrexVNBot.Bot.editMessageText(this.chatId, this.messageId, undefined, msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard(
+        btn.map(bn => {
+          return bn.map(e => m.callbackButton(e.label, e.cmd))
+        })
+      )))
+    } catch (e) {
+      console.log(e)
+      // await this.remove()
+    }
   }
 
   async update(t: TradingTemp) {

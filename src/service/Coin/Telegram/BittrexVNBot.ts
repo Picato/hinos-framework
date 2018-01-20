@@ -6,6 +6,7 @@ import RawTrading from '../Crawler/RawHandler'
 import BittrexOrder from '../Bittrex/BittrexOrder';
 import BittrexCoinWatcher from '../Bittrex/BittrexCoinWatcher';
 import BittrexAlert from '../Bittrex/BittrexAlert';
+import RemitanoCrawler from '../Remitano/Crawler';
 // import * as Markup from 'telegraf/markup'
 
 export default class BittrexVNBot {
@@ -368,7 +369,7 @@ export default class BittrexVNBot {
         if (!quantity) return await reply('Not found quantity')
         if (!price) return await reply('Not found price')
         key = key.toUpperCase()
-        price = +price
+        price = BittrexApi.getQuickPrice(price)
         const [market, coin] = key.split('-')
         const rate = 0.0025
         const balances = await user.getMyBalances()
@@ -448,7 +449,7 @@ export default class BittrexVNBot {
         if (!quantity) return await reply('Not found quantity')
         if (!price) return await reply('Not found price')
         key = key.toUpperCase()
-        price = +price
+        price = BittrexApi.getQuickPrice(price)
         const [market, coin] = key.split('-')
         const rate = 0.0025
         const balances = await user.getMyBalances()
@@ -489,9 +490,9 @@ export default class BittrexVNBot {
         formula = formula.join('') as string
         if (!key || !formula) return await reply('Not found market-coin or formular')
         if (!formula.includes('<') && !formula.includes('>') && !formula.includes('=')) return await reply('Formula need includes atlest 1 in ">", "<", ">=", "<=", "=="')
-        const m = formula.match(/([^\d]+)([\d\.]+)/)
+        const m = formula.match(/([^\d\.]+)([\d\.]+\$)/)
         const rs = await replyWithMarkdown('Added alert')
-        await BittrexAlert.add(undefined, chat.id, key, { operation: m[1], num: +m[2] }, des)
+        await BittrexAlert.add(undefined, chat.id, key, { operation: m[1], num: BittrexApi.getQuickPrice(m[2]) }, des)
         await BittrexCoinWatcher.add(chat.id, rs.message_id, key)
       } catch (e) {
         await reply(e.message || e)
@@ -579,13 +580,7 @@ export default class BittrexVNBot {
     BittrexVNBot.Bot.command('rate', async (ctx) => {
       const { replyWithMarkdown, reply } = ctx
       try {
-        const rate = await RawTrading.getRate()
-        const msgs = [
-          `*RATE*\n-----------------------------------------`,
-          `*1 BTC* = ${BittrexApi.formatNumber(rate['BTC-USDT'])} *USDT*`,
-          `*1 ETH* = ${BittrexApi.formatNumber(rate['ETH-USDT'])} *USDT*`,
-          `*1 BTC* = ${BittrexApi.formatNumber(rate['BTC-ETH'])} *ETH*`
-        ]
+        const msgs = await BittrexVNBot.getRateStr()
         await replyWithMarkdown(msgs.join('\n'))
       } catch (e) {
         await reply(e.message || e)
@@ -637,6 +632,22 @@ export default class BittrexVNBot {
   //   }).sort((a, b) => b.Quantity - a.Quantity)
 
   // }
+
+  static async getRateStr() {
+    const rate = await RawTrading.getRate()
+    const vnd = await RemitanoCrawler.getRate()
+    const msgs = [
+      `⏱ Rate at *${new Date().toTimeString().split(' ')[0]}* ⏱`,
+      `-----------------------------------------`,
+      `*1 BTC*    = ${BittrexApi.formatNumber(rate['BTC-USDT'])} *USDT*`,
+      `*1 ETH*    = ${BittrexApi.formatNumber(rate['ETH-USDT'])} *USDT*`,
+      `*1 BTC*    = ${BittrexApi.formatNumber(rate['BTC-ETH'])} *ETH*`,
+      `-----------------------------------------`,
+      `*1 USDT* = ${BittrexApi.formatNumber(vnd['usdt_ask'], false, 0)} / ${BittrexApi.formatNumber(vnd['usdt_bid'], false, 0)} *VND* _(Buy/Sell)_`,
+      `*1 BTC*    = ${BittrexApi.formatNumber(vnd['btc_ask'], false, 0)} / ${BittrexApi.formatNumber(vnd['btc_bid'], false, 0)} *VND* _(Buy/Sell)_`,
+    ]
+    return msgs
+  }
 
   private static async getOrderBook(username: string, key: string, page = 1, recordsPerPage = 10, type: 'sell' | 'buy') {
     const formatMessages = (data) => {

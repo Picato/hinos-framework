@@ -76,7 +76,7 @@ export default class BittrexOrder {
                   inline_keyboard: [[{ text: '🚫 CANCEL THIS ORDER', callback_data: `order:cancel ${rs.OrderId}` }]]
                 })
               }
-              user.botCancel(o._id)
+              await user.botCancel(o._id)
             } else if (o.changedLimit) {
               o.changedLimit = false
               await BittrexVNBot.Bot.send(chatId, `[${action.toUpperCase()}] Bot is holding ${+quantity} ${key} with price ${BittrexApi.formatNumber(t.last)} (${BittrexApi.formatNumber(t.last - price)} = ${BittrexApi.formatNumber((t.last - price) * quantity)})`)

@@ -152,11 +152,11 @@ export default class BittrexUser {
     return o
   }
 
-  botCancel(_id) {
+  async botCancel(_id) {
     const idx = this.botOrders.findIndex(e => e._id === _id)
     if (idx !== -1) {
       this.botOrders.splice(idx, 1)
-      this.saveToCached()
+      await this.saveToCached()
     }
   }
 

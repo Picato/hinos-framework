@@ -35,7 +35,8 @@ class RemitanoCrawler {
   lastUpdateDB
 
   async getRate() {
-    return await this.redis.get('remitano.rate')
+    const rs = await this.redis.get('remitano.rate')
+    return rs ? JSON.parse(rs) : {}
   }
 
   async find(fil?) {
@@ -69,7 +70,7 @@ class RemitanoCrawler {
     const self = this
     setInterval(() => {
       self.scan.apply(self)
-    }, 10000)
+    }, AppConfig.app.bittrex.scanRemitano)
   }
 
   async init() {
