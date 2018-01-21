@@ -2,11 +2,11 @@ import { Redis, REDIS } from 'hinos-redis/lib/redis'
 import { Mongo } from 'hinos-mongo/lib/mongo';
 
 const Bittrex = require('node-bittrex-api')
-// Bittrex.options({
-//   apikey: AppConfig.app.bittrex.apikey,
-//   apisecret: AppConfig.app.bittrex.apisecret,
-//   inverse_callback_arguments: true
-// })
+Bittrex.options({
+  apikey: AppConfig.app.bittrex.apikey,
+  apisecret: AppConfig.app.bittrex.apisecret,
+  inverse_callback_arguments: true
+})
 
 export class BittrexOrder {
   type = BittrexUser.ORDER_TYPE[0]
