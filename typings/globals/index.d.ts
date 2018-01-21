@@ -24,8 +24,11 @@ interface IAppConfig {
   }
   app: {
     telegram: {
-      BittrexVNBot: string
-      BittrexAnalyticsBot: string
+      OrderBot: string
+      AlertBot: string
+      WatcherBot: string
+      HelperBot: string
+      AnalyticsBot: string
     },
     bittrex: {
       scanChecking: number

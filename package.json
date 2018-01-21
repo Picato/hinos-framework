@@ -47,8 +47,11 @@
     },
     "app": {
       "telegram": {
-        "BittrexVNBot": "",
-        "BittrexAnalyticsBot": ""
+        "OrderBot": "",
+        "AlertBot": "",
+        "WatcherBot": "",
+        "HelperBot": "",
+        "AnalyticsBot": ""
       },
       "bittrex": {
         "apikey": "",

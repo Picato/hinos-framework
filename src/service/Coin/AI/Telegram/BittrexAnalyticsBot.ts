@@ -6,7 +6,7 @@ class BittrexAnalyticsBot {
   @REDIS()
   private redis: Redis
 
-  private bot = new BotCommand(AppConfig.app.telegram.BittrexAnalyticsBot)
+  private bot = new BotCommand(AppConfig.app.telegram.AnalyticsBot)
   private chatId
 
   async init() {

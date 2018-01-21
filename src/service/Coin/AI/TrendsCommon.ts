@@ -1,5 +1,5 @@
 import { Uuid } from "hinos-mongo/lib/mongo"
-import BittrexApi from "../Bittrex/BittrexApi"
+import BittrexApi from "../Telegram/BittrexApi"
 import { TradingMin } from "../Crawler/AbsHandlerMin";
 // import { Redis, REDIS } from "hinos-redis/lib/redis";
 

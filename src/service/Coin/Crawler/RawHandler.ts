@@ -1,6 +1,6 @@
 import { REDIS, Redis } from "hinos-redis/lib/redis"
 import { Mongo, Uuid } from "hinos-mongo/lib/mongo"
-import BittrexUser from "../Bittrex/BittrexUser";
+import BittrexUser from "../Telegram/BittrexUser";
 // import { Event } from "../Event";
 
 export class TradingTemp {

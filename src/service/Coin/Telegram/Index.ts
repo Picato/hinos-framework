@@ -8,14 +8,14 @@ Redis(AppConfig.redis)
 
 console.log('---------------- SETUP TELEGRAM BOT ----------------')
 
-import BittrexVNBot from './BittrexVNBot'
-import BittrexCoinWatcher from '../Bittrex/BittrexCoinWatcher'
-import BittrexAlert from '../Bittrex/BittrexAlert'
-import BittrexUser from '../Bittrex/BittrexUser';
-import BittrexOrder from '../Bittrex/BittrexOrder';
+import BittrexCommand from './BittrexCommand'
+import BittrexWatcher from './BittrexWatcher'
+import BittrexAlert from './BittrexAlert'
+import BittrexUser from './BittrexUser'
+import BittrexOrder from './BittrexOrder'
 
-BittrexVNBot.init()
+BittrexCommand.init()
 BittrexUser.init(),
 BittrexOrder.init()
-BittrexCoinWatcher.init()
+BittrexWatcher.init()
 BittrexAlert.init()

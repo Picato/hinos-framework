@@ -2,7 +2,7 @@ import { MONGO, Mongo } from "hinos-mongo/lib/mongo"
 import { Redis, REDIS } from "hinos-redis/lib/redis"
 import { BittrexTrading } from "../AI/TrendsCommon";
 import { TradingTemp } from "./RawHandler";
-import BittrexUser from "../Bittrex/BittrexUser";
+import BittrexUser from "../Telegram/BittrexUser";
 // import { Event } from "../Event";
 
 export class TradingMin extends BittrexTrading {

@@ -1,5 +1,5 @@
 import { TrendsMessageService, TrendsMessage } from "./TrendsMessage";
-import BittrexApi from "../Bittrex/BittrexApi";
+import BittrexApi from "../Telegram/BittrexApi";
 import { Redis } from "hinos-redis/lib/redis";
 import HandlerMin1 from "../Crawler/HandlerMin1";
 
