@@ -68,7 +68,7 @@ export default class RemitanoCrawler {
 
   static async init() {
     RemitanoCrawler.lastUpdateDB = await RemitanoCrawler.redis.manual(async redis => {
-      let lastUpdateDB = await RemitanoCrawler.redis._get(redis, `${RemitanoCrawler.constructor.name}.lastUpdateDB`)
+      let lastUpdateDB = await RemitanoCrawler.redis._get(redis, `${this.constructor.name}.lastUpdateDB`)
       lastUpdateDB = lastUpdateDB ? new Date(lastUpdateDB) : undefined
       return lastUpdateDB
     })

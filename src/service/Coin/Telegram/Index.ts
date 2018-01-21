@@ -15,7 +15,7 @@ import BittrexUser from './BittrexUser'
 import BittrexOrder from './BittrexOrder'
 
 BittrexCommand.init()
-BittrexUser.init(),
+BittrexUser.init()
 BittrexOrder.init()
 BittrexWatcher.init()
 BittrexAlert.init()
