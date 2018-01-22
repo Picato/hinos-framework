@@ -1,6 +1,6 @@
 export default class BittrexApi {
   static getId() {
-    return new Date().getTime()
+    return new Date().getTime().toString()
   }
 
   static toETH(price, market, rate) {
