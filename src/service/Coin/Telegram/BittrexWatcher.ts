@@ -55,7 +55,7 @@ export default class BittrexWatcher {
       try {
         const [, key, _id] = match[0].split(' ')
         if (!key) return await reply('Not found market-coin')
-        await BittrexAlert.remove(_id.split(','))
+        await BittrexAlert.remove(key, _id.split(','))
       } catch (e) {
         await reply(e.message || e)
       }
@@ -150,9 +150,9 @@ export default class BittrexWatcher {
       `*BID*     ${BittrexApi.formatNumber(t.bid)}`,
       `*VOL*     ${BittrexApi.formatNumber(t.baseVolume)}`
     ]
-    let als = BittrexAlert.alerts.filter(e => e.key === t.key)
     let btn = [[{ label: '🚫 UNWATCH', cmd: `unwatch ${t.key}` }]] as any[][]
-    if (als.length > 0) {
+    let als = BittrexAlert.alerts[t.key]
+    if (als && als.length > 0) {
       txt.push('-----------------------------------------')
       const sort = als.map((e: any) => {
         eval(`e.buf = t.last - ${e.formula.num}`)

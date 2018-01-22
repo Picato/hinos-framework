@@ -3,7 +3,6 @@ import { REDIS, Redis } from "hinos-redis";
 import { TradingTemp } from "../Crawler/RawHandler";
 import { BotCommand } from "./Telegram"
 import BittrexWatcher from "./BittrexWatcher";
-import BittrexUser from "./BittrexUser";
 
 export default class BittrexAlert {
   static Bot = new BotCommand(AppConfig.app.telegram.AlertBot)
@@ -11,26 +10,20 @@ export default class BittrexAlert {
   @REDIS()
   private static redis: Redis
 
-  static alerts = [] as BittrexAlert[]
-
-  static getId() {
-    if (BittrexAlert.alerts.length === 0) return '0'
-    return ((+BittrexAlert.alerts[BittrexAlert.alerts.length - 1]._id) + 1).toString()
-  }
+  static alerts = {} as { [key: string]: BittrexAlert[] }
 
   static async init() {
     BittrexAlert.initCommand()
-    let ws = await BittrexAlert.redis.get(`bittrex.alerts`)
-    if (ws) {
-      ws = JSON.parse(ws)
-      for (let k in ws) {
-        const { chatId, key, formula, des, _id } = ws[k]
+    let als = await BittrexAlert.redis.hget(`bittrex.alerts`)
+    if (als) {
+      for (let k in als) {
+        const { chatId, key, formula, des, _id } = JSON.parse(als[k])
         await BittrexAlert.add(_id, chatId, key, formula, des)
       }
     }
     Redis.subscribe('updateData', async (data) => {
       const { tradings } = JSON.parse(data)
-      if (BittrexAlert.alerts.length > 0) await BittrexAlert.check(tradings)
+      await BittrexAlert.check(tradings)
     }, AppConfig.redis)
   }
 
@@ -41,10 +34,8 @@ export default class BittrexAlert {
 
   static registerAddAlert() {
     BittrexAlert.Bot.command('nw', async (ctx) => {
-      const { reply, replyWithMarkdown, from, message, chat } = ctx
+      const { reply, replyWithMarkdown, message, chat } = ctx
       try {
-        const user = BittrexUser.users[from.id.toString()]
-        if (!user) return reply('User not login yet')
         const [kf, des] = message.text.split('\n')
         let [, key, ...formula] = kf.toUpperCase().split(' ')
         formula = formula.join('') as string
@@ -61,29 +52,24 @@ export default class BittrexAlert {
     })
   }
 
-  constructor(public _id = BittrexAlert.getId(), public chatId, public key: string, public formula: { operation: string, num: number }, public des: string) {
+  constructor(public _id = BittrexApi.getId(), public chatId, public key: string, public formula: { operation: string, num: number }, public des: string) {
 
   }
 
-  static async remove(id) {
-    if (!id) return
-    const remove = (id) => {
-      let idx = BittrexAlert.alerts.findIndex(e => e._id === id)
-      BittrexAlert.alerts.splice(idx, 1)
-    }
-    if (id instanceof Array) {
-      for (let e of id) {
-        await remove(e._id)
-      }
+  static async remove(key, id) {
+    if (id === undefined) {
+      BittrexAlert.alerts[key] = []
     } else {
-      remove(id)
+      const idx = BittrexAlert.alerts[key].findIndex(e => e._id === id)
+      BittrexAlert.alerts[key].splice(idx, 1)
     }
     await BittrexAlert.save()
   }
 
   static async add(_id, chatId, key, formula, des) {
     const b = new BittrexAlert(_id, chatId, key, formula, des)
-    BittrexAlert.alerts.push(b)
+    if (!BittrexAlert.alerts[key]) BittrexAlert.alerts[key] = []
+    BittrexAlert.alerts[key].push(b)
     await BittrexAlert.save()
     return b
   }
@@ -94,24 +80,30 @@ export default class BittrexAlert {
 
   static async check(tradings: TradingTemp[]) {
     const alerts = BittrexAlert.alerts
-    for (let i = alerts.length - 1; i >= 0; i--) {
-      const alert = alerts[i]
-      const t = tradings.find(e => e.key === alert.key)
-      if (t) {
-        const $ = t.last
-        if ($) {
-          let isok
-          try {
-            eval(`isok = $ ${alert.formula.operation} ${alert.formula.num}`)
-            if (isok) {
-              const msgs = [`🎉🎉🎉 [${alert.key}](https://bittrex.com/Market/Index?MarketName=${alert.key}) = *${BittrexApi.formatNumber(t.last)}* ${alert.formula.operation} ${BittrexApi.formatNumber(alert.formula.num)} 🎉🎉🎉`]
-              if (alert.des) msgs.push(`_${alert.des}_`)
-              await BittrexAlert.Bot.send(alert.chatId, `${msgs.join('\n')}`, { parse_mode: 'Markdown' })
-              await BittrexAlert.remove(alert._id)
+    for (let key in alerts) {
+      const t = tradings[key]
+      const ls = alerts[key]
+      for (let i = ls.length - 1; i >= 0; i--) {
+        const alert = ls[i]
+        if (!t) {
+          await BittrexAlert.Bot.send(alert.chatId, `Could not found "${key}"`, { parse_mode: 'Markdown' })
+          await BittrexAlert.remove(key, alert._id)
+        } else {
+          const $ = t.last
+          if ($) {
+            let isok
+            try {
+              eval(`isok = $ ${alert.formula.operation} ${alert.formula.num}`)
+              if (isok) {
+                const msgs = [`🎉🎉🎉 [${alert.key}](https://bittrex.com/Market/Index?MarketName=${alert.key}) = *${BittrexApi.formatNumber(t.last)}* ${alert.formula.operation} ${BittrexApi.formatNumber(alert.formula.num)} 🎉🎉🎉`]
+                if (alert.des) msgs.push(`_${alert.des}_`)
+                await BittrexAlert.Bot.send(alert.chatId, `${msgs.join('\n')}`, { parse_mode: 'Markdown' })
+                await BittrexAlert.remove(key, alert._id)
+              }
+            } catch (_e) {
+              await BittrexAlert.Bot.send(alert.chatId, `Formula *${alert.formula.operation} ${BittrexApi.formatNumber(alert.formula.num)}* got problem`, { parse_mode: 'Markdown' })
+              await BittrexAlert.remove(key, alert._id)
             }
-          } catch (_e) {
-            await BittrexAlert.Bot.send(alert.chatId, `Formula *${alert.formula.operation} ${BittrexApi.formatNumber(alert.formula.num)}* got problem`, { parse_mode: 'Markdown' })
-            await BittrexAlert.remove(alert._id)
           }
         }
       }
