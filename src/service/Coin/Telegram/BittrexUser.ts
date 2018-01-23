@@ -1,5 +1,6 @@
 import { Redis, REDIS } from 'hinos-redis/lib/redis'
 import { Mongo } from 'hinos-mongo/lib/mongo';
+import HttpError from '../../../common/HttpError';
 
 const Bittrex = require('node-bittrex-api')
 Bittrex.options({
@@ -59,7 +60,7 @@ export default class BittrexUser {
 
   static readonly ORDER_TYPE = ['IMMEDIATE_OR_CANCEL', 'GOOD_TIL_CANCELLED', 'FILL_OR_KILL']
 
-  static users = {} as { [username: string]: BittrexUser }
+  private static users = {} as { [username: string]: BittrexUser }
   bittrex: any
 
   constructor(private username, private apikey, private secretkey, public chatId, public orderIds = [], public botOrders = [] as BittrexOrder[]) {
@@ -72,7 +73,17 @@ export default class BittrexUser {
     })
   }
 
+  static getAll() {
+    return BittrexUser.users
+  }
+
+  static get(user) {
+    if (!BittrexUser.users[user]) throw HttpError.BAD_REQUEST(`User ${user} has not logined yet`)
+    return BittrexUser.users[user]
+  }
+
   static async init() {
+    console.log('TELEGRAM', 'BittrexUser', 'init')
     const bots = await BittrexUser.redis.hget(`bittrex.users`)
     for (let username in bots) {
       const { apikey, secretkey, orderIds, chatId, botOrders } = JSON.parse(bots[username])
@@ -86,6 +97,25 @@ export default class BittrexUser {
     BittrexUser.users[username] = user
     await user.saveToCached()
     return user
+  }
+
+  async addOrder(orderId, chatId, messageId) {
+    const existed = this.orderIds.find(id => id === orderId)
+    if (existed) {
+      existed.chatId = chatId
+      existed.messageId = messageId
+    } else {
+      this.orderIds.push({ orderId, chatId, messageId })
+    }
+    await this.saveToCached()
+  }
+
+  async removeOrder(orderId) {
+    const idx = this.orderIds.findIndex(e => e.orderId === orderId)
+    if (idx !== -1) {
+      this.orderIds.splice(idx, 1)
+      await this.saveToCached()
+    }
   }
 
   async saveToCached() {
@@ -113,25 +143,6 @@ export default class BittrexUser {
         resolve(data.result)
       })
     })
-  }
-
-  async addOrder(orderId, chatId, messageId) {
-    const existed = this.orderIds.find(id => id === orderId)
-    if (existed) {
-      existed.chatId = chatId
-      existed.messageId = messageId
-    } else {
-      this.orderIds.push({ orderId, chatId, messageId })
-    }
-    await this.saveToCached()
-  }
-
-  async removeOrder(orderId) {
-    const idx = this.orderIds.findIndex(e => e.orderId === orderId)
-    if (idx !== -1) {
-      this.orderIds.splice(idx, 1)
-      await this.saveToCached()
-    }
   }
 
   botBuy(key: string, quantity: number, money: number, rate: number, chatId: any, messageId: any) {

@@ -34,10 +34,10 @@ class HandlerMin1 {
     this.lastUpdateDB = lastUpdateDB
     this.caches = caches
 
-    Redis.subscribe('updateData', (data) => {
-      const { tradings, now } = JSON.parse(data)
-      self.handle(tradings, new Date(now))
-    }, AppConfig.redis)
+    // Redis.subscribe('updateData', (data) => {
+    //   const { tradings, now } = JSON.parse(data)
+    //   self.handle(tradings, new Date(now))
+    // }, AppConfig.redis)
   }
 
   async getTradings() {

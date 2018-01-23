@@ -17,11 +17,10 @@ export default class BittrexWatcher {
 
   static watchers = {} as { [key: string]: BittrexWatcher }
 
-  constructor(public chatId, public messageId, public key) {
-
-  }
+  constructor(public chatId, public messageId, public key) { }
 
   static async init() {
+    console.log('TELEGRAM', 'BittrexWatcher', 'init')
     BittrexWatcher.initCommand()
     const ws = await BittrexWatcher.redis.hget(`bittrex.watchers`)
     if (ws) {
@@ -30,18 +29,50 @@ export default class BittrexWatcher {
         BittrexWatcher.watchers[key] = new BittrexWatcher(chatId, messageId, key)
       }
     }
-    Redis.subscribe('updateData', async (data) => {
-      const { tradings } = JSON.parse(data)
-      for (let key in BittrexWatcher.watchers) {
-        const w = BittrexWatcher.watchers[key]
-        if (key !== 'RATE') {
-          const t = tradings.find(e => e.key === key)
-          if (t) await w.update(t)
-        } else {
-          await w.updateRate()
-        }
+    // Redis.subscribe('updateData', async (data) => {
+    //   const { tradings } = JSON.parse(data)
+    //   await BittrexWatcher.check(tradings)
+    // }, AppConfig.redis)
+  }
+
+  static async runBackground(tradings: TradingTemp[]) {
+    // console.log('TELEGRAM', 'BittrexWatcher', 'runBackground')
+    for (let key in BittrexWatcher.watchers) {
+      const w = BittrexWatcher.watchers[key]
+      if (key !== 'RATE') {
+        const t = tradings.find(e => e.key === key)
+        if (t) await w.update(t)
+      } else {
+        await w.updateRate()
       }
-    }, AppConfig.redis)
+    }
+  }
+
+  static async add(chatId, messageId, key) {
+    let w = BittrexWatcher.watchers[key]
+    if (!w) {
+      w = new BittrexWatcher(chatId, messageId, key)
+      BittrexWatcher.watchers[key] = w
+    } else {
+      await BittrexWatcher.Bot.deleteMessage(w.chatId, w.messageId)
+      w.chatId = chatId
+      w.messageId = messageId
+    }
+    w.save()
+    return w
+  }
+
+  async save() {
+    const self = this
+    await BittrexWatcher.redis.hset(`bittrex.watchers`, {
+      [self.key]: JSON.stringify(self)
+    })
+    BittrexWatcher.watchers[this.key] = this
+  }
+
+  async remove() {
+    await BittrexWatcher.redis.hdel(`bittrex.watchers`, [this.key])
+    delete BittrexWatcher.watchers[this.key]
   }
 
   private static initCommand() {
@@ -55,7 +86,7 @@ export default class BittrexWatcher {
       try {
         const [, key, _id] = match[0].split(' ')
         if (!key) return await reply('Not found market-coin')
-        await BittrexAlert.remove(key, _id.split(','))
+        await BittrexAlert.remove(key, _id ? _id.split(',') : _id)
       } catch (e) {
         await reply(e.message || e)
       }
@@ -96,34 +127,7 @@ export default class BittrexWatcher {
     })
   }
 
-  static async add(chatId, messageId, key) {
-    let w = BittrexWatcher.watchers[key]
-    if (!w) {
-      w = new BittrexWatcher(chatId, messageId, key)
-      BittrexWatcher.watchers[key] = w
-    } else {
-      await BittrexWatcher.Bot.deleteMessage(w.chatId, w.messageId)
-      w.chatId = chatId
-      w.messageId = messageId
-    }
-    w.save()
-    return w
-  }
-
-  async save() {
-    const self = this
-    await BittrexWatcher.redis.hset(`bittrex.watchers`, {
-      [self.key]: JSON.stringify(self)
-    })
-    BittrexWatcher.watchers[this.key] = this
-  }
-
-  async remove() {
-    await BittrexWatcher.redis.hdel(`bittrex.watchers`, [this.key])
-    delete BittrexWatcher.watchers[this.key]
-  }
-
-  async updateRate() {
+  private async updateRate() {
     const msgs = await BittrexCommand.getRateStr()
     let btn = [[{ label: '🚫 UNWATCH', cmd: `unwatch ${this.key}` }]] as any[][]
     try {
@@ -138,11 +142,11 @@ export default class BittrexWatcher {
     }
   }
 
-  async update(t: TradingTemp) {
+  private async update(t: TradingTemp) {
     const time = new Date(t.time)
     if (t.num) this.lastChangeNum = t.num
     const txt = [
-      `⏱ [${this.key}](https://bittrex.com/Market/Index?MarketName=${this.key}) at *${time.toTimeString().split(' ')[0]}* ⏱`,
+      `[${this.key}](https://bittrex.com/Market/Index?MarketName=${this.key}) at *${time.toTimeString().split(' ')[0]}* ⏱`,
       '-----------------------------------------',
       `*LAST*   *${BittrexApi.formatNumber(t.last)}* _(${BittrexApi.formatNumber(this.lastChangeNum, true)})_`,
       '-----------------------------------------',
@@ -165,7 +169,7 @@ export default class BittrexWatcher {
       btn.splice(0, 0, sort.map((e, i) => {
         return { label: `${i}`, cmd: `unalert ${t.key} ${e._id}` }
       }))
-      btn[1].push({ label: '⚠️ CLEAR', cmd: `unalert ${t.key} ${als.map(e => e._id).join(',')}` })
+      btn[1].push({ label: '⚠️ CLEAR', cmd: `unalert ${t.key}` })
     }
     try {
       return await BittrexWatcher.Bot.editMessageText(this.chatId, this.messageId, undefined, txt.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard(

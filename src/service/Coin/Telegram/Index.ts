@@ -14,8 +14,21 @@ import BittrexAlert from './BittrexAlert'
 import BittrexUser from './BittrexUser'
 import BittrexOrder from './BittrexOrder'
 
-BittrexCommand.init()
-BittrexUser.init()
-BittrexOrder.init()
-BittrexWatcher.init()
-BittrexAlert.init()
+(async () => {
+  await Promise.all([
+    BittrexCommand.init(),
+    BittrexUser.init(),
+    BittrexOrder.init(),
+    BittrexWatcher.init(),
+    BittrexAlert.init()
+  ])
+  Redis.subscribe('updateData', async (data) => {
+    const { tradings } = JSON.parse(data)
+    await Promise.all([
+      BittrexAlert.runBackground(tradings),
+      BittrexWatcher.runBackground(tradings),
+      BittrexOrder.runBackground(tradings)
+    ])
+  }, AppConfig.redis)
+
+})()

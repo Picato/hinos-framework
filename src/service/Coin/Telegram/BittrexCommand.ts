@@ -12,6 +12,7 @@ export default class BittrexCommand {
   static HelperBot = new BotCommand(AppConfig.app.telegram.HelperBot)
 
   static async init() {
+    console.log('TELEGRAM', 'BittrexCommand', 'init')
     // Refer https://github.com/telegraf/telegraf/blob/develop/docs/examples/keyboard-bot.js
     BittrexCommand.registerLogin()
     BittrexCommand.registerGetMyWalletStatus()
@@ -48,12 +49,12 @@ export default class BittrexCommand {
 
   private static registerLSSell() {
     BittrexCommand.HelperBot.action(/lssell:(pagi) .+/, async (ctx) => {
-      const { editMessageText, reply, match, from } = ctx
+      const { editMessageText, reply, match } = ctx
       try {
         let [, key, page, recordsPerPage] = match[0].split(' ')
         page = +page
         recordsPerPage = +recordsPerPage
-        let msgs = await BittrexCommand.getOrderBook(from.id.toString(), key, page, recordsPerPage, 'sell')
+        let msgs = await BittrexCommand.getOrderBook(key, page, recordsPerPage, 'sell')
         return await editMessageText(msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard([1, 2, 3, 4, 5].map(e => {
           return m.callbackButton(`${e}${e === page ? '⚪️' : ''}`, `lssell:pagi ${key} ${e} ${recordsPerPage}`)
         }))))
@@ -62,13 +63,13 @@ export default class BittrexCommand {
       }
     })
     BittrexCommand.HelperBot.command('lssell', async (ctx) => {
-      const { reply, message, from, replyWithMarkdown } = ctx
+      const { reply, message, replyWithMarkdown } = ctx
       try {
         let [, key, page = 1, recordsPerPage = 10] = message.text.split(' ')
         page = +page
         recordsPerPage = +recordsPerPage
         if (!key) return await reply('Not found market-coin')
-        let msgs = await BittrexCommand.getOrderBook(from.id.toString(), key, page, recordsPerPage, 'sell')
+        let msgs = await BittrexCommand.getOrderBook(key, page, recordsPerPage, 'sell')
         return await replyWithMarkdown(msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard([1, 2, 3, 4, 5].map(e => {
           return m.callbackButton(`${e}${e === page ? '⚪️' : ''}`, `lssell:pagi ${key} ${e} ${recordsPerPage}`)
         }))))
@@ -80,12 +81,12 @@ export default class BittrexCommand {
 
   private static registerLSBuy() {
     BittrexCommand.HelperBot.action(/lsbuy:(pagi) .+/, async (ctx) => {
-      const { editMessageText, reply, match, from } = ctx
+      const { editMessageText, reply, match } = ctx
       try {
         let [, key, page, recordsPerPage] = match[0].split(' ')
         page = +page
         recordsPerPage = +recordsPerPage
-        let msgs = await BittrexCommand.getOrderBook(from.id.toString(), key, page, recordsPerPage, 'buy')
+        let msgs = await BittrexCommand.getOrderBook(key, page, recordsPerPage, 'buy')
         return await editMessageText(msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard([1, 2, 3, 4, 5].map(e => {
           return m.callbackButton(`${e}${e === page ? '⚪️' : ''}`, `lsbuy:pagi ${key} ${e} ${recordsPerPage}`)
         }))))
@@ -94,13 +95,13 @@ export default class BittrexCommand {
       }
     })
     BittrexCommand.HelperBot.command('lsbuy', async (ctx) => {
-      const { reply, message, from, replyWithMarkdown } = ctx
+      const { reply, message, replyWithMarkdown } = ctx
       try {
         let [, key, page = 1, recordsPerPage = 10] = message.text.split(' ')
         page = +page
         recordsPerPage = +recordsPerPage
         if (!key) return await reply('Not found market-coin')
-        let msgs = await BittrexCommand.getOrderBook(from.id.toString(), key, page, recordsPerPage, 'buy')
+        let msgs = await BittrexCommand.getOrderBook(key, page, recordsPerPage, 'buy')
         return await replyWithMarkdown(msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard([1, 2, 3, 4, 5].map(e => {
           return m.callbackButton(`${e}${e === page ? '⚪️' : ''}`, `lsbuy:pagi ${key} ${e} ${recordsPerPage}`)
         }))))
@@ -202,8 +203,7 @@ export default class BittrexCommand {
     BittrexCommand.HelperBot.command('wallet', async (ctx) => {
       const { replyWithMarkdown, from, reply } = ctx
       try {
-        const user = BittrexUser.users[from.id.toString()]
-        if (!user) return reply('User not login yet')
+        const user = BittrexUser.get(from.id.toString())
         const balances = await user.getMyBalances()
         const msg = [`*WALLETS*\n-----------------------------------------`, ...balances.filter(e => e.Available || e.Balance).map(e => {
           let msgs = [`*${e.Currency}* = ${BittrexApi.formatNumber(e.Balance)} `]
@@ -221,8 +221,7 @@ export default class BittrexCommand {
     BittrexCommand.HelperBot.command('walletid', async (ctx) => {
       const { replyWithMarkdown, from, reply } = ctx
       try {
-        const user = BittrexUser.users[from.id.toString()]
-        if (!user) return reply('User not login yet')
+        const user = BittrexUser.get(from.id.toString())
         const balances = await user.getMyBalances()
         const msg = [`*WALLETS ID*\n-----------------------------------------`, balances.filter(e => e.Available).map(e => `*${e.Currency}* _${e.CryptoAddress || ''}_`).join('\n')]
         await replyWithMarkdown(msg)
@@ -259,7 +258,7 @@ export default class BittrexCommand {
     return msgs
   }
 
-  private static async getOrderBook(username: string, key: string, page = 1, recordsPerPage = 10, type: 'sell' | 'buy') {
+  private static async getOrderBook(key: string, page = 1, recordsPerPage = 10, type: 'sell' | 'buy') {
     const formatMessages = (data) => {
       let max = 0
       let maxI = -1
@@ -274,9 +273,6 @@ export default class BittrexCommand {
         return ` *${i > 9 ? i : ('0' + i)}.* ${maxI === i0 ? '*' : ''}🎲${BittrexApi.formatNumber(e.Quantity)}${maxI === i0 ? '*' : ''} 💰${BittrexApi.formatNumber(e.Rate)}`
       })]
     }
-    const user = BittrexUser.users[username]
-    if (!user) throw new Error('User has not login yet')
-
     const orders = await BittrexUser.getOrderBook(key, type)
     let msgs = [
       `[${key}](https://bittrex.com/Market/Index?MarketName=${key}) LASTEST *${type === 'buy' ? 'BUYING' : 'SELLING'}*`,
