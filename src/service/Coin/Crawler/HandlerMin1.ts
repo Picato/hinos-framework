@@ -19,6 +19,7 @@ class HandlerMin1 {
   private lastUpdateDB
   private caches
 
+
   async init() {
     console.log(`#${this.constructor.name}`, 'Initial')
     const self = this

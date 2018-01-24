@@ -2,7 +2,6 @@ import BittrexApi from "./BittrexApi"
 import { REDIS, Redis } from "hinos-redis";
 import { TradingTemp } from "../Crawler/RawHandler";
 import { BotCommand } from "./Telegram"
-import BittrexWatcher from "./BittrexWatcher";
 
 export default class BittrexAlert {
   static Bot = new BotCommand(AppConfig.app.telegram.AlertBot)
@@ -11,15 +10,19 @@ export default class BittrexAlert {
   private static redis: Redis
 
   static alerts = {} as { [key: string]: BittrexAlert[] }
+  static notifications = {} as { [user: string]: { chatId: number, messageId: number } }
 
   static async init() {
     console.log('TELEGRAM', 'BittrexAlert', 'init')
     BittrexAlert.initCommand()
+    let notices = await BittrexAlert.redis.get(`bittrex.alerts.notifications`)
+    if (notices) BittrexAlert.notifications = JSON.parse(notices)
+
     let als = await BittrexAlert.redis.hget(`bittrex.alerts`)
     if (als) {
       for (let k in als) {
-        for (const { chatId, key, formula, des, _id } of JSON.parse(als[k])) {
-          await BittrexAlert.add(_id, chatId, key, formula, des)
+        for (const { chatId, user, key, formula, des, _id } of JSON.parse(als[k])) {
+          await BittrexAlert.add(_id, user, chatId, key, formula, des)
         }
       }
     }
@@ -30,11 +33,12 @@ export default class BittrexAlert {
   }
 
   private static initCommand() {
-    BittrexAlert.registerAddAlert()
+    BittrexAlert.registerNotifyAlert()
+    // BittrexAlert.registerAddAlert()
     BittrexAlert.Bot.startPolling()
   }
 
-  constructor(public _id = BittrexApi.getId(), public chatId, public key: string, public formula: { operation: string, num: number }, public des: string) {
+  constructor(public _id = BittrexApi.getId(), public user: string, public chatId, public key: string, public formula: { operation: string, num: number }, public des: string) {
 
   }
 
@@ -50,23 +54,12 @@ export default class BittrexAlert {
     return msgs
   }
 
-  static registerAddAlert() {
-    BittrexAlert.Bot.command('nw', async (ctx) => {
-      const { reply, message, chat } = ctx
-      try {
-        const [kf, des] = message.text.split('\n')
-        let [, key, ...formula] = kf.toUpperCase().split(' ')
-        formula = formula.join('') as string
-        if (!key || !formula) return await reply('Not found market-coin or formular')
-        if (!formula.includes('<') && !formula.includes('>') && !formula.includes('=')) return await reply('Formula need includes atlest 1 in ">", "<", ">=", "<=", "=="')
-        const m = formula.match(/([^\d\.]+)([\d\.]+\$?)/)
-        await BittrexAlert.add(undefined, chat.id, key, { operation: m[1], num: BittrexApi.getQuickPrice(m[2]) }, des)
-        // await replyWithMarkdown(BittrexAlert.getListAlertTxt().join('\n'), Extra.markdown())
-        const rs = await BittrexWatcher.Bot.send(chat.id, `Added alert for ${key}`)
-        await BittrexWatcher.add(chat.id, rs.message_id, key)
-      } catch (e) {
-        await reply(e.message || e)
-      }
+  static registerNotifyAlert() {
+    BittrexAlert.Bot.start(async (ctx) => {
+      const { reply, chat, from } = ctx
+      const rs = reply('Added notification channel')
+      BittrexAlert.notifications[from.id.toString()] = { chatId: chat.id, messageId: rs.message_id }
+      await BittrexAlert.redis.set(`bittrex.alerts.notifications`, JSON.stringify(BittrexAlert.notifications))
     })
   }
 
@@ -80,8 +73,8 @@ export default class BittrexAlert {
     await BittrexAlert.save()
   }
 
-  static async add(_id, chatId, key, formula, des) {
-    const b = new BittrexAlert(_id, chatId, key, formula, des)
+  static async add(_id, user, chatId, key, formula, des) {
+    const b = new BittrexAlert(_id, user, chatId, key, formula, des)
     if (!BittrexAlert.alerts[key]) BittrexAlert.alerts[key] = []
     BittrexAlert.alerts[key].push(b)
     await BittrexAlert.save()
@@ -105,8 +98,10 @@ export default class BittrexAlert {
       const t = tradings.find(e => e.key === key)
       for (let i = ls.length - 1; i >= 0; i--) {
         const alert = ls[i]
+        const al = BittrexAlert.notifications[alert.user]
         if (!t) {
-          await BittrexAlert.Bot.send(alert.chatId, `Could not found "${key}"`, { parse_mode: 'Markdown' })
+          // await BittrexAlert.Bot.deleteMessage(al.chatId, al.messageId)
+          await BittrexAlert.Bot.send(al.chatId, `Could not found "${key}"`, { parse_mode: 'Markdown' })
           await BittrexAlert.remove(key, alert._id)
         } else {
           const $ = t.last
@@ -125,12 +120,12 @@ export default class BittrexAlert {
                   msgs.push('-----------------------------------------')
                   msgs.push(`_${alert.des}_`)
                 }
-                await BittrexAlert.Bot.send(alert.chatId, `${msgs.join('\n')}`, { parse_mode: 'Markdown' })
+                await BittrexAlert.Bot.send(al.chatId, `${msgs.join('\n')}`, { parse_mode: 'Markdown' })
                 await BittrexAlert.remove(key, alert._id)
               }
             } catch (_e) {
               await BittrexAlert.remove(key, alert._id)
-              await BittrexAlert.Bot.send(alert.chatId, `Formula *${alert.formula.operation} ${BittrexApi.formatNumber(alert.formula.num)}* got problem`, { parse_mode: 'Markdown' })
+              await BittrexAlert.Bot.send(al.chatId, `Formula *${alert.formula.operation} ${BittrexApi.formatNumber(alert.formula.num)}* got problem`, { parse_mode: 'Markdown' })
             }
           }
         }

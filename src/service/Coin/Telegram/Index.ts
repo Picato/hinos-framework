@@ -13,6 +13,7 @@ import BittrexWatcher from './BittrexWatcher'
 import BittrexAlert from './BittrexAlert'
 import BittrexUser from './BittrexUser'
 import BittrexOrder from './BittrexOrder'
+import { BittrexAlertPumpDump } from './BittrexAlertPumpDump';
 
 (async () => {
   await Promise.all([
@@ -20,14 +21,16 @@ import BittrexOrder from './BittrexOrder'
     BittrexUser.init(),
     BittrexOrder.init(),
     BittrexWatcher.init(),
-    BittrexAlert.init()
+    BittrexAlert.init(),
+    BittrexAlertPumpDump.init()
   ])
   Redis.subscribe('updateData', async (data) => {
     const { tradings } = JSON.parse(data)
     await Promise.all([
       BittrexAlert.runBackground(tradings),
       BittrexWatcher.runBackground(tradings),
-      BittrexOrder.runBackground(tradings)
+      BittrexOrder.runBackground(tradings),
+      BittrexAlertPumpDump.runBackground(tradings)
     ])
   }, AppConfig.redis)
 

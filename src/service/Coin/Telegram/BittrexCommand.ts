@@ -176,7 +176,7 @@ export default class BittrexCommand {
         const newestTrading = await RawTrading.getTradings()
         for (const c of newestTrading) {
           if (c.name === coin) {
-            txt.push(`[${c.key}](https://bittrex.com/Market/Index?MarketName=${c.key}) = ${BittrexApi.formatNumber(c.last)} `)
+            txt.push(`[${c.key}](https://bittrex.com/Market/Index?MarketName=${c.key}) = ${BittrexApi.formatNumber(c.last)}`)
           }
         }
         if (txt.length > 0) return await replyWithMarkdown(txt.join('\n'))
