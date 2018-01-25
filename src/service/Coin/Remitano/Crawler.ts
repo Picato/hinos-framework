@@ -36,7 +36,7 @@ export default class RemitanoCrawler {
 
   static async getRate() {
     const rs = await RemitanoCrawler.redis.get('remitano.rate')
-    return rs ? JSON.parse(rs) : {}
+    return (rs ? JSON.parse(rs) : {}) as RemitanoRate
   }
 
   static async find(fil?) {

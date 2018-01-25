@@ -11,6 +11,7 @@ import HandlerMin15 from "../Crawler/HandlerMin15";
 import HandlerHour1 from "../Crawler/HandlerHour1";
 import HandlerMin30 from "../Crawler/HandlerMin30";
 import HandlerDay1 from "../Crawler/HandlerDay1";
+import { Cached } from "./Cached";
 
 export default class BittrexWatcher {
 
@@ -46,11 +47,13 @@ export default class BittrexWatcher {
     // console.log('TELEGRAM', 'BittrexWatcher', 'runBackground')
     for (let key in BittrexWatcher.watchers) {
       const w = BittrexWatcher.watchers[key]
-      if (key !== 'RATE') {
+      if (key.startsWith('BUY-') || key.startsWith('SELL-')) {
+        await w.updateRateByKey(key, Cached.vnd)
+      } else if (key !== 'RATE') {
         const t = tradings.find(e => e.key === key)
         if (t) await w.update(t)
       } else {
-        await w.updateRate()
+        await w.updateRate(key, Cached.rate, Cached.vnd)
       }
     }
   }
@@ -61,7 +64,9 @@ export default class BittrexWatcher {
       w = new BittrexWatcher(chatId, messageId, key)
       BittrexWatcher.watchers[key] = w
     } else {
-      await BittrexWatcher.Bot.deleteMessage(w.chatId, w.messageId)
+      try {
+        await BittrexWatcher.Bot.deleteMessage(w.chatId, w.messageId)
+      } catch (e) { }
       w.chatId = chatId
       w.messageId = messageId
     }
@@ -98,8 +103,8 @@ export default class BittrexWatcher {
         if (!key || !formula) return await reply('Not found market-coin or formular')
         if (!formula.includes('<') && !formula.includes('>') && !formula.includes('=')) return await reply('Formula need includes atlest 1 in ">", "<", ">=", "<=", "=="')
         const m = formula.match(/([^\d\.]+)([\d\.]+\$?)/)
-        await BittrexAlert.add(undefined, from.id.toString(), chat.id, key, { operation: m[1], num: BittrexApi.getQuickPrice(m[2]) }, des)
         // await replyWithMarkdown(BittrexAlert.getListAlertTxt().join('\n'), Extra.markdown())
+        await BittrexAlert.add(undefined, from.id.toString(), chat.id, key, { operation: m[1], num: BittrexApi.getQuickPrice(m[2]) }, des)
         const rs = await BittrexWatcher.Bot.send(chat.id, `Added alert for ${key}`)
         await BittrexWatcher.add(chat.id, rs.message_id, key)
       } catch (e) {
@@ -151,7 +156,7 @@ export default class BittrexWatcher {
         } else {
           if (Object.keys(BittrexWatcher.watchers).length <= 0) return await reply('No watcher')
           for (let key in BittrexWatcher.watchers) {
-            const rs = reply(`Watching ${key}`)
+            const rs = await reply(`Watching ${key}`)
             await BittrexWatcher.add(chat.id, rs.message_id, key)
           }
         }
@@ -161,22 +166,78 @@ export default class BittrexWatcher {
     })
   }
 
-  private async updateRate() {
-    const msgs = await BittrexCommand.getRateStr()
-    let btn = [[{ label: '🚫 UNWATCH', cmd: `unwatch ${this.key}` }]] as any[][]
-    try {
+  private async updateRateByKey(key, vnd) {
+    console.log('updateRateByKey')
+    const msgs = await BittrexCommand.getRateStr('BUYING REMITANO', undefined, vnd)
+    let btn = [] as any[][]
+    let $ = vnd[BittrexAlert.REMITANO[key]] // tslint:disable-line
+    try { // nw usdt-vnd
+      let als = (BittrexAlert.alerts[key] || [])
+      if (als.length > 0) {
+        msgs.push('-----------------------------------------')
+        const sort = als.map((e: any) => {
+          eval(`e.buf = $ - ${e.formula.num}`)
+          e.buf = e.buf * -1
+          e.sign = e.buf < 0 ? '' : '+'
+          return e
+        })
+        sort.sort((a, b) => a.buf - b.buf)
+        msgs.push(sort.map((e, i) => `*${i}.* ${key} ${e.formula.operation} ${BittrexApi.formatNumber(e.formula.num, false, 0)} *(${e.sign}${BittrexApi.formatNumber(e.buf, false, 0)})* 📣_${e.des ? `\n     - ${e.des}` : ''}_`).join('\n'))
+        btn.push([
+          ...sort.map((e, i) => {
+            return { label: `${i}`, cmd: `unalert ${key} ${e._id}` }
+          }),
+          { label: '⚠️CLEAR', cmd: `unalert ${key}` }
+        ])
+      }
+      btn.push([{ label: '🚫 UNWATCH', cmd: `unwatch ${key}` }])
       return await BittrexWatcher.Bot.editMessageText(this.chatId, this.messageId, undefined, msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard(
         btn.map(bn => {
           return bn.map(e => m.callbackButton(e.label, e.cmd))
         })
       )))
     } catch (e) {
-      console.log(e)
+      console.error('BittrextWatcher.updateRateByKey', e)
+      // await this.remove()
+    }
+  }
+
+  private async updateRate(key, rate, vnd) {
+    const msgs = await BittrexCommand.getRateStr('WATCH RATE', rate, vnd)
+    console.log('updateRate')
+    let btn = [[{ label: '🚫 UNWATCH', cmd: `unwatch ${this.key}` }]] as any[][]
+    try { // nw usdt-vnd
+      let als = BittrexAlert.alerts[key]
+      if (als && als.length > 0) {
+        msgs.push('-----------------------------------------')
+        const sort = als.map((e: any) => {
+          eval(`e.buf = t.last - ${e.formula.num}`)
+          e.buf = e.buf * -1
+          e.sign = e.buf < 0 ? '' : '+'
+          return e
+        })
+        sort.sort((a, b) => a.buf - b.buf)
+        msgs.push(sort.map((e, i) => `*${i}.* ${e.formula.operation} ${BittrexApi.formatNumber(e.formula.num)} *(${e.sign}${BittrexApi.formatNumber(e.buf)})* 📣_${e.des ? `\n     - ${e.des}` : ''}_`).join('\n'))
+        btn.push([
+          ...sort.map((e, i) => {
+            return { label: `${i}`, cmd: `unalert RATE ${e._id}` }
+          }),
+          { label: '⚠️CLEAR', cmd: `unalert RATE` }
+        ])
+      }
+      return await BittrexWatcher.Bot.editMessageText(this.chatId, this.messageId, undefined, msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard(
+        btn.map(bn => {
+          return bn.map(e => m.callbackButton(e.label, e.cmd))
+        })
+      )))
+    } catch (e) {
+      console.error('BittrextWatcher.updateRate', e)
       // await this.remove()
     }
   }
 
   private async update(t: TradingTemp) {
+    console.log('update')
     const time = new Date(t.time)
     if (t.num) this.lastChangeNum = t.num
     const [market,] = t.key.split('-')
@@ -190,8 +251,8 @@ export default class BittrexWatcher {
       `          *Bid*   ${BittrexApi.formatNumber(t.bid)} ${market}`
     ]
     let btn = [] as any[][]
-    let als = BittrexAlert.alerts[t.key]
-    if (als && als.length > 0) {
+    let als = (BittrexAlert.alerts[t.key] || []).filter(e => e.key !== 'RATE')
+    if (als.length > 0) {
       txt.push('-----------------------------------------')
       const sort = als.map((e: any) => {
         eval(`e.buf = t.last - ${e.formula.num}`)
@@ -200,7 +261,7 @@ export default class BittrexWatcher {
         return e
       })
       sort.sort((a, b) => a.buf - b.buf)
-      txt.push(sort.map((e, i) => `*${i}.* ${e.formula.operation} ${BittrexApi.formatNumber(e.formula.num)} *(${e.sign}${BittrexApi.formatNumber(e.buf)})* _${e.des ? `\n     - ${e.des}` : ''}_`).join('\n'))
+      txt.push(sort.map((e, i) => `*${i}.* ${e.formula.operation} ${BittrexApi.formatNumber(e.formula.num)} *(${e.sign}${BittrexApi.formatNumber(e.buf)})* 📣_${e.des ? `\n     - ${e.des}` : ''}_`).join('\n'))
       btn.push([
         ...sort.map((e, i) => {
           return { label: `${i}`, cmd: `unalert ${t.key} ${e._id}` }
@@ -256,8 +317,8 @@ export default class BittrexWatcher {
         })
       )))
     } catch (e) {
-      console.log(e)
-      await this.remove()
+      console.error('BittrextWatcher.update', e)
+      // await this.remove()
     }
   }
 }

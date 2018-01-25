@@ -1,9 +1,9 @@
 import { BotCommand } from './Telegram'
 import BittrexApi from './BittrexApi'
 import BittrexUser from './BittrexUser'
-import * as Extra from 'telegraf/extra'
 import RawTrading from '../Crawler/RawHandler'
-import RemitanoCrawler from '../Remitano/Crawler';
+import HttpError from '../../../common/HttpError';
+import { Cached } from './Cached';
 // import * as Markup from 'telegraf/markup'
 
 export default class BittrexCommand {
@@ -19,11 +19,6 @@ export default class BittrexCommand {
     BittrexCommand.registerGetMyWalletID()
     BittrexCommand.registerGetRate()
     BittrexCommand.registerGetCoinInfo()
-    // BittrexCommand.registerGetAlerts()
-    // BittrexCommand.registerRmAlert()
-    // BittrexCommand.registerClearAlert()
-    BittrexCommand.registerLSBuy()
-    BittrexCommand.registerLSSell()
     BittrexCommand.registerStart()
   }
 
@@ -38,132 +33,18 @@ export default class BittrexCommand {
   private static registerLogin() {
     BittrexCommand.HelperBot.command('login', async (ctx) => {
       const { reply, from, message, chat, deleteMessage } = ctx
-      const [, apikey, secretKey] = message.text.split(' ')
-      if (!apikey) return await reply('Apikey is required')
-      if (!secretKey) return await reply('SecretKey is required')
-      await BittrexUser.add(from.id.toString(), apikey, secretKey, chat.id)
-      await deleteMessage()
-      await reply(`[${from.id}] Hi ${from.first_name} ${from.last_name}.\nYour account is registed via bittrex apikey`)
-    })
-  }
-
-  private static registerLSSell() {
-    BittrexCommand.HelperBot.action(/lssell:(pagi) .+/, async (ctx) => {
-      const { editMessageText, reply, match } = ctx
       try {
-        let [, key, page, recordsPerPage] = match[0].split(' ')
-        page = +page
-        recordsPerPage = +recordsPerPage
-        let msgs = await BittrexCommand.getOrderBook(key, page, recordsPerPage, 'sell')
-        return await editMessageText(msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard([1, 2, 3, 4, 5].map(e => {
-          return m.callbackButton(`${e}${e === page ? '⚪️' : ''}`, `lssell:pagi ${key} ${e} ${recordsPerPage}`)
-        }))))
+        const [, apikey, secretKey] = message.text.split(' ')
+        if (!apikey) throw HttpError.BAD_REQUEST('Apikey is required')
+        if (!secretKey) throw HttpError.BAD_REQUEST('SecretKey is required')
+        await BittrexUser.add(from.id.toString(), apikey, secretKey, chat.id)
+        await deleteMessage()
+        await reply(`[${from.id}] Hi ${from.first_name} ${from.last_name}.\nYour account is registed via bittrex apikey`)
       } catch (e) {
-        await reply(e.message || e)
-      }
-    })
-    BittrexCommand.HelperBot.command('lssell', async (ctx) => {
-      const { reply, message, replyWithMarkdown } = ctx
-      try {
-        let [, key, page = 1, recordsPerPage = 10] = message.text.split(' ')
-        page = +page
-        recordsPerPage = +recordsPerPage
-        if (!key) return await reply('Not found market-coin')
-        let msgs = await BittrexCommand.getOrderBook(key, page, recordsPerPage, 'sell')
-        return await replyWithMarkdown(msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard([1, 2, 3, 4, 5].map(e => {
-          return m.callbackButton(`${e}${e === page ? '⚪️' : ''}`, `lssell:pagi ${key} ${e} ${recordsPerPage}`)
-        }))))
-      } catch (e) {
-        await reply(e.message || e)
+        await reply(e.message)
       }
     })
   }
-
-  private static registerLSBuy() {
-    BittrexCommand.HelperBot.action(/lsbuy:(pagi) .+/, async (ctx) => {
-      const { editMessageText, reply, match } = ctx
-      try {
-        let [, key, page, recordsPerPage] = match[0].split(' ')
-        page = +page
-        recordsPerPage = +recordsPerPage
-        let msgs = await BittrexCommand.getOrderBook(key, page, recordsPerPage, 'buy')
-        return await editMessageText(msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard([1, 2, 3, 4, 5].map(e => {
-          return m.callbackButton(`${e}${e === page ? '⚪️' : ''}`, `lsbuy:pagi ${key} ${e} ${recordsPerPage}`)
-        }))))
-      } catch (e) {
-        await reply(e.message || e)
-      }
-    })
-    BittrexCommand.HelperBot.command('lsbuy', async (ctx) => {
-      const { reply, message, replyWithMarkdown } = ctx
-      try {
-        let [, key, page = 1, recordsPerPage = 10] = message.text.split(' ')
-        page = +page
-        recordsPerPage = +recordsPerPage
-        if (!key) return await reply('Not found market-coin')
-        let msgs = await BittrexCommand.getOrderBook(key, page, recordsPerPage, 'buy')
-        return await replyWithMarkdown(msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard([1, 2, 3, 4, 5].map(e => {
-          return m.callbackButton(`${e}${e === page ? '⚪️' : ''}`, `lsbuy:pagi ${key} ${e} ${recordsPerPage}`)
-        }))))
-      } catch (e) {
-        await reply(e.message || e)
-      }
-    })
-  }
-
-  // private static registerGetAlerts() {
-  //   BittrexCommand.Bot.command('ls', async (ctx) => {
-  //     const { reply, replyWithMarkdown, from, message } = ctx
-  //     try {
-  //       const user = BittrexUser.users[from.id.toString()]
-  //       if (!user) return reply('User not login yet')
-  //       let [, _key] = message.text.split(' ')
-  //       if (_key) _key = _key.toUpperCase()
-  //       const tmp = await BittrexCommand.getAlertMsgs(user.alerts, _key)
-  //       if (tmp.length === 0) return await reply('No alert')
-  //       await replyWithMarkdown(tmp.join('\n'))
-  //     } catch (e) {
-  //       await reply(e.message || e)
-  //     }
-  //   })
-  // }
-
-  // private static registerRmAlert() {
-  //   BittrexCommand.Bot.command('rm', async (ctx) => {
-  //     const { reply, replyWithMarkdown, from, message } = ctx
-  //     try {
-  //       let [, key, i] = message.text.split(' ')
-  //       if (!key) return await reply('Not found Market-Coin')
-  //       if (i === undefined) return await reply('Not found index to remove')
-  //       key = key.toUpperCase()
-  //       const user = BittrexUser.users[from.id.toString()]
-  //       if (!user) return reply('User not login yet')
-  //       await user.rmAlert(key, +i)
-  //       const tmp = await BittrexCommand.getAlertMsgs(user.alerts, key)
-  //       await replyWithMarkdown(tmp.join('\n'))
-  //     } catch (e) {
-  //       await reply(e.message || e)
-  //     }
-  //   })
-  // }
-
-  // private static registerClearAlert() {
-  //   BittrexCommand.Bot.command('cls', async (ctx) => {
-  //     const { reply, replyWithMarkdown, from, message } = ctx
-  //     try {
-  //       const user = BittrexUser.users[from.id.toString()]
-  //       if (!user) return reply('User not login yet')
-  //       let [, key] = message.text.split(' ')
-  //       if (key) key = key.toUpperCase()
-  //       await user.rmAlert(key, -1)
-  //       const tmp = await BittrexCommand.getAlertMsgs(user.alerts, undefined)
-  //       if (tmp.length === 0) return await reply('No alert')
-  //       await replyWithMarkdown(tmp.join('\n'))
-  //     } catch (e) {
-  //       await reply(e.message || e)
-  //     }
-  //   })
-  // }
 
   private static registerGetCoinInfo() {
     BittrexCommand.HelperBot.hears(/^#.+$/i, async (ctx) => {
@@ -191,7 +72,7 @@ export default class BittrexCommand {
     BittrexCommand.HelperBot.command('rate', async (ctx) => {
       const { replyWithMarkdown, reply } = ctx
       try {
-        const msgs = await BittrexCommand.getRateStr()
+        const msgs = await BittrexCommand.getRateStr('RATE', Cached.rate, Cached.vnd)
         await replyWithMarkdown(msgs.join('\n'))
       } catch (e) {
         await reply(e.message || e)
@@ -242,60 +123,20 @@ export default class BittrexCommand {
 
   // }
 
-  static async getRateStr() {
-    const rate = await RawTrading.getRate()
-    const vnd = await RemitanoCrawler.getRate()
-    const msgs = [
-      `⏱ Rate at *${new Date().toTimeString().split(' ')[0]}* ⏱`,
-      `-----------------------------------------`,
-      `*1 BTC*    = ${BittrexApi.formatNumber(rate['BTC-USDT'])} *USDT*`,
-      `*1 ETH*    = ${BittrexApi.formatNumber(rate['ETH-USDT'])} *USDT*`,
-      `*1 BTC*    = ${BittrexApi.formatNumber(rate['BTC-ETH'])} *ETH*`,
-      `-----------------------------------------`,
-      `*1 USDT* = ${BittrexApi.formatNumber(vnd['usdt_ask'], false, 0)} / ${BittrexApi.formatNumber(vnd['usdt_bid'], false, 0)} *VND* _(Buy/Sell)_`,
-      `*1 BTC*    = ${BittrexApi.formatNumber(vnd['btc_ask'], false, 0)} / ${BittrexApi.formatNumber(vnd['btc_bid'], false, 0)} *VND* _(Buy/Sell)_`,
-    ]
-    return msgs
-  }
-
-  private static async getOrderBook(key: string, page = 1, recordsPerPage = 10, type: 'sell' | 'buy') {
-    const formatMessages = (data) => {
-      let max = 0
-      let maxI = -1
-      return [...data.slice((page - 1) * recordsPerPage, page * recordsPerPage).map((e, i) => {
-        if (e.Quantity > max) {
-          max = e.Quantity
-          maxI = i
-        }
-        return e
-      }).map((e, i0) => {
-        let i = ((page - 1) * recordsPerPage) + i0 + 1
-        return ` *${i > 9 ? i : ('0' + i)}.* ${maxI === i0 ? '*' : ''}🎲${BittrexApi.formatNumber(e.Quantity)}${maxI === i0 ? '*' : ''} 💰${BittrexApi.formatNumber(e.Rate)}`
-      })]
+  static async getRateStr(title, rate, vnd) {
+    const msgs = [`${title} ⏱ *${new Date().toTimeString().split(' ')[0]}* ⏱`]
+    if (rate) {
+      msgs.push(`-----------------------------------------`)
+      msgs.push(`*1 BTC*    = ${BittrexApi.formatNumber(rate['BTC-USDT'], false, 0)} *USDT*`)
+      msgs.push(`*1 ETH*    = ${BittrexApi.formatNumber(rate['ETH-USDT'], false, 0)} *USDT*`)
+      msgs.push(`*1 BTC*    = ${BittrexApi.formatNumber(rate['BTC-ETH'], false, 0)} *ETH*`)
     }
-    const orders = await BittrexUser.getOrderBook(key, type)
-    let msgs = [
-      `[${key}](https://bittrex.com/Market/Index?MarketName=${key}) LASTEST *${type === 'buy' ? 'BUYING' : 'SELLING'}*`,
-      '----------------------------------------------',
-      ...formatMessages(orders)
-    ]
+    if (vnd) {
+      msgs.push(`-----------------------------------------`)
+      msgs.push(`*1 USDT* = ${BittrexApi.formatNumber(vnd['usdt_ask'], false, 0)} / ${BittrexApi.formatNumber(vnd['usdt_bid'], false, 0)} *VND* _(Buy/Sell)_`)
+      msgs.push(`*1 BTC*    = ${BittrexApi.formatNumber(vnd['btc_ask'], false, 0)} / ${BittrexApi.formatNumber(vnd['btc_bid'], false, 0)} *VND* _(Buy/Sell)_`)
+    }
     return msgs
   }
-
-  // private static async getAlertMsgs(alert, _key: string) {
-  //   const tmp = [
-  //     '*ALERTS*',
-  //     '-----------------------------------------'
-  //   ]
-  //   for (let key in alert) {
-  //     if (_key && key !== _key) continue
-  //     const newestTrading = await RawTrading.getTradings()
-  //     const f = newestTrading.find(e => e.key === key)
-  //     tmp.push(`[${key}](https://bittrex.com/Market/Index?MarketName=${key}) = ${f ? BittrexApi.formatNumber(f.last) : ''}`)
-  //     tmp.push(alert[key].map((e, i) => ` ${i} | * $${e.formula}* | _${e.des || ''} _`).join('\n'))
-  //     tmp.push('')
-  //   }
-  //   return tmp
-  // }
 
 }

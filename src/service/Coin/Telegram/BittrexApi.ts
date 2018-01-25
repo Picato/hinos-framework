@@ -33,7 +33,7 @@ export default class BittrexApi {
         }
       }
     }
-    return +BittrexApi.formatNumber(+(nums.join('.')))
+    return +(nums.join('.'))
   }
 
 }

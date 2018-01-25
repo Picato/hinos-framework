@@ -2,12 +2,20 @@ import BittrexApi from "./BittrexApi"
 import { REDIS, Redis } from "hinos-redis";
 import { TradingTemp } from "../Crawler/RawHandler";
 import { BotCommand } from "./Telegram"
+import { Cached } from "./Cached";
 
 export default class BittrexAlert {
   static Bot = new BotCommand(AppConfig.app.telegram.AlertBot)
 
   @REDIS()
   private static redis: Redis
+
+  static readonly REMITANO = {
+    'BUY-USDT': 'usdt_ask',
+    'SELL-USDT': 'usdt_bid',
+    'BUY-BTC': 'btc_ask',
+    'SELL-BTC': 'btc_bid'
+  }
 
   static alerts = {} as { [key: string]: BittrexAlert[] }
   static notifications = {} as { [user: string]: { chatId: number, messageId: number } }
@@ -40,6 +48,14 @@ export default class BittrexAlert {
 
   constructor(public _id = BittrexApi.getId(), public user: string, public chatId, public key: string, public formula: { operation: string, num: number }, public des: string) {
 
+  }
+
+  static isRemitano(key) {
+    if (key === 'BUY-USDT') return true
+    if (key === 'SELL-USDT') return true
+    if (key === 'BUY-BTC') return true
+    if (key === 'SELL-BTC') return true
+    return false
   }
 
   static getListAlertTxt() {
@@ -95,26 +111,21 @@ export default class BittrexAlert {
     for (let key in alerts) {
       const ls = alerts[key]
       if (ls.length === 0) continue
-      const t = tradings.find(e => e.key === key)
-      for (let i = ls.length - 1; i >= 0; i--) {
-        const alert = ls[i]
-        const al = BittrexAlert.notifications[alert.user]
-        if (!t) {
-          // await BittrexAlert.Bot.deleteMessage(al.chatId, al.messageId)
-          await BittrexAlert.Bot.send(al.chatId, `Could not found "${key}"`, { parse_mode: 'Markdown' })
-          await BittrexAlert.remove(key, alert._id)
-        } else {
-          const $ = t.last
+      if (BittrexAlert.isRemitano(key)) {
+        let $ = Cached.vnd[BittrexAlert.REMITANO[key]]
+        for (let i = ls.length - 1; i >= 0; i--) {
+          const alert = ls[i]
+          const al = BittrexAlert.notifications[alert.user]
           if ($) {
             let isok
             try {
               eval(`isok = $ ${alert.formula.operation} ${alert.formula.num}`)
               if (isok) {
                 const msgs = [
-                  `🎉🎉🎉 [${alert.key}](https://bittrex.com/Market/Index?MarketName=${alert.key}) 🎉🎉🎉`,
+                  `🎉🎉🎉 [${alert.key}](https://${key.includes('-usdt') ? 'usdt.' : ''}remitano.com/vn) 🎉🎉🎉`,
                   '-----------------------------------------',
-                  `*LAST*             ${BittrexApi.formatNumber(t.last)}`,
-                  `*EXPECTED*   ${alert.formula.operation} ${BittrexApi.formatNumber(alert.formula.num)}`
+                  `*LAST*             ${BittrexApi.formatNumber($)}`,
+                  `*EXPECTED*   ${alert.formula.operation} ${BittrexApi.formatNumber(alert.formula.num, false, 0)}`
                 ]
                 if (alert.des) {
                   msgs.push('-----------------------------------------')
@@ -126,6 +137,42 @@ export default class BittrexAlert {
             } catch (_e) {
               await BittrexAlert.remove(key, alert._id)
               await BittrexAlert.Bot.send(al.chatId, `Formula *${alert.formula.operation} ${BittrexApi.formatNumber(alert.formula.num)}* got problem`, { parse_mode: 'Markdown' })
+            }
+          }
+        }
+      } else {
+        const t = tradings.find(e => e.key === key)
+        for (let i = ls.length - 1; i >= 0; i--) {
+          const alert = ls[i]
+          const al = BittrexAlert.notifications[alert.user]
+          if (!t) {
+            // await BittrexAlert.Bot.deleteMessage(al.chatId, al.messageId)
+            await BittrexAlert.Bot.send(al.chatId, `Could not found "${key}"`, { parse_mode: 'Markdown' })
+            await BittrexAlert.remove(key, alert._id)
+          } else {
+            const $ = t.last
+            if ($) {
+              let isok
+              try {
+                eval(`isok = $ ${alert.formula.operation} ${alert.formula.num}`)
+                if (isok) {
+                  const msgs = [
+                    `🎉🎉🎉 [${alert.key}](https://bittrex.com/Market/Index?MarketName=${alert.key}) 🎉🎉🎉`,
+                    '-----------------------------------------',
+                    `*LAST*             ${BittrexApi.formatNumber(t.last)}`,
+                    `*EXPECTED*   ${alert.formula.operation} ${BittrexApi.formatNumber(alert.formula.num)}`
+                  ]
+                  if (alert.des) {
+                    msgs.push('-----------------------------------------')
+                    msgs.push(`_${alert.des}_`)
+                  }
+                  await BittrexAlert.Bot.send(al.chatId, `${msgs.join('\n')}`, { parse_mode: 'Markdown' })
+                  await BittrexAlert.remove(key, alert._id)
+                }
+              } catch (_e) {
+                await BittrexAlert.remove(key, alert._id)
+                await BittrexAlert.Bot.send(al.chatId, `Formula *${alert.formula.operation} ${BittrexApi.formatNumber(alert.formula.num)}* got problem`, { parse_mode: 'Markdown' })
+              }
             }
           }
         }
