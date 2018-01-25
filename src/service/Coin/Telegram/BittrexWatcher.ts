@@ -167,7 +167,7 @@ export default class BittrexWatcher {
     let $ = vnd[BittrexAlert.REMITANO[key]] // tslint:disable-line
     try { // nw usdt-vnd
       let als = (BittrexAlert.alerts[key] || [])
-      if (als.length > 0) {
+      if ($ && als.length > 0) {
         msgs.push('-----------------------------------------')
         const sort = als.map((e: any) => {
           eval(`e.buf = $ - ${e.formula.num}`)
