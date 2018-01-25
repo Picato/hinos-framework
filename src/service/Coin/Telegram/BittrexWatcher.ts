@@ -37,20 +37,15 @@ export default class BittrexWatcher {
         BittrexWatcher.watchers[key] = new BittrexWatcher(chatId, messageId, key)
       }
     }
-    // Redis.subscribe('updateData', async (data) => {
-    //   const { tradings } = JSON.parse(data)
-    //   await BittrexWatcher.check(tradings)
-    // }, AppConfig.redis)
   }
 
-  static async runBackground(tradings: TradingTemp[]) {
-    // console.log('TELEGRAM', 'BittrexWatcher', 'runBackground')
+  static async runBackground() {
     for (let key in BittrexWatcher.watchers) {
       const w = BittrexWatcher.watchers[key]
       if (key.startsWith('BUY-') || key.startsWith('SELL-')) {
         await w.updateRateByKey(key, Cached.vnd)
       } else if (key !== 'RATE') {
-        const t = tradings.find(e => e.key === key)
+        const t = Cached.tradings.find(e => e.key === key)
         if (t) await w.update(t)
       } else {
         await w.updateRate(key, Cached.rate, Cached.vnd)
@@ -167,8 +162,7 @@ export default class BittrexWatcher {
   }
 
   private async updateRateByKey(key, vnd) {
-    console.log('updateRateByKey')
-    const msgs = await BittrexCommand.getRateStr('BUYING REMITANO', undefined, vnd)
+    const msgs = BittrexCommand.getRateStr('BUYING REMITANO', undefined, vnd)
     let btn = [] as any[][]
     let $ = vnd[BittrexAlert.REMITANO[key]] // tslint:disable-line
     try { // nw usdt-vnd
@@ -203,8 +197,7 @@ export default class BittrexWatcher {
   }
 
   private async updateRate(key, rate, vnd) {
-    const msgs = await BittrexCommand.getRateStr('WATCH RATE', rate, vnd)
-    console.log('updateRate')
+    const msgs = BittrexCommand.getRateStr('WATCH RATE', rate, vnd)
     let btn = [[{ label: '🚫 UNWATCH', cmd: `unwatch ${this.key}` }]] as any[][]
     try { // nw usdt-vnd
       let als = BittrexAlert.alerts[key]
@@ -237,7 +230,6 @@ export default class BittrexWatcher {
   }
 
   private async update(t: TradingTemp) {
-    console.log('update')
     const time = new Date(t.time)
     if (t.num) this.lastChangeNum = t.num
     const [market,] = t.key.split('-')

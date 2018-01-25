@@ -1,7 +1,6 @@
 import { BotCommand } from './Telegram'
 import BittrexApi from './BittrexApi'
 import BittrexUser from './BittrexUser'
-import RawTrading from '../Crawler/RawHandler'
 import HttpError from '../../../common/HttpError';
 import { Cached } from './Cached';
 // import * as Markup from 'telegraf/markup'
@@ -54,8 +53,7 @@ export default class BittrexCommand {
         if (!coin) return await reply('Not found coin')
         coin = coin.toUpperCase()
         const txt = [`*🚀 ${coin} DETAILS 🚀*`, '-----------------------------------------']
-        const newestTrading = await RawTrading.getTradings()
-        for (const c of newestTrading) {
+        for (const c of Cached.tradings) {
           if (c.name === coin) {
             txt.push(`[${c.key}](https://bittrex.com/Market/Index?MarketName=${c.key}) = ${BittrexApi.formatNumber(c.last)}`)
           }
@@ -72,7 +70,7 @@ export default class BittrexCommand {
     BittrexCommand.HelperBot.command('rate', async (ctx) => {
       const { replyWithMarkdown, reply } = ctx
       try {
-        const msgs = await BittrexCommand.getRateStr('RATE', Cached.rate, Cached.vnd)
+        const msgs = BittrexCommand.getRateStr('RATE', Cached.rate, Cached.vnd)
         await replyWithMarkdown(msgs.join('\n'))
       } catch (e) {
         await reply(e.message || e)
@@ -84,8 +82,7 @@ export default class BittrexCommand {
     BittrexCommand.HelperBot.command('wallet', async (ctx) => {
       const { replyWithMarkdown, from, reply } = ctx
       try {
-        const user = BittrexUser.get(from.id.toString())
-        const balances = await user.getMyBalances()
+        const balances = Cached.balances[from.id.toString()]
         const msg = [`*WALLETS*\n-----------------------------------------`, ...balances.filter(e => e.Available || e.Balance).map(e => {
           let msgs = [`*${e.Currency}* = ${BittrexApi.formatNumber(e.Balance)} `]
           if (e.Available && e.Available !== e.Balance) msgs.push(`  - Available ~${BittrexApi.formatNumber(e.Available)} `)
@@ -102,8 +99,7 @@ export default class BittrexCommand {
     BittrexCommand.HelperBot.command('walletid', async (ctx) => {
       const { replyWithMarkdown, from, reply } = ctx
       try {
-        const user = BittrexUser.get(from.id.toString())
-        const balances = await user.getMyBalances()
+        const balances = Cached.balances[from.id.toString()]
         const msg = [`*WALLETS ID*\n-----------------------------------------`, balances.filter(e => e.Available).map(e => `*${e.Currency}* _${e.CryptoAddress || ''}_`).join('\n')]
         await replyWithMarkdown(msg)
       } catch (e) {
@@ -123,7 +119,7 @@ export default class BittrexCommand {
 
   // }
 
-  static async getRateStr(title, rate, vnd) {
+  static getRateStr(title, rate, vnd) {
     const msgs = [`${title} ⏱ *${new Date().toTimeString().split(' ')[0]}* ⏱`]
     if (rate) {
       msgs.push(`-----------------------------------------`)

@@ -1,6 +1,5 @@
 import BittrexApi from "./BittrexApi"
 import { REDIS, Redis } from "hinos-redis";
-import { TradingTemp } from "../Crawler/RawHandler";
 import { BotCommand } from "./Telegram"
 import { Cached } from "./Cached";
 
@@ -105,8 +104,7 @@ export default class BittrexAlert {
     await BittrexAlert.redis.hset(`bittrex.alerts`, rs)
   }
 
-  static async runBackground(tradings: TradingTemp[]) {
-    // console.log('TELEGRAM', 'BittrexAlert', 'runBackground')
+  static async runBackground() {
     const alerts = BittrexAlert.alerts
     for (let key in alerts) {
       const ls = alerts[key]
@@ -116,7 +114,7 @@ export default class BittrexAlert {
         for (let i = ls.length - 1; i >= 0; i--) {
           const alert = ls[i]
           const al = BittrexAlert.notifications[alert.user]
-          if ($) {
+          if ($ && al) {
             let isok
             try {
               eval(`isok = $ ${alert.formula.operation} ${alert.formula.num}`)
@@ -141,14 +139,14 @@ export default class BittrexAlert {
           }
         }
       } else {
-        const t = tradings.find(e => e.key === key)
+        const t = Cached.tradings.find(e => e.key === key)
         for (let i = ls.length - 1; i >= 0; i--) {
           const alert = ls[i]
           const al = BittrexAlert.notifications[alert.user]
           if (!t) {
             // await BittrexAlert.Bot.deleteMessage(al.chatId, al.messageId)
-            await BittrexAlert.Bot.send(al.chatId, `Could not found "${key}"`, { parse_mode: 'Markdown' })
             await BittrexAlert.remove(key, alert._id)
+            await BittrexAlert.Bot.send(al.chatId, `Could not found "${key}"`, { parse_mode: 'Markdown' })
           } else {
             const $ = t.last
             if ($) {

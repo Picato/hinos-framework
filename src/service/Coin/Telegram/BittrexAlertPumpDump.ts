@@ -1,6 +1,6 @@
-import { TradingTemp } from "../Crawler/RawHandler";
 import BittrexAlert from "../Telegram/BittrexAlert";
 import * as Extra from 'telegraf/extra'
+import { Cached } from "./Cached";
 // import { REDIS, Redis } from "hinos-redis/lib/redis";
 
 // 4 secs
@@ -9,21 +9,7 @@ const MIN_RECORDS = 30
 const LEVEL_PUMP = [
   {
     NUM_OF_HISTORY: 30,
-    NUM_OF_PASS: 25
-  },
-  {
-    NUM_OF_HISTORY: 45,
-    NUM_OF_PASS: 40
-  },
-  {
-    NUM_OF_HISTORY: 60,
-    NUM_OF_PASS: 55
-  }
-]
-const LEVEL_DUMP = [
-  {
-    NUM_OF_HISTORY: 30,
-    NUM_OF_PASS: 25
+    NUM_OF_PASS: 22
   },
   {
     NUM_OF_HISTORY: 45,
@@ -31,7 +17,21 @@ const LEVEL_DUMP = [
   },
   {
     NUM_OF_HISTORY: 60,
-    NUM_OF_PASS: 55
+    NUM_OF_PASS: 50
+  }
+]
+const LEVEL_DUMP = [
+  {
+    NUM_OF_HISTORY: 30,
+    NUM_OF_PASS: 22
+  },
+  {
+    NUM_OF_HISTORY: 45,
+    NUM_OF_PASS: 35
+  },
+  {
+    NUM_OF_HISTORY: 60,
+    NUM_OF_PASS: 50
   }
 ]
 
@@ -53,10 +53,10 @@ export class BittrexAlertPumpDump {
     // }
   }
 
-  static async runBackground(tradings: TradingTemp[]) {
+  static async runBackground() {
     const msgsPump = [] as { key: string, level: number }[]
     const msgsDump = [] as { key: string, level: number }[]
-    for (let t of tradings) {
+    for (let t of Cached.tradings) {
       const rs = await BittrexAlertPumpDump.addHistory(t.key, t.ask, t.bid)
       if (rs.pump !== -1) msgsPump.push({ key: t.key, level: rs.pump })
       if (rs.dump !== -1) msgsDump.push({ key: t.key, level: rs.dump })

@@ -145,23 +145,23 @@ export default class BittrexUser {
     })
   }
 
-  botBuy(key: string, quantity: number, money: number, rate: number, chatId: any, messageId: any) {
-    if (!key) return Promise.reject('Not found Market-Coin')
-    if (!money) return Promise.reject('Not found money')
-    const o = new BittrexOrder(key, quantity, money, rate, 'buy', chatId, messageId)
-    this.botOrders.push(o)
-    this.saveToCached()
-    return o
-  }
+  // async botBuy(key: string, quantity: number, money: number, rate: number, chatId: any, messageId: any) {
+  //   if (!key) return Promise.reject('Not found Market-Coin')
+  //   if (!money) return Promise.reject('Not found money')
+  //   const o = new BittrexOrder(key, quantity, money, rate, 'buy', chatId, messageId)
+  //   this.botOrders.push(o)
+  //   await this.saveToCached()
+  //   return o
+  // }
 
-  botSell(key: string, quantity: number, money: number, rate: number, chatId: any, messageId: any) {
-    if (!key) return Promise.reject('Not found Market-Coin')
-    if (!money) return Promise.reject('Not found money')
-    const o = new BittrexOrder(key, quantity, money, rate, 'sell', chatId, messageId)
-    this.botOrders.push(o)
-    this.saveToCached()
-    return o
-  }
+  // async botSell(key: string, quantity: number, money: number, rate: number, chatId: any, messageId: any) {
+  //   if (!key) return Promise.reject('Not found Market-Coin')
+  //   if (!money) return Promise.reject('Not found money')
+  //   const o = new BittrexOrder(key, quantity, money, rate, 'sell', chatId, messageId)
+  //   this.botOrders.push(o)
+  //   await this.saveToCached()
+  //   return o
+  // }
 
   async botCancel(_id) {
     const idx = this.botOrders.findIndex(e => e._id === _id)

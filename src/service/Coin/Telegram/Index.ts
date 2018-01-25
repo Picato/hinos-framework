@@ -26,15 +26,21 @@ import { Cached } from './Cached';
     BittrexAlert.init(),
     BittrexAlertPumpDump.init()
   ])
-  Redis.subscribe('updateData', async (data) => {
-    const { tradings } = JSON.parse(data)
+  async function scanner() {
+    const begin = new Date().getTime()
     await Cached.reload()
-    await Promise.all([
-      BittrexAlert.runBackground(tradings),
-      BittrexWatcher.runBackground(tradings),
-      BittrexOrder.runBackground(tradings),
-      BittrexAlertPumpDump.runBackground(tradings)
-    ])
-  }, AppConfig.redis)
-
+    try {
+      await Promise.all([
+        BittrexAlert.runBackground(),
+        BittrexWatcher.runBackground(),
+        BittrexOrder.runBackground(),
+        BittrexAlertPumpDump.runBackground()
+      ])
+    } catch (e) {
+      console.error(e)
+    }
+    const delay = AppConfig.app.bittrex.scanChecking - (new Date().getTime() - begin)
+    setTimeout(scanner, delay < 500 ? 500 : delay)
+  }
+  await scanner()
 })()
