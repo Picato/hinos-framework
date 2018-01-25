@@ -13,7 +13,7 @@ const LEVEL_PUMP = [
   },
   {
     NUM_OF_HISTORY: 45,
-    NUM_OF_PASS: 35
+    NUM_OF_PASS: 40
   },
   {
     NUM_OF_HISTORY: 60,
@@ -22,11 +22,16 @@ const LEVEL_PUMP = [
 ]
 const LEVEL_DUMP = [
   {
-    NUM_OF_HISTORY: 15,
-    NUM_OF_PASS: 9
-  }, {
     NUM_OF_HISTORY: 30,
-    NUM_OF_PASS: 18
+    NUM_OF_PASS: 25
+  },
+  {
+    NUM_OF_HISTORY: 45,
+    NUM_OF_PASS: 35
+  },
+  {
+    NUM_OF_HISTORY: 60,
+    NUM_OF_PASS: 55
   }
 ]
 

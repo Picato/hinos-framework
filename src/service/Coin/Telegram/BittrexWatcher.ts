@@ -179,14 +179,15 @@ export default class BittrexWatcher {
   private async update(t: TradingTemp) {
     const time = new Date(t.time)
     if (t.num) this.lastChangeNum = t.num
+    const [market,] = t.key.split('-')
     const txt = [
-      `[${this.key}](https://bittrex.com/Market/Index?MarketName=${this.key}) at *${time.toTimeString().split(' ')[0]}* ⏱`,
+      `⏱ *${time.toTimeString().split(' ')[0]}* ⏱`,
       '-----------------------------------------',
-      `*LAST*   *${BittrexApi.formatNumber(t.last)}* _(${BittrexApi.formatNumber(this.lastChangeNum, true)})_`,
+      `[${this.key}](https://bittrex.com/Market/Index?MarketName=${this.key})  *${BittrexApi.formatNumber(t.last)}* ${market} 🚀`,
+      `                 _${BittrexApi.formatNumber(this.lastChangeNum, true)}_`,
       '-----------------------------------------',
-      `*ASK*     ${BittrexApi.formatNumber(t.ask)}`,
-      `*BID*     ${BittrexApi.formatNumber(t.bid)}`,
-      `*VOL*     ${BittrexApi.formatNumber(t.baseVolume)}`
+      `          *Ask*   ${BittrexApi.formatNumber(t.ask)} ${market}`,
+      `          *Bid*   ${BittrexApi.formatNumber(t.bid)} ${market}`
     ]
     let btn = [] as any[][]
     let als = BittrexAlert.alerts[t.key]
@@ -200,9 +201,12 @@ export default class BittrexWatcher {
       })
       sort.sort((a, b) => a.buf - b.buf)
       txt.push(sort.map((e, i) => `*${i}.* ${e.formula.operation} ${BittrexApi.formatNumber(e.formula.num)} *(${e.sign}${BittrexApi.formatNumber(e.buf)})* _${e.des ? `\n     - ${e.des}` : ''}_`).join('\n'))
-      btn.push(sort.map((e, i) => {
-        return { label: `${i}`, cmd: `unalert ${t.key} ${e._id}` }
-      }))
+      btn.push([
+        ...sort.map((e, i) => {
+          return { label: `${i}`, cmd: `unalert ${t.key} ${e._id}` }
+        }),
+        { label: '⚠️CLEAR', cmd: `unalert ${t.key}` }
+      ])
     }
     btn.push([
       { label: `3m`, cmd: `lowhigh ${t.key} HandlerMin3` },
@@ -211,14 +215,12 @@ export default class BittrexWatcher {
     ])
     btn.push([
       { label: `1h`, cmd: `lowhigh ${t.key} HandlerHour1` },
-      { label: `24h`, cmd: `lowhigh ${t.key} HandlerDay1` }
+      { label: `24h`, cmd: `lowhigh ${t.key} HandlerDay1` },
+      { label: `🚫`, cmd: `lowhigh ${t.key}` }
     ])
     btn.push([
       { label: '🚫 UNWATCH', cmd: `unwatch ${t.key}` }
     ])
-    if (als && als.length > 0) {
-      btn[btn.length - 1].push({ label: '⚠️ CLEAR', cmd: `unalert ${t.key}` })
-    }
     if (this.lowHigh) {
       let tr
       let lb

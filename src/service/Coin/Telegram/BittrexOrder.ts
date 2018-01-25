@@ -13,7 +13,7 @@ export default class BittrexOrder {
     CANCELED: -1,
     DONE: 2
   }
-  static readonly Type = {
+  static readonly Action = {
     BUY: -1,
     SELL: 1
   }
@@ -34,7 +34,7 @@ export default class BittrexOrder {
   public firstPrice
   private botEnable
 
-  constructor(public _id = BittrexApi.getId(), public user, public chatId, public messageId, public key: string, public _quantity: number | string, public price: number, public bufferRate: number, public action: number, public type: string, public status: number, public orderId) {
+  constructor(public _id = BittrexApi.getId(), public user, public chatId, public messageId, public key: string, public _quantity: number | string, public price: number, public bufferRate: number, public action: number, public type: string, public status: number, public orderId, public w, public wbs) {
     this.firstPrice = price
   }
 
@@ -44,15 +44,10 @@ export default class BittrexOrder {
 
   async getQuantity() {
     if (this._quantity === 'all') {
-      const usr = BittrexUser.get(this.user)
-      const balances = await usr.getMyBalances()
-      const [market, coin] = this.key.split('-')
-      if (this.action === BittrexOrder.Type.BUY) {
-        const w = balances.find(e => e.Currency === market)
-        return (w.Available / (this.price + (0.0025 * this.price)))
+      if (this.action === BittrexOrder.Action.BUY) {
+        return (this.w.Available / (this.price + (0.0025 * this.price)))
       } else {
-        const wsell = balances.find(e => e.Currency === coin)
-        return wsell.Available
+        return this.wbs.Available
       }
     }
     return this._quantity
@@ -72,7 +67,7 @@ export default class BittrexOrder {
   }
 
   canBeOrder(price: number) {
-    if (this.action === BittrexOrder.Type.BUY) {
+    if (this.action === BittrexOrder.Action.BUY) {
       if (!this.botEnable) {
         if (price <= this.firstPrice) {
           this.botEnable = true
@@ -107,8 +102,8 @@ export default class BittrexOrder {
     let als = await BittrexOrder.redis.hget(`bittrex.orders`)
     if (als) {
       for (let k in als) {
-        for (const { key, user, chatId, messageId, _quantity, bufferRate, _id, status, type, action, firstPrice, orderId } of JSON.parse(als[k])) {
-          await BittrexOrder.add(_id, user, chatId, messageId, key, _quantity, firstPrice, bufferRate, action, type, status, orderId)
+        for (const { key, user, chatId, messageId, _quantity, bufferRate, _id, status, type, action, firstPrice, orderId, w, wbs } of JSON.parse(als[k])) {
+          await BittrexOrder.add(_id, user, chatId, messageId, key, _quantity, firstPrice, bufferRate, action, type, status, orderId, w, wbs)
         }
       }
     }
@@ -177,7 +172,7 @@ export default class BittrexOrder {
             if (od.orderId) {
               const oder = await usr.getOrder(od.orderId)
               if (oder.IsOpen) {
-                if (action === BittrexOrder.Type.BUY) {
+                if (action === BittrexOrder.Action.BUY) {
                   const rs = await BittrexOrder.formatOrderForm(t, od, undefined, undefined)
                   msgs = rs.msgs
                 } else {
@@ -191,7 +186,7 @@ export default class BittrexOrder {
                 try {
                   if (oder.CancelInitiated) {
                     const quantity = await od.getQuantity()
-                    await BittrexOrder.Bot.editMessageText(chatId, messageId, undefined, `🚫 Order [${key}](https://bittrex.com/Market/Index?MarketName=${key}) ${od.action === BittrexOrder.Type.BUY ? 'buy' : 'sell'} *${quantity}* statoshi with price *${od.price}* was canceled`, { parse_mode: 'Markdown' })
+                    await BittrexOrder.Bot.editMessageText(chatId, messageId, undefined, `🚫 Order [${key}](https://bittrex.com/Market/Index?MarketName=${key}) ${od.action === BittrexOrder.Action.BUY ? 'buy' : 'sell'} *${quantity}* statoshi with price *${od.price}* was canceled`, { parse_mode: 'Markdown' })
                   } else {
                     if (oder.ImmediateOrCancel && oder.Quantity === oder.QuantityRemaining) {
                       await BittrexOrder.Bot.editMessageReplyMarkup(chatId, messageId, undefined, {
@@ -211,10 +206,10 @@ export default class BittrexOrder {
               }
             } else {
               const quantity = await od.getQuantity()
-              t.last = action === BittrexOrder.Type.SELL ? t.ask : t.bid
+              t.last = action === BittrexOrder.Action.SELL ? t.ask : t.bid
               if (od.canBeOrder(t.last)) {
                 const rs = {} as any
-                if (action === BittrexOrder.Type.SELL) {
+                if (action === BittrexOrder.Action.SELL) {
                   await BittrexOrder.Bot.send(chatId, `Selled ${quantity} ${key} with price ${+t.last}/${price} type is ${BittrexOrder.getTypeValue(type)}`)
                   // const rs = await user.sell(key, +quantity, +t.last, type) as any
                   // await user.addOrder(rs.OrderId, chatId, messageId)
@@ -234,45 +229,39 @@ export default class BittrexOrder {
                   })
                 }
                 await BittrexOrder.remove(key, od._id)
-              }
-              // Bot order
-              if (action === BittrexOrder.Type.BUY) {
-                const rs = await BittrexOrder.formatOrderForm(t, od, undefined, undefined)
-                msgs = rs.msgs
               } else {
-                const rs = await BittrexOrder.formatOrderForm(t, od, undefined, undefined)
-                msgs = rs.msgs
+                // Bot order
+                if (action === BittrexOrder.Action.BUY) {
+                  const rs = await BittrexOrder.formatOrderForm(t, od, undefined, undefined)
+                  msgs = rs.msgs
+                } else {
+                  const rs = await BittrexOrder.formatOrderForm(t, od, undefined, undefined)
+                  msgs = rs.msgs
+                }
+                await BittrexOrder.Bot.editMessageText(chatId, messageId, undefined, msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard([
+                  m.callbackButton('🚫 CANCEL', `order:botcancel ${key} ${_id}`)
+                ])))
               }
-              // thanh: Them immediate khi dat order roi muon ban hay mua ngay
-              await BittrexOrder.Bot.editMessageText(chatId, messageId, undefined, msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard([
-                m.callbackButton('🚫 CANCEL', `order:botcancel ${key} ${_id}`)
-              ])))
             }
           } else if (status === BittrexOrder.Status.PREPARE) {
-            const usr = BittrexUser.get(user)
-            const balances = await usr.getMyBalances()
-            const [market, coin] = key.split('-')
-            const w = balances.find(e => e.Currency === market)
             let msgs, isOk
-            if (action === BittrexOrder.Type.BUY) {
-              const wbuy = balances.find(e => e.Currency === coin) || { Available: 0 }
-              const rs = await BittrexOrder.formatOrderForm(t, od, w, wbuy)
+            if (action === BittrexOrder.Action.BUY) {
+              const rs = await BittrexOrder.formatOrderForm(t, od, od.w, od.wbs)
               msgs = rs.msgs
               isOk = rs.isOk
             } else {
-              const wsell = balances.find(e => e.Currency === coin) || { Available: 0 }
-              const rs = await BittrexOrder.formatOrderForm(t, od, w, wsell)
+              const rs = await BittrexOrder.formatOrderForm(t, od, od.w, od.wbs)
               msgs = rs.msgs
               isOk = rs.isOk
             }
             await BittrexOrder.Bot.editMessageText(chatId, messageId, undefined, msgs.join('\n'), !isOk ? Extra.markdown() : Extra.markdown().markup(m => m.inlineKeyboard([
               [
-                m.callbackButton('✅ BID', `order:bid ${key} ${_id} ${BittrexOrder.ORDER_TYPE.BID}`),
-                m.callbackButton('🚀 IMMEDIATE', `order:immediate ${key} ${_id} ${BittrexOrder.ORDER_TYPE.IMMEDIATE}`),
-                m.callbackButton('👻 BOT', `order:bot ${key} ${_id} ${BittrexOrder.ORDER_TYPE.IMMEDIATE}`),
+                m.callbackButton(`✅ BID ${od.type === BittrexOrder.ORDER_TYPE.BID ? '✔️' : ''}`, `order:bid ${key} ${_id} ${BittrexOrder.ORDER_TYPE.BID}`),
+                m.callbackButton(`🚀 NOW ${od.type === BittrexOrder.ORDER_TYPE.IMMEDIATE ? '✔️' : ''}`, `order:immediate ${key} ${_id} ${BittrexOrder.ORDER_TYPE.IMMEDIATE}`),
+                m.callbackButton(`👻 BOT ${od.type === BittrexOrder.ORDER_TYPE.BOT ? '✔️' : ''}`, `order:bot ${key} ${_id} ${BittrexOrder.ORDER_TYPE.BOT}`),
               ],
               [
-                m.callbackButton('AGREE 👍', `order:yes ${key} ${_id} ${od.type} ${od.price}`),
+                m.callbackButton(`${od.action === BittrexOrder.Action.SELL ? 'SELL' : 'BUY'} 👍`, `order:yes ${key} ${_id} ${od.type} ${od.price}`),
                 m.callbackButton('🚫 CANCEL', `order:no ${key} ${_id}`)
               ]
             ])))
@@ -329,8 +318,8 @@ export default class BittrexOrder {
     }
   }
 
-  static async add(_id, user, chatId, messageId, key, quantity, price, bufferRate, action, type, status, orderId) {
-    const b = new BittrexOrder(_id, user, chatId, messageId, key, quantity, price, bufferRate, action, type, status, orderId)
+  static async add(_id, user, chatId, messageId, key, quantity, price, bufferRate, action, type, status, orderId, w, wbs) {
+    const b = new BittrexOrder(_id, user, chatId, messageId, key, quantity, price, bufferRate, action, type, status, orderId, w, wbs)
     if (!BittrexOrder.orders[key]) BittrexOrder.orders[key] = []
     BittrexOrder.orders[key].push(b)
     BittrexOrder.save(key)
@@ -359,38 +348,34 @@ export default class BittrexOrder {
   private static async formatOrderForm(t: TradingTemp, od: BittrexOrder, w, wbs) {
     const [market, coin] = od.key.split('-')
     const msgs = []
-    msgs.push(`${od.action === BittrexOrder.Type.BUY ? 'BUYING' : 'SELLING'} FORM at *${new Date().toTimeString().split(' ')[0]}*`)
+    msgs.push(`${od.action === BittrexOrder.Action.BUY ? 'BUYING' : 'SELLING'} FORM at *${new Date().toTimeString().split(' ')[0]}*`)
     // _${status === undefined ? '' : (status === BittrexOrder.Status.WAITING ? 'Waiting' : (status === BittrexOrder.Status.DONE ? 'Done' : 'Canceled'))}_
-    const sign = od.action === BittrexOrder.Type.BUY ? 1 : -1
+    const sign = od.action === BittrexOrder.Action.BUY ? 1 : -1
+    const lastPrice = od.action === BittrexOrder.Action.BUY ? t.bid : t.ask
     msgs.push(`----------------------------------------------`)
-    msgs.push(`*Market*               [${od.key}](https://bittrex.com/Market/Index?MarketName=${od.key})`)
+    msgs.push(`[${od.key}](https://bittrex.com/Market/Index?MarketName=${od.key})    *${BittrexApi.formatNumber(lastPrice)}* ${market} 🚀`)
+    msgs.push(`----------------------------------------------`)
     if (od.type === BittrexOrder.ORDER_TYPE.BID) {
       od.price = od.firstPrice
-      msgs.push(`*Last*                     ${BittrexApi.formatNumber(t.last, true)} ${market} 🚀`)
-      msgs.push(`----------------------------------------------`)
-      msgs.push(`*Bid*                      *${BittrexApi.formatNumber(od.price * sign * -1, true)}* ${market} ✅`)      
+      msgs.push(`*📍Mine*    *${BittrexApi.formatNumber(od.price * sign * -1, true)}* ${market} ✅`)
     } else if (od.type === BittrexOrder.ORDER_TYPE.IMMEDIATE) {
-      od.price = t.last
-      msgs.push(`*Last*                     *${BittrexApi.formatNumber(t.last, true)}* ${market} 🚀`)
-      msgs.push(`----------------------------------------------`)      
+      od.price = lastPrice
     } else if (od.type === BittrexOrder.ORDER_TYPE.BOT) {
       od.price = od.firstPrice
-      msgs.push(`*Last*                     ${BittrexApi.formatNumber(t.last, true)} ${market} 🚀`)
-      msgs.push(`----------------------------------------------`)
-      msgs.push(`*Bot Bid*             *${BittrexApi.formatNumber((od.price + od.bufferRate) * sign * -1, true)}* ${market} 👻`)
-      msgs.push(`                              _${BittrexApi.formatNumber(od.firstPrice)} ${market}_`)
+      msgs.push(`*📍Bot*       *${BittrexApi.formatNumber((od.price + od.bufferRate) * sign * -1, true)}* ${market} 👻`)
+      msgs.push(`                      _${BittrexApi.formatNumber(od.firstPrice)} ${market}_`)
       if (od.bufferRate !== 0)
-        msgs.push(`                          _+-${BittrexApi.formatNumber(od.bufferRate)} ${market}_`)
+        msgs.push(`                    _+-${BittrexApi.formatNumber(od.bufferRate)} ${market}_`)
     }
     const quantity = await od.getQuantity()
     const total = await od.getTotal()
-    msgs.push(`*Quantity*           ${BittrexApi.formatNumber(quantity * sign, true)} ${coin}`)
-    msgs.push(`*Total*                  ${BittrexApi.formatNumber(total * sign * -1, true)} ${market}`)
+    msgs.push(`*Quantity*  ${BittrexApi.formatNumber(quantity * sign, true)} ${coin}`)
+    msgs.push(`        *Total*   ${BittrexApi.formatNumber(total * sign * -1, true)} ${market}`)
     let isOk = true
     if (w) {
       msgs.push(`----------------------------------------------`)
       msgs.push(`*Balances 💰*`)
-      if (od.action === BittrexOrder.Type.BUY) {
+      if (od.action === BittrexOrder.Action.BUY) {
         msgs.push(`   *${coin}* = ${BittrexApi.formatNumber(wbs.Available)} 🔜 *${BittrexApi.formatNumber(wbs.Available + quantity)}* `)
         msgs.push(`   *${market}* = ${BittrexApi.formatNumber(w.Available)} 🔜 *${BittrexApi.formatNumber(w.Available - total)}* `)
         if (w.Available < total) {
@@ -398,7 +383,7 @@ export default class BittrexOrder {
           msgs.push('_😱 Insufficient funds 😱_')
           isOk = false
         }
-        if (od.price > t.last) {
+        if (od.price > lastPrice) {
           msgs.push(`----------------------------------------------`)
           msgs.push('_😱 Your order price > last price ??? 😱_')
         }
@@ -410,7 +395,7 @@ export default class BittrexOrder {
           msgs.push('_😱 Insufficient funds 😱_')
           isOk = false
         }
-        if (od.price < t.last) {
+        if (od.price < lastPrice) {
           msgs.push(`----------------------------------------------`)
           msgs.push('_😱 Your order price < last price ??? 😱_')
         }
@@ -442,7 +427,7 @@ export default class BittrexOrder {
             const quantity = await od.getQuantity()
             const user = BittrexUser.get(from.id.toString())
             let rs
-            if (od.action === BittrexOrder.Type.SELL)
+            if (od.action === BittrexOrder.Action.SELL)
               rs = await user.sell(key, quantity, od.price, BittrexOrder.getTypeValue(type)) as any
             else
               rs = await user.buy(key, quantity, od.price, BittrexOrder.getTypeValue(type)) as any
@@ -487,11 +472,15 @@ export default class BittrexOrder {
         if (!price) return await reply('Not found price')
         key = key.toUpperCase()
         price = BittrexApi.getQuickPrice(price)
-        const type = action === '/buy' ? BittrexOrder.Type.BUY : BittrexOrder.Type.SELL
+        const type = action === '/buy' ? BittrexOrder.Action.BUY : BittrexOrder.Action.SELL
         bufferRate = BittrexApi.getQuickPrice(bufferRate || '0')
 
+        const [market, coin] = key.split('-')
         const rs = await reply(`Ordering ${key}`)
-        await BittrexOrder.add(undefined, from.id.toString(), chat.id, rs.message_id, key, quantity, price, bufferRate, type, BittrexOrder.ORDER_TYPE.BID, BittrexOrder.Status.PREPARE, undefined)
+        const balances = await user.getMyBalances()
+        const w = balances.find(e => e.Currency === market)
+        const wbs = type === BittrexOrder.Action.BUY ? (balances.find(e => e.Currency === coin) || { Available: 0 }) : (balances.find(e => e.Currency === coin) || { Available: 0 })
+        await BittrexOrder.add(undefined, from.id.toString(), chat.id, rs.message_id, key, quantity, price, bufferRate, type, BittrexOrder.ORDER_TYPE.BID, BittrexOrder.Status.PREPARE, undefined, w, wbs)
       } catch (e) {
         await reply(e)
       }
@@ -499,29 +488,29 @@ export default class BittrexOrder {
   }
 
   private static async registerMyOrders() {
-    BittrexOrder.Bot.action(/order:() .+/, async (ctx) => {
-      const { editMessageText, match } = ctx
-      try {
-        const [action, key, _id] = match[0].split(' ')
-        const od = await BittrexOrder.get(key, _id)
-        const user = BittrexUser.get(od.user)
+    // BittrexOrder.Bot.action(/order:() .+/, async (ctx) => {
+    //   const { editMessageText, match } = ctx
+    //   try {
+    //     const [action, key, _id] = match[0].split(' ')
+    //     const od = await BittrexOrder.get(key, _id)
+    //     const user = BittrexUser.get(od.user)
 
-        if (action === 'order:cancel') {
-          await BittrexOrder.remove(key, od._id)
-          await user.cancel(od.orderId)
-          await BittrexOrder.Bot.editMessageReplyMarkup(od.chatId, od.messageId, undefined, {
-            inline_keyboard: [[{ text: 'THIS ORDER WAS CANCELED 🚫', url: 'https://bittrex.com/History' }]]
-          })
-        } else {
-          await BittrexOrder.remove(key, od._id)
-          await BittrexOrder.Bot.editMessageReplyMarkup(od.chatId, od.messageId, undefined, {
-            inline_keyboard: [[{ text: 'THIS BOT ORDER WAS CANCELED 🚫', url: 'https://bittrex.com/History' }]]
-          })
-        }
-      } catch (e) {
-        await editMessageText(e.message || e)
-      }
-    })
+    //     if (action === 'order:cancel') {
+    //       await BittrexOrder.remove(key, od._id)
+    //       await user.cancel(od.orderId)
+    //       await BittrexOrder.Bot.editMessageReplyMarkup(od.chatId, od.messageId, undefined, {
+    //         inline_keyboard: [[{ text: 'THIS ORDER WAS CANCELED 🚫', url: 'https://bittrex.com/History' }]]
+    //       })
+    //     } else {
+    //       await BittrexOrder.remove(key, od._id)
+    //       await BittrexOrder.Bot.editMessageReplyMarkup(od.chatId, od.messageId, undefined, {
+    //         inline_keyboard: [[{ text: 'THIS BOT ORDER WAS CANCELED 🚫', url: 'https://bittrex.com/History' }]]
+    //       })
+    //     }
+    //   } catch (e) {
+    //     await editMessageText(e.message || e)
+    //   }
+    // })
     BittrexOrder.Bot.command('order', async (ctx) => {
       const { from, reply, chat } = ctx
       try {
@@ -534,9 +523,9 @@ export default class BittrexOrder {
           const price = o.Limit
           const quantity = o.Quantity
           const status = o.CancelInitiated ? BittrexOrder.Status.CANCELED : (o.Closed ? BittrexOrder.Status.DONE : BittrexOrder.Status.WAITING)
-          const type = o.OrderType === 'LIMIT_BUY' ? BittrexOrder.Type.BUY : BittrexOrder.Type.SELL
+          const type = o.OrderType === 'LIMIT_BUY' ? BittrexOrder.Action.BUY : BittrexOrder.Action.SELL
           const rs = await reply(`Reloading order ${key}`)
-          await BittrexOrder.add(undefined, from.id.toString(), chat.id, rs.message_id, key, quantity, price, 0, type, BittrexOrder.ORDER_TYPE.BID, status, o.OrderUuid)
+          await BittrexOrder.add(undefined, from.id.toString(), chat.id, rs.message_id, key, quantity, price, 0, type, BittrexOrder.ORDER_TYPE.BID, status, o.OrderUuid, undefined, undefined)
           await BittrexOrder.save(key)
         }
         // for (let o of user.botOrders) {
