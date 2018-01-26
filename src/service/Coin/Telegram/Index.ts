@@ -40,7 +40,8 @@ import { Cached } from './Cached';
       console.error(e)
     }
     const delay = AppConfig.app.bittrex.scanChecking - (new Date().getTime() - begin)
-    setTimeout(scanner, delay < 500 ? 500 : delay)
+    if (delay <= 0) return scanner()
+    setTimeout(scanner, delay)
   }
   await scanner()
 })()
