@@ -176,14 +176,14 @@ export default class BittrexWatcher {
         if (key) {
           key = key.toUpperCase()
           const rs = await reply(`Watching ${key}`, Extra.markdown().markup(m => m.inlineKeyboard(
-            [{ label: '🚫 UNWATCH', cmd: `unwatch ${key}` }]
+            [m.callbackButton('🚫 UNWATCH', `unwatch ${key}`)]
           )))
           await BittrexWatcher.add(chat.id, rs.message_id, key)
         } else {
           if (Object.keys(BittrexWatcher.watchers).length <= 0) return await reply('No watcher')
           for (let key in BittrexWatcher.watchers) {
             const rs = await reply(`Watching ${key}`, Extra.markdown().markup(m => m.inlineKeyboard(
-              [{ label: '🚫 UNWATCH', cmd: `unwatch ${key}` }]
+              [m.callbackButton('🚫 UNWATCH', `unwatch ${key}`)]
             )))
             await BittrexWatcher.add(chat.id, rs.message_id, key)
           }
