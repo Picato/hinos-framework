@@ -19,14 +19,9 @@ export default class BittrexApi {
   }
   static getQuickPrice(price) {
     if (price) price = price.trim()
-    let auto = false
-    if (price.endsWith('$')) {
-      price = price.substr(0, price.length - 1)
-      auto = true
-    }
-    const nums = price.split('.')
-    if (nums[0] === '') nums[0] = '0'
-    if (auto && nums.length === 2) {
+    if (price.indexOf('.') !== 0) return +price
+    const nums = `0${price}`.split('.')
+    if (nums.length === 2) {
       if (nums[1].length < 8) {
         for (let i = 0, len = nums[1].length; i < 8 - len; i++) {
           nums[1] = '0' + nums[1]

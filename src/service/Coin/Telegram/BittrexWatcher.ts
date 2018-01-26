@@ -12,6 +12,7 @@ import HandlerHour1 from "../Crawler/HandlerHour1";
 import HandlerMin30 from "../Crawler/HandlerMin30";
 import HandlerDay1 from "../Crawler/HandlerDay1";
 import { Cached } from "./Cached";
+import HttpError from "../../../common/HttpError";
 
 export default class BittrexWatcher {
 
@@ -20,8 +21,7 @@ export default class BittrexWatcher {
   @REDIS()
   private static redis: Redis
 
-  lastChangeNum = 0
-  lowHigh
+  lastChangeNums = []
 
   static watchers = {} as { [key: string]: BittrexWatcher }
 
@@ -109,12 +109,41 @@ export default class BittrexWatcher {
   }
 
   private static registerWatch() {
-    BittrexWatcher.Bot.action(/lowhigh .+/, async (ctx) => {
-      const { reply, match } = ctx
+    BittrexWatcher.Bot.command('lh', async (ctx) => {
+      const { reply, replyWithMarkdown, message } = ctx
       try {
-        const [, key, time] = match[0].split(' ')
-        BittrexWatcher.watchers[key].lowHigh = time
-        await BittrexWatcher.watchers[key].save()
+        let [, key, time] = message.text.split(' ')
+        if (time) {
+          let tr
+          let lb
+          if (time === '3m') {
+            lb = 'IN 3 MINUTES'
+            tr = await HandlerMin3.getTradings() as TradingMin[]
+          } else if (time === '15m') {
+            lb = 'IN 15 MINUTES'
+            tr = await HandlerMin15.getTradings() as TradingMin[]
+          } else if (time === '30m') {
+            lb = 'IN 30 MINUTES'
+            tr = await HandlerMin30.getTradings() as TradingMin[]
+          } else if (time === '1h') {
+            lb = 'IN 1 HOUR'
+            tr = await HandlerHour1.getTradings() as TradingMin[]
+          } else if (time === '1d') {
+            lb = 'IN 1 DAY'
+            tr = await HandlerDay1.getTradings() as TradingMin[]
+          }
+          key = key.toUpperCase()
+          const c = tr.find(e => e.key === key)
+          if (!c) throw HttpError.BAD_REQUEST('Could not found market coin')
+          const [market] = key.split('-')
+          const txt = [`🚀 *${key}* ${lb} 🚀`, '-----------------------------------------']
+          if (c) {
+            txt.push(`*Last*     ${BittrexApi.formatNumber(c.last)} ${market} 🚀`)
+            txt.push(`*Low*     ${BittrexApi.formatNumber(c.low)} ${market}`)
+            txt.push(`*High*    ${BittrexApi.formatNumber(c.high)} ${market}`)
+          }
+          await replyWithMarkdown(txt.join('\n'), Extra.markdown())
+        }
       } catch (e) {
         await reply(e.message || e)
       }
@@ -176,7 +205,7 @@ export default class BittrexWatcher {
           return e
         })
         sort.sort((a, b) => a.buf - b.buf)
-        msgs.push(sort.map((e, i) => `*${i}.* ${key} ${e.formula.operation} ${BittrexApi.formatNumber(e.formula.num, false, 0)} *(${e.sign}${BittrexApi.formatNumber(e.buf, false, 0)})* 📣_${e.des ? `\n     - ${e.des}` : ''}_`).join('\n'))
+        msgs.push(sort.map((e) => `🛎 ${key} ${e.formula.operation} ${BittrexApi.formatNumber(e.formula.num, false, 0)} *(${e.sign}${BittrexApi.formatNumber(e.buf, false, 0)})*${e.des ? `\n_     - ${e.des}_` : ''}`).join('\n'))
         btn.push([
           ...sort.map((e, i) => {
             return { label: `${i}`, cmd: `unalert ${key} ${e._id}` }
@@ -210,7 +239,7 @@ export default class BittrexWatcher {
           return e
         })
         sort.sort((a, b) => a.buf - b.buf)
-        msgs.push(sort.map((e, i) => `*${i}.* ${e.formula.operation} ${BittrexApi.formatNumber(e.formula.num)} *(${e.sign}${BittrexApi.formatNumber(e.buf)})* 📣_${e.des ? `\n     - ${e.des}` : ''}_`).join('\n'))
+        msgs.push(sort.map((e) => `🛎 ${e.formula.operation} ${BittrexApi.formatNumber(e.formula.num)} *(${e.sign}${BittrexApi.formatNumber(e.buf)})*${e.des ? `\n_     - ${e.des}_` : ''}`).join('\n'))
         btn.push([
           ...sort.map((e, i) => {
             return { label: `${i}`, cmd: `unalert RATE ${e._id}` }
@@ -231,16 +260,17 @@ export default class BittrexWatcher {
 
   private async update(t: TradingTemp) {
     const time = new Date(t.time)
-    if (t.num) this.lastChangeNum = t.num
+    if (t.num) this.lastChangeNums.splice(0, 0, t.num)
+    if (this.lastChangeNums.length > 5) this.lastChangeNums.splice(5, 1)
     const [market,] = t.key.split('-')
     const txt = [
       `⏱ *${time.toTimeString().split(' ')[0]}* ⏱`,
       '-----------------------------------------',
-      `[${this.key}](https://bittrex.com/Market/Index?MarketName=${this.key})  *${BittrexApi.formatNumber(t.last)}* ${market} 🚀`,
-      `                 _${BittrexApi.formatNumber(this.lastChangeNum, true)}_`,
+      `[${this.key}](https://bittrex.com/Market/Index?MarketName=${this.key})    *${BittrexApi.formatNumber(t.last)}* ${market} 🚀`,
+      ...this.lastChangeNums.map(e => `                    _${BittrexApi.formatNumber(e, true)}_`),
       '-----------------------------------------',
-      `          *Ask*   ${BittrexApi.formatNumber(t.ask)} ${market}`,
-      `          *Bid*   ${BittrexApi.formatNumber(t.bid)} ${market}`
+      `          *Ask*    ${BittrexApi.formatNumber(t.ask)} ${market}`,
+      `          *Bid*    ${BittrexApi.formatNumber(t.bid)} ${market}`
     ]
     let btn = [] as any[][]
     let als = (BittrexAlert.alerts[t.key] || []).filter(e => e.key !== 'RATE')
@@ -253,7 +283,7 @@ export default class BittrexWatcher {
         return e
       })
       sort.sort((a, b) => a.buf - b.buf)
-      txt.push(sort.map((e, i) => `*${i}.* ${e.formula.operation} ${BittrexApi.formatNumber(e.formula.num)} *(${e.sign}${BittrexApi.formatNumber(e.buf)})* 📣_${e.des ? `\n     - ${e.des}` : ''}_`).join('\n'))
+      txt.push(sort.map((e) => `🛎 ${e.formula.operation} ${BittrexApi.formatNumber(e.formula.num)} *(${e.sign}${BittrexApi.formatNumber(e.buf)})*${e.des ? `\n_     - ${e.des}_` : ''}`).join('\n'))
       btn.push([
         ...sort.map((e, i) => {
           return { label: `${i}`, cmd: `unalert ${t.key} ${e._id}` }
@@ -262,46 +292,8 @@ export default class BittrexWatcher {
       ])
     }
     btn.push([
-      { label: `3m`, cmd: `lowhigh ${t.key} HandlerMin3` },
-      { label: `15m`, cmd: `lowhigh ${t.key} HandlerMin15` },
-      { label: `30m`, cmd: `lowhigh ${t.key} HandlerMin30` }
-    ])
-    btn.push([
-      { label: `1h`, cmd: `lowhigh ${t.key} HandlerHour1` },
-      { label: `24h`, cmd: `lowhigh ${t.key} HandlerDay1` },
-      { label: `🚫`, cmd: `lowhigh ${t.key}` }
-    ])
-    btn.push([
       { label: '🚫 UNWATCH', cmd: `unwatch ${t.key}` }
     ])
-    if (this.lowHigh) {
-      let tr
-      let lb
-      if (this.lowHigh === 'HandlerMin3') {
-        lb = 'IN 3 MINUTES'
-        tr = await HandlerMin3.getTradings() as TradingMin[]
-      } else if (this.lowHigh === 'HandlerMin15') {
-        lb = 'IN 15 MINUTES'
-        tr = await HandlerMin15.getTradings() as TradingMin[]
-      } else if (this.lowHigh === 'HandlerMin30') {
-        lb = 'IN 30 MINUTES'
-        tr = await HandlerMin30.getTradings() as TradingMin[]
-      } else if (this.lowHigh === 'HandlerHour1') {
-        lb = 'IN 1 HOUR'
-        tr = await HandlerHour1.getTradings() as TradingMin[]
-      } else if (this.lowHigh === 'HandlerDay1') {
-        lb = 'IN 1 DAY'
-        tr = await HandlerDay1.getTradings() as TradingMin[]
-      }
-      const c = tr.find(e => e.key === this.key)
-      if (c) {
-        txt.push('-----------------------------------------')
-        txt.push(`*${lb}*`)
-        txt.push(`*Low*     ${BittrexApi.formatNumber(c.low)}`)
-        txt.push(`*High*    ${BittrexApi.formatNumber(c.high)}`)
-        txt.push('-----------------------------------------')
-      }
-    }
     try {
       return await BittrexWatcher.Bot.editMessageText(this.chatId, this.messageId, undefined, txt.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard(
         btn.map(bn => {
