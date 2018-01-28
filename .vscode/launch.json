@@ -17,20 +17,13 @@
         {
             "type": "node",
             "request": "launch",
+            "protocol": "auto",
             "name": "Launch Program",
             "program": "${workspaceRoot}/src/index.ts",
             "outFiles": ["${workspaceRoot}/.build/**/*.js"],
             "runtimeArgs": [
                 "--nolazy"
             ]
-        },
-        {
-            "type": "node",
-            "request": "attach",
-            "name": "Attach to Process",
-            "address": "localhost",
-            "port": 5858,
-            "outFiles": []
         }
     ]
 }

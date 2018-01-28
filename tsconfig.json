@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "baseUrl": ".build",
         "module": "commonjs",
         "target": "esnext",
         "declaration": false,

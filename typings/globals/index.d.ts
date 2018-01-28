@@ -32,7 +32,9 @@ interface IAppConfig {
     helmet?: boolean
   }
   app: {
-
+    bittrex: {
+      scanTimeout: number
+    }
   }
 }
 

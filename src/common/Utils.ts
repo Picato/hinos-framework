@@ -4,6 +4,16 @@ import { ImageResize } from 'hinos-bodyparser/file'
 
 export default class Utils {
 
+  static toFixNum(num: number, fixed = 8) {
+    return +num.toFixed(fixed)
+  }
+
+  static formatNumber(value, fm = false, digit = 8) {
+    let sign = ''
+    if (fm) sign = (value > 0 ? '+' : '')
+    return sign + Number(value).toLocaleString(undefined, { maximumFractionDigits: digit, minimumFractionDigits: digit })
+  }
+
   public static getUploadFile(assetPath: string) {
     return Utils.getAssetPath(assetPath)
   }
