@@ -1,7 +1,17 @@
 import OrderCommand from "./OrderCommand";
 import { User } from "../User";
+import AlertCommand from "./AlertCommand";
+import MenuCommand from "./MenuCommand";
 
 (async () => {
-  await User.init()
-  await OrderCommand.init()
+  await Promise.all([
+    User.init(),
+    MenuCommand.init(),
+    OrderCommand.init(),
+    AlertCommand.init()
+  ])
+  await Promise.all([
+    OrderCommand.runBackground(),
+    AlertCommand.runBackground()
+  ])
 })()

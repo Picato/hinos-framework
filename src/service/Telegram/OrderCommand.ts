@@ -11,7 +11,10 @@ export default class OrderCommand {
 
   static async init() {
     await OrderCommand.initCommand()
-    await OrderCommand.runBackground()
+  }
+
+  static getMenuCommand() {
+    return ['/order']
   }
 
   static async runBackground() {
@@ -42,6 +45,7 @@ export default class OrderCommand {
               // Order in bittrex
               const oder = await user.getBittrexOrder(od)
               if (oder.IsOpen) {
+                const t = tradings.find(e => e.key === od.key)
                 if (od.action === Order.Action.BUY) {
                   const rs = await Order.formatOrderForm(t, od, undefined, undefined)
                   msgs = rs.msgs
@@ -106,9 +110,6 @@ export default class OrderCommand {
   }
 
   static initCommand() {
-    OrderCommand.Bot.hears('test', async (ctx) => {
-      ctx.reply('test')
-    })
     OrderCommand.Bot.hears(/^\/login ([^\s]+) ([^\s]+)/, async ({ deleteMessage, match, from, reply }) => {
       try {
         const [, apikey, apisecret] = match
@@ -120,6 +121,37 @@ export default class OrderCommand {
         } as User)
         await deleteMessage()
         await reply('Login successfully')
+      } catch (e) {
+        reply(e.message)
+      }
+    })
+    OrderCommand.Bot.hears(/^\/order/, async ({ from, reply, chat }) => {
+      try {
+        const user = User.get(from.id)
+        const bitOrder = await user.getMyOrders()
+        const orders = user.orders
+        if (bitOrder.length === 0 && orders.length === 0) throw HttpError.NOT_FOUND('Have no any orders')
+        for (let bo of bitOrder) {
+          const o = orders.find(e => e.orderId === bo.OrderUuid)
+          if (!o) {
+            const rs = await reply(`Reloading ${bo.Exchange}`)
+            user.addOrder({
+              key: bo.Exchange,
+              quantity: bo.Quantity,
+              price: bo.Limit,
+              firstPrice: bo.Limit,
+              chatId: chat.id,
+              orderId: bo.OrderUuid,
+              messageId: rs.message_id,
+              action: Order.Action.BUY
+            } as Order)
+          } else {
+            try { await OrderCommand.Bot.telegram.deleteMessage(o.chatId, o.messageId) } catch (_e) { }
+            const rs = await reply(`Reloading ${bo.Exchange}`)
+            o.messageId = rs.message_id
+          }
+        }
+        await user.save()
       } catch (e) {
         reply(e.message)
       }
@@ -177,34 +209,32 @@ export default class OrderCommand {
         const [market, coin] = key.split('-')
         const balances = await user.getMyBalances()
         const w = balances.find(e => e.Currency === market) || { Available: 0 }
-        const rs = await reply('Ordered')
-        switch (action) {
-          case 'buy':
-            await user.addOrder({
-              key,
-              quantity: quantity,
-              price: +price,
-              firstPrice: +price,
-              w,
-              chatId: chat.id,
-              messageId: rs.message_id,
-              action: Order.Action.BUY,
-              wbs: (balances.find(e => e.Currency === coin) || { Available: 0 })
-            } as Order)
-            break
-          case 'sell':
-            await user.addOrder({
-              key,
-              quantity,
-              price,
-              firstPrice: +price,
-              w,
-              chatId: chat.id,
-              messageId: rs.message_id,
-              action: Order.Action.SELL,
-              wbs: (balances.find(e => e.Currency === coin) || { Available: 0 })
-            } as Order)
-            break
+        const rs = await reply(`Ordering ${key}`)
+        price = Utils.getQuickPrice(price)
+        if (action === 'buy') {
+          await user.addOrder({
+            key,
+            quantity,
+            price,
+            firstPrice: price,
+            w,
+            chatId: chat.id,
+            messageId: rs.message_id,
+            action: Order.Action.BUY,
+            wbs: (balances.find(e => e.Currency === coin) || { Available: 0 })
+          } as Order)
+        } else {
+          await user.addOrder({
+            key,
+            quantity,
+            price,
+            firstPrice: price,
+            w,
+            chatId: chat.id,
+            messageId: rs.message_id,
+            action: Order.Action.SELL,
+            wbs: (balances.find(e => e.Currency === coin) || { Available: 0 })
+          } as Order)
         }
       } catch (e) {
         reply(e.message)

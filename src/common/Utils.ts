@@ -4,6 +4,20 @@ import { ImageResize } from 'hinos-bodyparser/file'
 
 export default class Utils {
 
+  static getQuickPrice(price) {
+    if (price) price = price.trim()
+    if (price.indexOf('.') !== 0) return +price
+    const nums = `0${price}`.split('.')
+    if (nums.length === 2) {
+      if (nums[1].length < 8) {
+        for (let i = 0, len = nums[1].length; i < 8 - len; i++) {
+          nums[1] = '0' + nums[1]
+        }
+      }
+    }
+    return +(nums.join('.'))
+  }
+
   static toFixNum(num: number, fixed = 8) {
     return +num.toFixed(fixed)
   }

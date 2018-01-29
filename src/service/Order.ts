@@ -114,6 +114,7 @@ export class Order {
     const lastPrice = od.action === Order.Action.BUY ? t.bid : t.ask
     msgs.push(`----------------------------------------------`)
     msgs.push(`[${od.key}](https://bittrex.com/Market/Index?MarketName=${od.key})    *${Utils.formatNumber(lastPrice)}* ${market} 🚀`)
+    msgs.push(`                   _${Utils.formatNumber(od.price - lastPrice, true)}_`)
     msgs.push(`----------------------------------------------`)
     if (od.type === Order.Type.BID) {
       od.price = od.firstPrice

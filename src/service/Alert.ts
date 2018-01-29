@@ -1,0 +1,47 @@
+import { TradingTemp } from "./Crawler/RawHandler";
+import Utils from "../common/Utils";
+
+export class Alerts {
+  chatId: number
+  messageId: number
+  alerts = [] as Alert[]
+}
+
+export class Alert {
+
+  constructor() {
+
+  }
+
+  id: string
+  key: string
+  operator: string
+  num: number
+  des: string
+
+  isAlert(t: TradingTemp) {
+    return eval(`${t.last} ${this.operator} ${this.num}`)
+  }
+
+  getMessageDone(t: TradingTemp) {
+    const msgs = [
+      `🎉🎉🎉 [${this.key}](https://bittrex.com/Market/Index?MarketName=${this.key}) 🎉🎉🎉`,
+      '-----------------------------------------',
+      `*LAST*             ${Utils.formatNumber(t.last)}`,
+      `*EXPECTED*   ${this.operator} ${Utils.formatNumber(this.num)}`
+    ]
+    if (this.des) {
+      msgs.push('-----------------------------------------')
+      msgs.push(`_${this.des}_`)
+    }
+    return msgs.join('\n')
+  }
+
+  getMessage() {
+    const msgs = []
+    msgs.push(`🛎 Price ${this.operator} ${Utils.formatNumber(this.num)}`)
+    if (this.des)
+      msgs.push(`_${this.des}_`)
+    return msgs.join('\n')
+  }
+}

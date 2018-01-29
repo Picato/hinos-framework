@@ -2,6 +2,7 @@ import * as _ from 'lodash'
 import { Order } from "./Order";
 import { Redis } from "hinos-redis/lib/redis";
 import HttpError from "../common/HttpError";
+import { Alert, Alerts } from './Alert';
 
 export class User {
   static users = [] as User[]
@@ -12,9 +13,12 @@ export class User {
     User.users = users.map(e => {
       delete e.bittrex
       delete e._bittrex
-      e.orders = e.orders.map(o => {
-        return _.merge(new Order(), o)
-      })
+      e.orders = e.orders.map(o => _.merge(new Order(), o))
+      for (let k in e.alerts) {
+        e.alerts[k].alerts = e.alerts[k].alerts.map(al => {
+          return _.merge(new Alert(), al)
+        })
+      }
       return _.merge(new User(), e)
     })
   }
@@ -40,7 +44,9 @@ export class User {
   public apikey
   public apisecret
   public orders = [] as Order[]
+  public alerts = {} as { [key: string]: Alerts }
   private _bittrex
+  public globalAlertId
 
   private get bittrex() {
     if (!this._bittrex) {
@@ -59,8 +65,15 @@ export class User {
   }
 
   async addOrder(od: Order) {
-    if (!od.id) od.id = new Date().getTime().toString()
-    this.orders.push(_.merge(new Order(), od))
+    let existed
+    if (od.id) existed = this.orders.find(e => e.id === od.id)
+    else if (od.orderId) existed = this.orders.find(e => e.orderId === od.orderId)
+    if (!existed) od.id = new Date().getTime().toString()
+    if (existed) {
+      _.merge(existed, od)
+    } else {
+      this.orders.push(_.merge(new Order(), od))
+    }
     await this.save()
   }
 
@@ -70,8 +83,42 @@ export class User {
       if (od.orderId)
         await this.cancel(od.orderId)
       this.orders.splice(idx, 1)
+      await this.save()
     }
+  }
+
+  async addAlert(a: Alert, chatId, messageId) {
+    if (!a.id) a.id = new Date().getTime().toString()
+    if (!this.alerts[a.key]) this.alerts[a.key] = new Alerts()
+    const old = {
+      chatId: this.alerts[a.key].chatId,
+      messageId: this.alerts[a.key].messageId
+    }
+    this.alerts[a.key].chatId = chatId
+    this.alerts[a.key].messageId = messageId
+    this.alerts[a.key].alerts.push(_.merge(new Alert(), a))
     await this.save()
+    return old
+  }
+
+  async removeAlert(a: Alert) {
+    let rs = 0
+    if (a.id) {
+      const idx = this.alerts[a.key].alerts.findIndex(e => e.id === a.id)
+      if (idx !== -1) {
+        this.alerts[a.key].alerts.splice(idx, 1)
+        if (this.alerts[a.key].alerts.length === 0) {
+          delete this.alerts[a.key]
+        } else {
+          rs = this.alerts[a.key].alerts.length
+        }
+        await this.save()
+      }
+    } else {
+      delete this.alerts[a.key]
+      await this.save()
+    }
+    return rs
   }
 
   private cancel(orderId) {
