@@ -34,6 +34,7 @@ interface IAppConfig {
   app: {
     bittrex: {
       scanTimeout: number
+      scanRemitano: number
     }
   }
 }

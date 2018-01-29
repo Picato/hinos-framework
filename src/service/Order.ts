@@ -6,6 +6,7 @@ export class Order {
   static readonly Type = {
     BID: 0,
     NOW: 1,
+    BID_NOW: 3,
     BOT: 2
   }
 

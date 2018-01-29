@@ -1,5 +1,9 @@
 import RawTrading from "./RawHandler";
+import RemitanoHandler from "./RemitanoHandler";
 
 (async () => {
-  await RawTrading.init()
+  await Promise.all([
+    await RawTrading.init(),
+    await RemitanoHandler.init()
+  ])
 })()

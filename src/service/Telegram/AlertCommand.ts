@@ -14,7 +14,7 @@ export default class AlertCommand {
   }
 
   static getMenuCommand() {
-    return ['/nw']
+    return ['/alert']
   }
 
   static async runBackground() {
@@ -66,7 +66,7 @@ export default class AlertCommand {
       await user.save()
       await reply(`Registed global alert`)
     })
-    AlertCommand.Bot.hears(/^\/nw( ([\w-]+) (<|<=|>|>=)\s*([.\d]+)(\s(.+))?)?/, async ({ match, from, reply, chat }) => {
+    AlertCommand.Bot.hears(/^\/alert( ([\w-]+) (<|<=|>|>=)\s*([.\d]+)(\s(.+))?)?/, async ({ match, from, reply, chat }) => {
       try {
         let [, m] = match
         if (m) {

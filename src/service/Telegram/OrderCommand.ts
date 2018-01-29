@@ -18,12 +18,17 @@ export default class OrderCommand {
   }
 
   static async runBackground() {
-    const tradings = await RawHandler.getTradings()
+    const startTime = new Date().getTime()
+    let tradings
+    const getTradings = async (key) => {
+      if (!tradings) tradings = await RawHandler.getTradings()
+      return tradings.find(e => e.key === key)
+    }
     for (const user of User.users) {
       for (const od of user.orders) {
         switch (od.status) {
           case Order.Status.NEW:
-            const t = tradings.find(e => e.key === od.key)
+            const t = await getTradings(od.key)
             if (t) {
               const { msgs } = Order.formatOrderForm(t, od, od.w, od.wbs)
               await OrderCommand.Bot.telegram.editMessageText(od.chatId, od.messageId, undefined, msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard([
@@ -45,7 +50,7 @@ export default class OrderCommand {
               // Order in bittrex
               const oder = await user.getBittrexOrder(od)
               if (oder.IsOpen) {
-                const t = tradings.find(e => e.key === od.key)
+                const t = await getTradings(od.key)
                 if (od.action === Order.Action.BUY) {
                   const rs = await Order.formatOrderForm(t, od, undefined, undefined)
                   msgs = rs.msgs
@@ -69,7 +74,7 @@ export default class OrderCommand {
               }
             } else {
               // Order by My bot
-              const t = tradings.find(e => e.key === od.key)
+              const t = await getTradings(od.key)
               t.last = od.action === Order.Action.SELL ? t.ask : t.bid
               if (od.canBeOrder(t.last)) {
                 try { await OrderCommand.Bot.telegram.deleteMessage(od.chatId, od.messageId) } catch (_e) { }
@@ -94,6 +99,7 @@ export default class OrderCommand {
                 const rs = await Order.formatOrderForm(t, od, undefined, undefined)
                 msgs = rs.msgs
                 await OrderCommand.Bot.telegram.editMessageText(od.chatId, od.messageId, undefined, msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard([
+                  m.callbackButton(`🚀 NOW ${od.type === Order.Type.NOW ? '✔️' : ''}`, `order:now ${od.id}`),
                   m.callbackButton('🚫 CANCEL ORDER', `order:cancel ${od.id}`)
                 ])))
               }
@@ -101,12 +107,15 @@ export default class OrderCommand {
             break
           case Order.Status.CANCELED:
             await user.removeOrder(od)
-            await OrderCommand.Bot.telegram.editMessageText(od.chatId, od.messageId, undefined, `🚫 Canceled order [${od.key}](https://bittrex.com/Market/Index?MarketName=${od.key}) buy *${od.getQuantity()}* coins with price *${od.price}*`, Extra.markdown())
+            const [market, coin] = od.key.split('-')
+            await OrderCommand.Bot.telegram.editMessageText(od.chatId, od.messageId, undefined, `🚫 Canceled order [${od.key}](https://bittrex.com/Market/Index?MarketName=${od.key}) buy *${od.getQuantity()}* ${coin} with price *${Utils.formatNumber(od.price)}* ${market}`, Extra.markdown())
             break
         }
       }
     }
-    setTimeout(OrderCommand.runBackground, 5000)
+    const runIn = new Date().getTime() - startTime
+    if (runIn >= 5000) OrderCommand.runBackground()
+    else setTimeout(OrderCommand.runBackground, 5000 - runIn)
   }
 
   static initCommand() {
@@ -135,7 +144,7 @@ export default class OrderCommand {
           const o = orders.find(e => e.orderId === bo.OrderUuid)
           if (!o) {
             const rs = await reply(`Reloading ${bo.Exchange}`)
-            user.addOrder({
+            await user.addOrder({
               key: bo.Exchange,
               quantity: bo.Quantity,
               price: bo.Limit,
@@ -143,13 +152,16 @@ export default class OrderCommand {
               chatId: chat.id,
               orderId: bo.OrderUuid,
               messageId: rs.message_id,
-              action: Order.Action.BUY
+              status: Order.Status.WAITING,
+              type: bo.OrderType.includes('LIMIT_') ? Order.Type.BID : Order.Type.NOW,
+              action: bo.OrderType.includes('BUY') ? Order.Action.BUY : Order.Action.SELL
             } as Order)
-          } else {
-            try { await OrderCommand.Bot.telegram.deleteMessage(o.chatId, o.messageId) } catch (_e) { }
-            const rs = await reply(`Reloading ${bo.Exchange}`)
-            o.messageId = rs.message_id
           }
+        }
+        for (let o of orders) {
+          try { await OrderCommand.Bot.telegram.deleteMessage(o.chatId, o.messageId) } catch (_e) { }
+          const rs = await reply(`Reloading ${o.key}`)
+          o.messageId = rs.message_id
         }
         await user.save()
       } catch (e) {
