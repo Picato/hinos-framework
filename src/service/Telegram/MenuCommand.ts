@@ -3,8 +3,6 @@ import { User } from '../User';
 import * as Markup from 'telegraf/markup'
 import * as Extra from 'telegraf/extra'
 import Utils from '../../common/Utils';
-import OrderCommand from './OrderCommand';
-import AlertCommand from './AlertCommand';
 import RawHandler from '../Crawler/RawHandler';
 import RemitanoHandler from '../Crawler/RemitanoHandler';
 import HttpError from '../../common/HttpError';
@@ -17,7 +15,7 @@ export default class MenuCommand {
   }
 
   static getMenuCommand() {
-    return ['/wallet', '/walletid', '/rate']
+    return ['/rate', '/wallet', '/walletid']
   }
 
   static initCommand() {
@@ -82,7 +80,8 @@ export default class MenuCommand {
           await replyWithMarkdown(msg.join('\n'), Extra.markdown())
         } else {
           for (const w of balances.filter(e => e.Available)) {
-            await replyWithMarkdown(`[#${w.Currency}](https://api.qrserver.com/v1/create-qr-code/?data=${w.CryptoAddress}&size=100x100&margin=0) _${w.CryptoAddress || ''}_`, Extra.markdown())
+            if (w.CryptoAddress && w.CryptoAddress.length > 0)
+              await replyWithMarkdown(`[#${w.Currency}](https://api.qrserver.com/v1/create-qr-code/?data=${w.CryptoAddress}&size=100x100&margin=0) _${w.CryptoAddress || ''}_`, Extra.markdown())
           }
         }
       } catch (e) {
@@ -92,8 +91,7 @@ export default class MenuCommand {
     MenuCommand.Bot.start(({ reply }) =>
       reply('Initial menu', Markup
         .keyboard([
-          MenuCommand.getMenuCommand(),
-          OrderCommand.getMenuCommand().concat(AlertCommand.getMenuCommand())
+          MenuCommand.getMenuCommand()
         ])
         .oneTime()
         .resize()
@@ -104,7 +102,7 @@ export default class MenuCommand {
   }
 
   static getRateStr(title, rate, vnd) {
-    const msgs = [`${title} ⏱ *${new Date().toTimeString().split(' ')[0]}* ⏱`]
+    const msgs = title ? [`${title} ⏱ *${new Date().toTimeString().split(' ')[0]}* ⏱`] : []
     if (rate) {
       msgs.push(`-----------------------------------------`)
       msgs.push(`*1 BTC*    = ${Utils.formatNumber(rate['BTC-USDT'], false, 0)} *USDT*`)

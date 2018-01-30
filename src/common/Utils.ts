@@ -38,6 +38,7 @@ export default class Utils {
   static formatNumber(value, fm = false, digit = 8) {
     let sign = ''
     if (fm) sign = (value > 0 ? '+' : '')
+    if (value > 100) digit = 0
     return sign + Number(value).toLocaleString(undefined, { maximumFractionDigits: digit, minimumFractionDigits: digit })
   }
 

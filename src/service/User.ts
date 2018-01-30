@@ -28,9 +28,11 @@ export class User {
     let user = User.users.find(e => e.id === u.id)
     if (!user) {
       user = _.merge(new User(), u)
+      user._bittrex = undefined
       User.users.push(user)
     } else {
       _.merge(user, u)
+      user._bittrex = undefined
     }
     await user.save()
   }

@@ -7,6 +7,7 @@ import * as Extra from 'telegraf/extra'
 import Utils from '../../common/Utils';
 import Logger from '../../common/Logger';
 import { TRACE } from '../../common/Tracer';
+import * as Markup from 'telegraf/markup'
 
 export default class OrderCommand {
   static readonly Bot = new Telegraf(AppConfig.app.telegram.OrderBot)
@@ -128,6 +129,16 @@ export default class OrderCommand {
   }
 
   static initCommand() {
+    OrderCommand.Bot.start(async ({ reply }) => {
+      await reply(`Init menu`, Markup
+        .keyboard([
+          OrderCommand.getMenuCommand()
+        ])
+        .oneTime()
+        .resize()
+        .extra()
+      )
+    })
     OrderCommand.Bot.hears(/^\/order/, async ({ from, reply, chat }) => {
       try {
         const user = User.get(from.id)
