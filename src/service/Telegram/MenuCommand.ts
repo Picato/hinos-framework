@@ -21,7 +21,7 @@ export default class MenuCommand {
   }
 
   static initCommand() {
-    OrderCommand.Bot.hears(/^\/login ([^\s]+) ([^\s]+)/, async ({ deleteMessage, match, from, reply }) => {
+    MenuCommand.Bot.hears(/^\/login ([^\s]+) ([^\s]+)/, async ({ deleteMessage, match, from, reply }) => {
       try {
         const [, apikey, apisecret] = match
         if (!apikey || !apisecret) throw HttpError.BAD_REQUEST('apikey and apisecret is required')
