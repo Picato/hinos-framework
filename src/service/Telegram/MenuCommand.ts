@@ -7,6 +7,7 @@ import OrderCommand from './OrderCommand';
 import AlertCommand from './AlertCommand';
 import RawHandler from '../Crawler/RawHandler';
 import RemitanoHandler from '../Crawler/RemitanoHandler';
+import HttpError from '../../common/HttpError';
 
 export default class MenuCommand {
   static readonly Bot = new Telegraf(AppConfig.app.telegram.MenuBot)
@@ -20,6 +21,21 @@ export default class MenuCommand {
   }
 
   static initCommand() {
+    OrderCommand.Bot.hears(/^\/login ([^\s]+) ([^\s]+)/, async ({ deleteMessage, match, from, reply }) => {
+      try {
+        const [, apikey, apisecret] = match
+        if (!apikey || !apisecret) throw HttpError.BAD_REQUEST('apikey and apisecret is required')
+        await User.add({
+          id: from.id,
+          apikey,
+          apisecret
+        } as User)
+        await deleteMessage()
+        await reply('Login successfully')
+      } catch (e) {
+        reply(e.message)
+      }
+    })
     MenuCommand.Bot.hears(/^#(.+)$/i, async (ctx) => {
       const { reply, replyWithMarkdown, match } = ctx
       try {

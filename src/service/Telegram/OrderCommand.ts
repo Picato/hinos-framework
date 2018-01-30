@@ -128,21 +128,6 @@ export default class OrderCommand {
   }
 
   static initCommand() {
-    OrderCommand.Bot.hears(/^\/login ([^\s]+) ([^\s]+)/, async ({ deleteMessage, match, from, reply }) => {
-      try {
-        const [, apikey, apisecret] = match
-        if (!apikey || !apisecret) throw HttpError.BAD_REQUEST('apikey and apisecret is required')
-        await User.add({
-          id: from.id,
-          apikey,
-          apisecret
-        } as User)
-        await deleteMessage()
-        await reply('Login successfully')
-      } catch (e) {
-        reply(e.message)
-      }
-    })
     OrderCommand.Bot.hears(/^\/order/, async ({ from, reply, chat }) => {
       try {
         const user = User.get(from.id)
