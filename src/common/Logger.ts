@@ -1,7 +1,7 @@
-import { getLogger } from 'log4js'
+import { getLogger, configure } from 'log4js'
 
 const logger = getLogger()
 logger.level = 'all'
-logger.level = 'debug';
-logger.debug("Some debug messages");
 export default logger
+
+export const config = configure

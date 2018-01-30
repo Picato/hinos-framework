@@ -37,9 +37,9 @@ export class Alert {
     return msgs.join('\n')
   }
 
-  getMessage() {
+  getMessage(last: number) {
     const msgs = []
-    msgs.push(`🛎 Price ${this.operator} ${Utils.formatNumber(this.num)}`)
+    msgs.push(`🛎 ${this.operator}${Utils.formatNumber(this.num)} _(${Utils.formatNumber(this.num - last, true)})_`)
     if (this.des)
       msgs.push(`_${this.des}_`)
     return msgs.join('\n')

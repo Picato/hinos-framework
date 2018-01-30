@@ -3,11 +3,14 @@ import { Mongo, Uuid } from "hinos-mongo/lib/mongo"
 import BittrexService from "../BittrexService";
 import Logger from "../../common/Logger";
 import Utils from "../../common/Utils";
+import { TRACE } from "../../common/Tracer";
 // import { Event } from "../Event";
 
 export class TradingTemp {
   _id?: Uuid
   key: string
+  name: string
+  market: string
   raw_time: Date
   time: Date
   prev: number
@@ -38,7 +41,9 @@ export default class RawHandler {
   private static redis: Redis
 
   static init() {
-    setInterval(RawHandler.execute, AppConfig.app.bittrex.scanTimeout)
+    setInterval(async () => {
+      await RawHandler.execute()
+    }, AppConfig.app.bittrex.scanTimeout)
   }
 
   static async getTradings() {
@@ -49,9 +54,9 @@ export default class RawHandler {
     return JSON.parse(await RawHandler.redis.get('RawHandler.rate') || '[]') as { [key: string]: number }
   }
 
+  @TRACE()
   static async execute() {
     try {
-      Logger.debug('Raw handler')
       const now = new Date()
       const data = await BittrexService.getMarketSummaries()
       const [rate, tradings] = await Promise.all([
@@ -64,7 +69,7 @@ export default class RawHandler {
         await RawHandler.redis._publish(redis, 'updateData', JSON.stringify({ tradings: tradings, now: now }))
       })
     } catch (e) {
-      Logger.error(e)
+      Logger.error('Raw handler', e)
     }
   }
 
@@ -107,6 +112,9 @@ export default class RawHandler {
       let trading = new TradingTemp()
       trading._id = Mongo.uuid()
       trading.key = e.MarketName
+      const [market, name] = trading.key.split('-')
+      trading.name = name
+      trading.market = market
       trading.raw_time = new Date(e.TimeStamp)
       trading.time = now
       trading.last = e.Last

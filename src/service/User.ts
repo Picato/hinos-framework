@@ -3,6 +3,7 @@ import { Order } from "./Order";
 import { Redis } from "hinos-redis/lib/redis";
 import HttpError from "../common/HttpError";
 import { Alert, Alerts } from './Alert';
+import Logger from '../common/Logger';
 
 export class User {
   static users = [] as User[]
@@ -36,7 +37,7 @@ export class User {
 
   static get(id) {
     const user = User.users.find(e => e.id === id)
-    if (!user) throw HttpError.NOT_FOUND()
+    if (!user) throw HttpError.NOT_FOUND('Could not found user')
     return user
   }
 
@@ -80,8 +81,13 @@ export class User {
   async removeOrder(od: Order) {
     const idx = this.orders.findIndex(e => e.id === od.id)
     if (idx !== -1) {
-      if (od.orderId)
-        await this.cancel(od.orderId)
+      if (od.orderId) {
+        try {
+          await this.cancel(od.orderId)
+        } catch (e) {
+          Logger.warn(e)
+        }
+      }
       this.orders.splice(idx, 1)
       await this.save()
     }

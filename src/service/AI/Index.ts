@@ -1,3 +1,14 @@
+import '../../config'
+import { Server } from 'hinos'
+import { Redis } from 'hinos-redis'
+import Logger from '../../common/Logger';
+
+require(`../../env.${Server.env}`).default(Server)
+
+Redis(AppConfig.redis)
+
+Logger.log('---------------- SETUP AI BOT ----------------')
+
 import { User } from "../User";
 import { PDumping } from "./PDumping";
 
@@ -6,7 +17,11 @@ import { PDumping } from "./PDumping";
     User.init(),
     PDumping.init()
   ])
-  await Promise.all([
-    PDumping.runBackground()
-  ])
+  Redis.subscribe('updateData', async (data) => {
+    let { tradings, now } = JSON.parse(data)
+    now = new Date(now)
+    await Promise.all([
+      PDumping.handleDumpPump(tradings)
+    ])
+  }, AppConfig.redis)
 })()

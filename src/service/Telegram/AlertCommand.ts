@@ -5,6 +5,8 @@ import * as Extra from 'telegraf/extra'
 import Utils from '../../common/Utils';
 import { Alert } from '../Alert';
 import HttpError from '../../common/HttpError';
+import Logger from '../../common/Logger';
+import { TRACE } from '../../common/Tracer';
 
 export default class AlertCommand {
   static readonly Bot = new Telegraf('392845942:AAEmNcXWn5DOT38BLv_REnOkVnuo2ujs4lQ')
@@ -17,6 +19,7 @@ export default class AlertCommand {
     return ['/alert']
   }
 
+  @TRACE()
   static async runBackground() {
     const tradings = await RawHandler.getTradings()
     for (const user of User.users) {
@@ -33,7 +36,7 @@ export default class AlertCommand {
         msgs.push(`*15%* | ${Utils.formatNumber(t.last + t.last * 15 / 100)} | ${Utils.formatNumber(t.last - t.last * 15 / 100)}`)
         msgs.push(`*20%* | ${Utils.formatNumber(t.last + t.last * 20 / 100)} | ${Utils.formatNumber(t.last - t.last * 20 / 100)}`)
         msgs.push(`----------------------------------------------`)
-        const btn = [{ text: '🚫 REMOVE ALERT', cmd: `alert:remove ${key}` }]
+        const btn = []
         for (let i = als.alerts.length - 1; i >= 0; i--) {
           const al = als.alerts[i]
           if (al.isAlert(t)) {
@@ -41,22 +44,25 @@ export default class AlertCommand {
             const rs = await user.removeAlert(al)
             if (rs === 0) try { await AlertCommand.Bot.telegram.deleteMessage(als.chatId, als.messageId) } catch (_e) { }
           } else {
-            msgs.push(al.getMessage())
-            btn.splice(0, 0, { text: `${i + 1}`, cmd: `alert:remove ${key} ${al.id}` })
+            msgs.push(al.getMessage(t.last))
+            btn.push({ text: `${i + 1}`, cmd: `alert:remove ${key} ${al.id}` })
           }
         }
+        btn.push({ text: '🚫 REMOVE ALERT', cmd: `alert:remove ${key}` })
         if (btn.length > 1) {
           try {
             await AlertCommand.Bot.telegram.editMessageText(als.chatId, als.messageId, undefined, msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard(
               btn.map(e => m.callbackButton(e.text, e.cmd))
             )))
           } catch (e) {
-            console.error(e)
+            Logger.error(e)
           }
         }
       }
     }
-    setTimeout(AlertCommand.runBackground, 5000)
+    setTimeout(async () => {
+      await AlertCommand.runBackground()
+    }, AppConfig.app.bittrex.scanTimeout)
   }
 
   static initCommand() {
@@ -71,7 +77,7 @@ export default class AlertCommand {
         let [, m] = match
         if (m) {
           let [, , key, operator, num, , des] = match
-          key = key.toUpperCase()
+          key = Utils.getQuickCoin(key)
           const user = User.get(from.id)
           const rs = await reply(`Added alert for ${key}`)
           const old = await user.addAlert({
@@ -101,7 +107,7 @@ export default class AlertCommand {
     AlertCommand.Bot.action(/alert:remove ([\w-]+)(\s(.+))?/, async ({ match, from, reply }) => {
       try {
         let [, key, , id] = match
-        key = key.toUpperCase()
+        key = Utils.getQuickCoin(key)
         const user = User.get(from.id)
         const als = user.alerts[key]
         const rs = await user.removeAlert({

@@ -5,6 +5,8 @@ import RawHandler from '../Crawler/RawHandler';
 import HttpError from '../../common/HttpError';
 import * as Extra from 'telegraf/extra'
 import Utils from '../../common/Utils';
+import Logger from '../../common/Logger';
+import { TRACE } from '../../common/Tracer';
 
 export default class OrderCommand {
   static readonly Bot = new Telegraf('522630929:AAFb6U5YAFwCi1aifvYyPf_Qy-ORRG4eOtg')
@@ -17,6 +19,7 @@ export default class OrderCommand {
     return ['/order']
   }
 
+  @TRACE()
   static async runBackground() {
     const startTime = new Date().getTime()
     let tradings
@@ -26,96 +29,102 @@ export default class OrderCommand {
     }
     for (const user of User.users) {
       for (const od of user.orders) {
-        switch (od.status) {
-          case Order.Status.NEW:
-            const t = await getTradings(od.key)
-            if (t) {
-              const { msgs } = Order.formatOrderForm(t, od, od.w, od.wbs)
-              await OrderCommand.Bot.telegram.editMessageText(od.chatId, od.messageId, undefined, msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard([
-                [
-                  m.callbackButton(`✅ BID ${od.type === Order.Type.BID ? '✔️' : ''}`, `order:bid ${od.id}`),
-                  m.callbackButton(`🚀 NOW ${od.type === Order.Type.NOW ? '✔️' : ''}`, `order:now ${od.id}`),
-                  m.callbackButton(`👻 BOT ${od.type === Order.Type.BOT ? '✔️' : ''}`, `order:bot ${od.id}`),
-                ],
-                [
-                  m.callbackButton(`${od.action === Order.Action.SELL ? 'SELL' : 'BUY'} 👍`, `order:yes ${od.id}`),
-                  m.callbackButton('🚫 CANCEL', `order:no ${od.id}`)
-                ]
-              ])))
-            }
-            break
-          case Order.Status.WAITING:
-            let msgs
-            if (od.orderId) {
-              // Order in bittrex
-              const oder = await user.getBittrexOrder(od)
-              if (oder.IsOpen) {
-                const t = await getTradings(od.key)
-                if (od.action === Order.Action.BUY) {
-                  const rs = await Order.formatOrderForm(t, od, undefined, undefined)
-                  msgs = rs.msgs
-                } else {
-                  const rs = await Order.formatOrderForm(t, od, undefined, undefined)
-                  msgs = rs.msgs
-                }
-                await OrderCommand.Bot.telegram.editMessageText(od.chatId, od.messageId, undefined, msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard([
-                  m.callbackButton('🚫 CANCEL ORDER', `order:cancel ${od.id}`),
-                ])))
-              } else {
-                if (oder.CancelInitiated) {
-                  await OrderCommand.Bot.telegram.editMessageText(od.chatId, od.messageId, undefined, `🚫 Order [${od.key}](https://bittrex.com/Market/Index?MarketName=${od.key}) ${od.action === Order.Action.BUY ? 'buy' : 'sell'} *${od.getQuantity()}* statoshi with price *${od.price}* was canceled`, { parse_mode: 'Markdown' })
-                } else {
-                  if (oder.ImmediateOrCancel && oder.Quantity === oder.QuantityRemaining) {
-                    od.success.push(`THIS ORDER IS MISSED 💢`)
-                  } else {
-                    od.success.push(`THIS ORDER HAS DONE 👍`)
-                  }
-                }
-              }
-            } else {
-              // Order by My bot
+        try {
+          switch (od.status) {
+            case Order.Status.NEW:
               const t = await getTradings(od.key)
-              t.last = od.action === Order.Action.SELL ? t.ask : t.bid
-              if (od.canBeOrder(t.last)) {
-                try { await OrderCommand.Bot.telegram.deleteMessage(od.chatId, od.messageId) } catch (_e) { }
-                let ors = {} as any
-                let rs
-                try {
-                  if (od.action === Order.Action.SELL) {
-                    rs = await OrderCommand.Bot.telegram.send(od.chatId, `Bot selled ${od.quantity} ${od.key} with price ${Utils.formatNumber(t.last)}/${Utils.formatNumber(od.price)}`)
-                    ors = await user.sell(od) as any
-                  } else {
-                    rs = await OrderCommand.Bot.telegram.send(od.chatId, `Bot bought ${od.quantity} ${od.key} with price ${Utils.formatNumber(t.last)}/${Utils.formatNumber(od.price)}`)
-                    ors = await user.buy(od) as any
-                  }
-                } catch (e) {
-                  od.status = Order.Status.FAILED
-                  od.error.push(e.message)
-                }
-                od.messageId = rs.message_id
-                od.orderId = ors.OrderId
-                await user.save()
-              } else {
-                const rs = await Order.formatOrderForm(t, od, undefined, undefined)
-                msgs = rs.msgs
+              if (t) {
+                const { msgs } = Order.formatOrderForm(t, od, od.w, od.wbs)
                 await OrderCommand.Bot.telegram.editMessageText(od.chatId, od.messageId, undefined, msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard([
-                  m.callbackButton(`🚀 NOW ${od.type === Order.Type.NOW ? '✔️' : ''}`, `order:now ${od.id}`),
-                  m.callbackButton('🚫 CANCEL ORDER', `order:cancel ${od.id}`)
+                  [
+                    m.callbackButton(`✅ BID ${od.type === Order.Type.BID ? '✔️' : ''}`, `order:bid ${od.id}`),
+                    m.callbackButton(`🚀 NOW ${od.type === Order.Type.NOW ? '✔️' : ''}`, `order:now ${od.id}`),
+                    m.callbackButton(`👻 BOT ${od.type === Order.Type.BOT ? '✔️' : ''}`, `order:bot ${od.id}`),
+                  ],
+                  [
+                    m.callbackButton(`${od.action === Order.Action.SELL ? 'SELL' : 'BUY'} 👍`, `order:yes ${od.id}`),
+                    m.callbackButton('🚫 CANCEL', `order:no ${od.id}`)
+                  ]
                 ])))
               }
-            }
-            break
-          case Order.Status.CANCELED:
-            await user.removeOrder(od)
-            const [market, coin] = od.key.split('-')
-            await OrderCommand.Bot.telegram.editMessageText(od.chatId, od.messageId, undefined, `🚫 Canceled order [${od.key}](https://bittrex.com/Market/Index?MarketName=${od.key}) buy *${od.getQuantity()}* ${coin} with price *${Utils.formatNumber(od.price)}* ${market}`, Extra.markdown())
-            break
+              break
+            case Order.Status.WAITING:
+              let msgs
+              if (od.orderId) {
+                // Order in bittrex
+                const oder = await user.getBittrexOrder(od)
+                if (oder.IsOpen) {
+                  const t = await getTradings(od.key)
+                  if (od.action === Order.Action.BUY) {
+                    const rs = await Order.formatOrderForm(t, od, undefined, undefined)
+                    msgs = rs.msgs
+                  } else {
+                    const rs = await Order.formatOrderForm(t, od, undefined, undefined)
+                    msgs = rs.msgs
+                  }
+                  await OrderCommand.Bot.telegram.editMessageText(od.chatId, od.messageId, undefined, msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard([
+                    m.callbackButton('🚫 CANCEL ORDER', `order:cancel ${od.id}`),
+                  ])))
+                } else {
+                  if (oder.CancelInitiated) {
+                    await OrderCommand.Bot.telegram.editMessageText(od.chatId, od.messageId, undefined, `🚫 Order [${od.key}](https://bittrex.com/Market/Index?MarketName=${od.key}) ${od.action === Order.Action.BUY ? 'buy' : 'sell'} *${od.getQuantity()}* statoshi with price *${od.price}* was canceled`, { parse_mode: 'Markdown' })
+                  } else {
+                    if (oder.ImmediateOrCancel && oder.Quantity === oder.QuantityRemaining) {
+                      od.success.push(`THIS ORDER IS MISSED 💢`)
+                    } else {
+                      od.success.push(`THIS ORDER HAS DONE 👍`)
+                    }
+                  }
+                }
+              } else {
+                // Order by My bot
+                const t = await getTradings(od.key)
+                t.last = od.action === Order.Action.SELL ? t.ask : t.bid
+                if (od.canBeOrder(t.last)) {
+                  try { await OrderCommand.Bot.telegram.deleteMessage(od.chatId, od.messageId) } catch (_e) { }
+                  let ors = {} as any
+                  let rs
+                  try {
+                    if (od.action === Order.Action.SELL) {
+                      rs = await OrderCommand.Bot.telegram.send(od.chatId, `Bot selled ${od.quantity} ${od.key} with price ${Utils.formatNumber(t.last)}/${Utils.formatNumber(od.price)}`)
+                      ors = await user.sell(od) as any
+                    } else {
+                      rs = await OrderCommand.Bot.telegram.send(od.chatId, `Bot bought ${od.quantity} ${od.key} with price ${Utils.formatNumber(t.last)}/${Utils.formatNumber(od.price)}`)
+                      ors = await user.buy(od) as any
+                    }
+                  } catch (e) {
+                    od.status = Order.Status.FAILED
+                    od.error.push(e.message)
+                  }
+                  od.messageId = rs.message_id
+                  od.orderId = ors.OrderId
+                  await user.save()
+                } else {
+                  const rs = await Order.formatOrderForm(t, od, undefined, undefined)
+                  msgs = rs.msgs
+                  await OrderCommand.Bot.telegram.editMessageText(od.chatId, od.messageId, undefined, msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard([
+                    m.callbackButton(`🚀 NOW ${od.type === Order.Type.NOW ? '✔️' : ''}`, `order:now ${od.id}`),
+                    m.callbackButton('🚫 CANCEL ORDER', `order:cancel ${od.id}`)
+                  ])))
+                }
+              }
+              break
+            case Order.Status.CANCELED:
+              await user.removeOrder(od)
+              const [market, coin] = od.key.split('-')
+              await OrderCommand.Bot.telegram.editMessageText(od.chatId, od.messageId, undefined, `🚫 Canceled order [${od.key}](https://bittrex.com/Market/Index?MarketName=${od.key}) buy *${od.getQuantity()}* ${coin} with price *${Utils.formatNumber(od.price)}* ${market}`, Extra.markdown())
+              break
+          }
+        } catch (e) {
+          Logger.error(e)
         }
       }
     }
     const runIn = new Date().getTime() - startTime
-    if (runIn >= 5000) OrderCommand.runBackground()
-    else setTimeout(OrderCommand.runBackground, 5000 - runIn)
+    const time = AppConfig.app.bittrex.scanTimeout - runIn
+    setTimeout(async () => {
+      await OrderCommand.runBackground()
+    }, time > 0 ? time : 0)
   }
 
   static initCommand() {
@@ -200,6 +209,7 @@ export default class OrderCommand {
             o.status = Order.Status.WAITING
             await user.save()
           }
+
         } else if (action.includes('order:cancel')) {
           o.status = Order.Status.CANCELED
           await user.save()
@@ -216,7 +226,7 @@ export default class OrderCommand {
     OrderCommand.Bot.hears(/^\/(buy|sell) ([^\s]+) ([^\s]+) ([.\d]+)/i, async ({ from, match, reply, chat }) => {
       try {
         let [, action, key, quantity, price] = match
-        key = key.toUpperCase()
+        key = Utils.getQuickCoin(key)
         const user = User.get(from.id)
         const [market, coin] = key.split('-')
         const balances = await user.getMyBalances()

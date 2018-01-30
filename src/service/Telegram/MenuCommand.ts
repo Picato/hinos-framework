@@ -20,6 +20,22 @@ export default class MenuCommand {
   }
 
   static initCommand() {
+    MenuCommand.Bot.hears(/^#(.+)$/i, async (ctx) => {
+      const { reply, replyWithMarkdown, match } = ctx
+      try {
+        let [, coin] = match
+        coin = Utils.getQuickCoin(coin)
+        const tradings = await RawHandler.getTradings()
+        const txt = [
+          `*🚀 ${coin} DETAILS 🚀*`, '-----------------------------------------',
+          ...tradings.filter(c => c.key.includes(coin)).map(c => `[${c.key}](https://bittrex.com/Market/Index?MarketName=${c.key}) = ${Utils.formatNumber(c.last)}`)
+        ]
+        if (txt.length > 1) return await replyWithMarkdown(txt.join('\n'))
+        await reply('Could not found this coin')
+      } catch (e) {
+        await reply(e.message || e)
+      }
+    })
     MenuCommand.Bot.hears(/^\/rate/, async (ctx) => {
       const { replyWithMarkdown, reply } = ctx
       try {

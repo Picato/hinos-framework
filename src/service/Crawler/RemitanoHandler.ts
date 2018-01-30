@@ -1,6 +1,8 @@
 import { MONGO, Mongo, Collection } from "hinos-mongo/lib/mongo";
 import { REDIS, Redis } from "hinos-redis/lib/redis";
 import HttpError from "../../common/HttpError";
+import Logger from "../../common/Logger";
+import { TRACE } from "../../common/Tracer";
 
 @Collection()
 export class RemitanoRate {
@@ -72,9 +74,12 @@ export default class RemitanoHandler {
       lastUpdateDB = lastUpdateDB ? new Date(lastUpdateDB) : undefined
       return lastUpdateDB
     })
-    setInterval(RemitanoHandler.scan, AppConfig.app.bittrex.scanRemitano)
+    setInterval(async () => {
+      await RemitanoHandler.scan()
+    }, AppConfig.app.bittrex.scanRemitano)
   }
 
+  @TRACE()
   static async scan() {
     try {
       let status
@@ -110,7 +115,7 @@ export default class RemitanoHandler {
       }
       await RemitanoHandler.redis.set('remitano.rate', JSON.stringify(rate))
     } catch (e) {
-      console.error('phantom:remitano', e)
+      Logger.error('Remitano handler', e)
     }
   }
 }

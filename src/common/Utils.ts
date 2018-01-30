@@ -4,6 +4,19 @@ import { ImageResize } from 'hinos-bodyparser/file'
 
 export default class Utils {
 
+  static readonly Markets = ['BTC', 'USDT', 'ETH']
+
+  static getQuickCoin(coin: string) {
+    coin = coin.toUpperCase()
+    const e = Utils.Markets.find(e => coin.startsWith(`${e}-`))
+    if (!e) {
+      Utils.Markets.forEach(e => {
+        coin = coin.replace(new RegExp(`^${e}`), `${e}-`)
+      })
+    }
+    return coin
+  }
+
   static getQuickPrice(price) {
     if (price) price = price.trim()
     if (price.indexOf('.') !== 0) return +price

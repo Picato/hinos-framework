@@ -1,8 +1,9 @@
 import * as Extra from 'telegraf/extra'
 import { REDIS, Redis } from "hinos-redis/lib/redis";
-import RawHandler from '../Crawler/RawHandler';
+import { TradingTemp } from '../Crawler/RawHandler';
 import { User } from '../User';
 import AlertCommand from '../Telegram/AlertCommand';
+import { TRACE } from '../../common/Tracer';
 
 const MAX_RECORDS = 60
 const MIN_RECORDS = 30
@@ -48,10 +49,10 @@ export class PDumping {
 
   }
 
-  static async runBackground() {
+  @TRACE()
+  static async handleDumpPump(tradings: TradingTemp[]) {
     const msgsPump = [] as { key: string, level: number }[]
     const msgsDump = [] as { key: string, level: number }[]
-    const tradings = await RawHandler.getTradings()
     for (let t of tradings) {
       const rs = await PDumping.addHistory(t.key, t.ask, t.bid)
       if (rs.pump !== -1) msgsPump.push({ key: t.key, level: rs.pump })

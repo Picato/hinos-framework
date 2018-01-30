@@ -131,7 +131,7 @@ export class Order {
     }
     const quantity = od.getQuantity()
     const total = od.getTotal()
-    msgs.push(`*Quantity*  ${Utils.formatNumber(quantity * sign, true)} ${coin}`)
+    msgs.push(`*Quantity*   ${Utils.formatNumber(quantity * sign, true)} ${coin}`)
     msgs.push(`        *Total*   ${Utils.formatNumber(total * sign * -1, true)} ${market}`)
     let isOk = true
     if (w) {
