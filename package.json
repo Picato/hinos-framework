@@ -41,7 +41,7 @@
       }
     },
     "mongo": {
-      "url": "mongodb://localhost:27017/coindb",
+      "url": "mongodb://localhost:27017/coin",
       "releaseTimeout": 1000
     },
     "redis": {
