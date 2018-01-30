@@ -107,7 +107,7 @@ export default class AlertCommand {
         await reply(e.message || e)
       }
     })
-    AlertCommand.Bot.hears(/^\/arate/, async ({ match, from, reply, chat }) => {
+    AlertCommand.Bot.hears(/^\/arate/, async ({ from, reply, chat }) => {
       const key = Utils.getQuickCoin('rate')
       const user = User.get(from.id)
       const rs = await reply(`Added alert for ${key}`)
