@@ -9,7 +9,7 @@ import RawHandler from '../Crawler/RawHandler';
 import RemitanoHandler from '../Crawler/RemitanoHandler';
 
 export default class MenuCommand {
-  static readonly Bot = new Telegraf('386949389:AAFnFpMlKTGR5fa5Y1tPnzXUNziGSxLN8Kw')
+  static readonly Bot = new Telegraf(AppConfig.app.telegram.MenuBot)
 
   static async init() {
     await MenuCommand.initCommand()

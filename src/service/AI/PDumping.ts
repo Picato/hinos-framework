@@ -5,8 +5,8 @@ import { User } from '../User';
 import AlertCommand from '../Telegram/AlertCommand';
 import { TRACE } from '../../common/Tracer';
 
-const MAX_RECORDS = 60
-const MIN_RECORDS = 30
+const MAX_RECORDS = 36
+const MIN_RECORDS = 12
 const LEVEL_PUMP = [
   {
     NUM_OF_HISTORY: 12,

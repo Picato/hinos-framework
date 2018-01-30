@@ -30,6 +30,11 @@
     "url": "http://localhost:1009",
     "path": "/coin-api",
     "app": {
+      "telegram": {
+        "OrderBot": "",
+        "AlertBot": "",
+        "MenuBot": ""
+      },
       "bittrex": {
         "scanTimeout": 5000,
         "scanRemitano": 10000

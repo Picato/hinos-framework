@@ -32,6 +32,11 @@ interface IAppConfig {
     helmet?: boolean
   }
   app: {
+    telegram: {
+      OrderBot: string
+      AlertBot: string
+      MenuBot: string
+    }
     bittrex: {
       scanTimeout: number
       scanRemitano: number

@@ -9,7 +9,7 @@ import Logger from '../../common/Logger';
 import { TRACE } from '../../common/Tracer';
 
 export default class AlertCommand {
-  static readonly Bot = new Telegraf('392845942:AAEmNcXWn5DOT38BLv_REnOkVnuo2ujs4lQ')
+  static readonly Bot = new Telegraf(AppConfig.app.telegram.AlertBot)
 
   static async init() {
     await AlertCommand.initCommand()
