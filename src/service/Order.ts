@@ -115,15 +115,17 @@ export class Order {
     const lastPrice = od.action === Order.Action.BUY ? t.bid : t.ask
     msgs.push(`----------------------------------------------`)
     msgs.push(`[${od.key}](https://bittrex.com/Market/Index?MarketName=${od.key})    *${Utils.formatNumber(lastPrice)}* ${market} 🚀`)
-    msgs.push(`                   _${Utils.formatNumber(od.price - lastPrice, true)}_`)
-    msgs.push(`----------------------------------------------`)
     if (od.type === Order.Type.BID) {
       od.price = od.firstPrice
+      msgs.push(`                   _${Utils.formatNumber(od.price - lastPrice, true)}_`)
+      msgs.push(`----------------------------------------------`)
       msgs.push(`*📍Mine*    *${Utils.formatNumber(od.price * sign * -1, true)}* ${market} ✅`)
     } else if (od.type === Order.Type.NOW) {
       od.price = lastPrice
     } else if (od.type === Order.Type.BOT) {
       od.price = od.firstPrice
+      msgs.push(`                   _${Utils.formatNumber(od.price - lastPrice, true)}_`)
+      msgs.push(`----------------------------------------------`)
       msgs.push(`*📍Bot*       *${Utils.formatNumber((od.price + od.bufferRate) * sign * -1, true)}* ${market} 👻`)
       msgs.push(`                      _${Utils.formatNumber(od.firstPrice)} ${market}_`)
       if (od.bufferRate !== 0)

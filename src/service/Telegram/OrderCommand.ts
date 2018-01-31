@@ -31,6 +31,7 @@ export default class OrderCommand {
     for (const user of User.users) {
       for (const od of user.orders) {
         try {
+          const [market, coin] = od.key.split('-')
           switch (od.status) {
             case Order.Status.NEW:
               const t = await getTradings(od.key)
@@ -51,7 +52,7 @@ export default class OrderCommand {
               break
             case Order.Status.WAITING:
               let msgs
-              if (od.orderId) {
+              if (od.type === Order.Type.BID) {
                 // Order in bittrex
                 const oder = await user.getBittrexOrder(od)
                 if (oder.IsOpen) {
@@ -77,7 +78,7 @@ export default class OrderCommand {
                     }
                   }
                 }
-              } else {
+              } else if (od.type === Order.Type.BOT) {
                 // Order by My bot
                 const t = await getTradings(od.key)
                 t.last = od.action === Order.Action.SELL ? t.ask : t.bid
@@ -112,8 +113,12 @@ export default class OrderCommand {
               break
             case Order.Status.CANCELED:
               await user.removeOrder(od)
-              const [market, coin] = od.key.split('-')
+
               await OrderCommand.Bot.telegram.editMessageText(od.chatId, od.messageId, undefined, `🚫 Canceled order [${od.key}](https://bittrex.com/Market/Index?MarketName=${od.key}) buy *${od.getQuantity()}* ${coin} with price *${Utils.formatNumber(od.price)}* ${market}`, Extra.markdown())
+              break
+            case Order.Status.FAILED:
+              await user.removeOrder(od)
+              await OrderCommand.Bot.telegram.editMessageText(od.chatId, od.messageId, undefined, `🚫 Failed order [${od.key}](https://bittrex.com/Market/Index?MarketName=${od.key}) buy *${od.getQuantity()}* ${coin} with price *${Utils.formatNumber(od.price)}* ${market}`, Extra.markdown())
               break
           }
         } catch (e) {
@@ -193,6 +198,7 @@ export default class OrderCommand {
         } else if (action.includes('order:yes')) {
           if (o.type === Order.Type.BID || o.type === Order.Type.NOW) {
             let rs
+            o.price += 1000
             if (o.action === Order.Action.SELL)
               rs = await user.sell(o) as any
             else

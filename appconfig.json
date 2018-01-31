@@ -1,0 +1,34 @@
+{
+  "url": "http://localhost:1009",
+  "path": "/coin-api",
+  "app": {
+    "telegram": {
+      "OrderBot": "",
+      "AlertBot": "",
+      "MenuBot": ""
+    },
+    "bittrex": {
+      "scanTimeout": 5000,
+      "scanRemitano": 10000
+    }
+  },
+  "mongo": {
+    "url": "mongodb://localhost:27017/coin",
+    "releaseTimeout": 1000
+  },
+  "redis": {
+    "host": "localhost",
+    "port": 6379,
+    "db": 2,
+    "releaseTimeout": 1000
+  },
+  "encrypt": {
+    "pwd": ")^!!!(**",
+    "mode": [
+      "query",
+      "body",
+      "response"
+    ],
+    "baseOnRequest": true
+  }
+}
