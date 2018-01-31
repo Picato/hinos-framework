@@ -108,20 +108,22 @@ export default class AlertCommand {
       }
     })
     AlertCommand.Bot.hears(/^\/arate/, async ({ from, reply, chat }) => {
-      const key = Utils.getQuickCoin('rate')
-      const user = User.get(from.id)
-      const rs = await reply(`Added alert for ${key}`)
-      const old = await user.addAlert({
-        key
-      } as Alert, chat.id, rs.message_id)
-      if (old) try { await AlertCommand.Bot.telegram.deleteMessage(old.chatId, old.messageId) } catch (_e) { }
+      try {
+        const key = Utils.getQuickCoin('rate')
+        const user = User.get(from.id)
+        const rs = await reply(`Added alert for ${key}`)
+        const old = await user.addAlert({
+          key
+        } as Alert, chat.id, rs.message_id)
+        if (old) try { await AlertCommand.Bot.telegram.deleteMessage(old.chatId, old.messageId) } catch (_e) { }
+      } catch (e) {
+        await reply(e.message)
+      }
     })
     AlertCommand.Bot.hears(/^\/alert( ([\w-]+) (<|<=|>|>=)\s*([.\d]+)(\s(.+))?)?/, async ({ match, from, reply, chat }) => {
       try {
         let [, m] = match
         if (m) {
-          // usdt <= 23000
-          // btc <= 260000000
           let [, , key, operator, num, , des] = match
           key = Utils.getQuickCoin(key)
           const user = User.get(from.id)

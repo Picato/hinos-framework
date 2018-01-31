@@ -88,7 +88,7 @@ export default class MenuCommand {
         await reply(e.message || e)
       }
     })
-    MenuCommand.Bot.start(({ reply }) =>
+    MenuCommand.Bot.start(({ reply }) => {
       reply('Initial menu', Markup
         .keyboard([
           MenuCommand.getMenuCommand()
@@ -97,7 +97,7 @@ export default class MenuCommand {
         .resize()
         .extra()
       )
-    )
+    })
     MenuCommand.Bot.startPolling()
   }
 
@@ -111,8 +111,10 @@ export default class MenuCommand {
     }
     if (vnd) {
       msgs.push(`-----------------------------------------`)
-      msgs.push(`*1 USDT* = ${Utils.formatNumber(vnd['usdt_ask'], false, 0)} / ${Utils.formatNumber(vnd['usdt_bid'], false, 0)} *VND* _(Buy/Sell)_`)
-      msgs.push(`*1 BTC*    = ${Utils.formatNumber(vnd['btc_ask'], false, 0)} / ${Utils.formatNumber(vnd['btc_bid'], false, 0)} *VND* _(Buy/Sell)_`)
+      msgs.push(`*1 USDT* = ${Utils.formatNumber(vnd['usdt_ask'], false, 0)} *VND* _(Buy)_`)
+      msgs.push(`*1 USDT* = ${Utils.formatNumber(vnd['usdt_bid'], false, 0)} *VND* _(Sell)_`)
+      msgs.push(`*1 BTC*    = ${Utils.formatNumber(vnd['btc_ask'], false, 0)} *VND* _(Buy)_`)
+      msgs.push(`*1 BTC*    = ${Utils.formatNumber(vnd['btc_bid'], false, 0)} *VND* _(Sell)_`)
     }
     return msgs
   }

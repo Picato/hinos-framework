@@ -178,8 +178,7 @@ export default class OrderCommand {
         reply(e.message)
       }
     })
-    OrderCommand.Bot.action(/order:(yes|no|bot|bid|now|cancel) .+/, async (ctx) => {
-      const { editMessageText, match, from } = ctx
+    OrderCommand.Bot.action(/order:(yes|no|bot|bid|now|cancel) .+/, async ({ editMessageText, match, from }) => {
       let o: Order
       try {
         const [action, id] = match[0].split(' ')
@@ -198,7 +197,6 @@ export default class OrderCommand {
         } else if (action.includes('order:yes')) {
           if (o.type === Order.Type.BID || o.type === Order.Type.NOW) {
             let rs
-            o.price += 1000
             if (o.action === Order.Action.SELL)
               rs = await user.sell(o) as any
             else
