@@ -48,6 +48,7 @@
     }
   },
   "dependencies": {
+    "nodemailer": "^4.4.2",
     "zip-folder": "^1.0.0"
   },
   "peerDependencies": {
