@@ -67,13 +67,13 @@ export class PDumping {
       if (rs.pump.level !== -1 && PDumping.historyAsk[t.key].level !== rs.pump.level) {
         msgsPump.push(Object.assign({}, { key: t.key }, rs.pump) as any)
         PDumping.historyAsk[t.key].level = rs.pump.level
-      } else {
+      } else if (rs.pump.level === -1) {
         PDumping.historyAsk[t.key].level = -1
       }
       if (rs.dump.level !== -1 && PDumping.historyBid[t.key].level !== rs.dump.level) {
         msgsDump.push(Object.assign({}, { key: t.key }, rs.dump) as any)
         PDumping.historyBid[t.key].level = rs.dump.level
-      } else {
+      } else if (rs.dump.level === -1) {
         PDumping.historyBid[t.key].level = -1
       }
     }
@@ -83,7 +83,7 @@ export class PDumping {
       msgsPump.sort((a, b) => b.level - a.level)
       msgs.push(`PUMPING 👍`)
       msgs.push(`-------------------------------`)
-      msgs = msgs.concat(msgsPump.map(e => `[${e.key}](https://bittrex.com/Market/Index?MarketName=${e.key}) Lv ${e.level + 1}|${e.rate} _(${e.percent}%)_`))
+      msgs = msgs.concat(msgsPump.map(e => `${e.key} Lv ${e.level + 1}|${e.rate} _(${e.percent}%)_`))
       msges.push(msgs.join('\n'))
     }
     if (msgsDump.length > 0) {
@@ -91,14 +91,18 @@ export class PDumping {
       msgsDump.sort((a, b) => b.level - a.level)
       msgs.push(`DUMPING 👎`)
       msgs.push(`-------------------------------`)
-      msgs = msgs.concat(msgsDump.map(e => `[${e.key}](https://bittrex.com/Market/Index?MarketName=${e.key}) Lv ${e.level + 1}|${e.rate} _(${e.percent}%)_`))
+      msgs = msgs.concat(msgsDump.map(e => `${e.key} Lv ${e.level + 1}|${e.rate} _(${e.percent}%)_`))
       msges.push(msgs.join('\n'))
     }
     if (msges.length > 0) {
       for (let u of User.users) {
         if (u.globalAlertId) {
           for (let m of msges) {
-            await AlertCommand.Bot.telegram.sendMessage(u.globalAlertId, m, Extra.markdown())
+            try {
+              await AlertCommand.Bot.telegram.sendMessage(u.globalAlertId, m, Extra.markdown())
+            } catch (e) {
+              await AlertCommand.Bot.telegram.sendMessage(u.globalAlertId, e.message)
+            }
           }
         }
       }
@@ -106,7 +110,6 @@ export class PDumping {
   }
 
   private static async addHistory(key: string, ask: number, bid: number) {
-    if (!PDumping.historyAsk[key]) PDumping.historyAsk[key] = { values: [], level: -1 } as any
     const rs = {
       pump: {
         level: -1,
@@ -119,7 +122,8 @@ export class PDumping {
         rate: ''
       }
     }
-    const askBefore = PDumping.historyAsk[key][0] || { buf: 0, value: 0 }
+    if (!PDumping.historyAsk[key]) PDumping.historyAsk[key] = { values: [], level: -1 } as any
+    const askBefore = PDumping.historyAsk[key].values[0] || { buf: 0, value: 0 }
     const vlAsk = ask - askBefore.value
     if (vlAsk !== 0) {
       PDumping.historyAsk[key].values.splice(0, 0, { buf: vlAsk, value: ask })
@@ -134,7 +138,7 @@ export class PDumping {
     }
 
     if (!PDumping.historyBid[key]) PDumping.historyBid[key] = { values: [], level: -1 } as any
-    const bidBefore = PDumping.historyBid[key][0] || { buf: 0, value: 0 }
+    const bidBefore = PDumping.historyBid[key].values[0] || { buf: 0, value: 0 }
     const vlBid = bid - bidBefore.value
     if (vlBid !== 0) {
       PDumping.historyBid[key].values.splice(0, 0, { buf: vlBid, value: bid })
