@@ -53,15 +53,15 @@ export class ClientController {
       to: Array,
       cc: Array,
       attachments: Array,
-      _this: Object // replace mail content, subject
+      params: Object // replace mail content, subject
     }
   })
   static async addFromTemplate({ body, state, params }) {
     body.project_id = state.auth.projectId
     body.account_id = state.auth.accountId
     body.template_id = params.templateId
-    if (body._this === undefined) body._this = {}
-    const rs = await MailService.insert(_.omit(body, ['_this']), body._this) as Mail
+    if (body.params === undefined) body.params = {}
+    const rs = await MailService.insert(_.omit(body, ['params']), body.params) as Mail
     delete rs.project_id
     return rs
   }

@@ -140,7 +140,7 @@ export class MailService {
       return \`${cnt}\` })()`)
   }
 
-  @VALIDATE(async (body: Mail, _this = {} as any) => {
+  @VALIDATE(async (body: Mail) => {
     body._id = Mongo.uuid() as Uuid
     await Checker.option(body, 'template_id', Uuid, undefined, async () => {
       const mail = await MailTemplateService.get(body.template_id)
@@ -153,14 +153,6 @@ export class MailService {
     Checker.option(body, 'text', String, undefined, () => {
       if (!body.text) Checker.required(body, 'html', String)
     })
-    if (body.template_id) {
-      body.subject = MailService.replaceVar(body.subject, _this)
-      if (body.html) {
-        body.html = MailService.replaceVar(body.html, _this)
-      } else if (body.text) {
-        body.text = MailService.replaceVar(body.text, _this)
-      }
-    }
     Checker.required(body, 'from', String)
     if (!/^[_-\w]+$/.test(body.from)) throw HttpError.BAD_REQUEST('from must be alphabet, digit, _ or -')
     Checker.required(body, 'to', Array)
@@ -172,7 +164,15 @@ export class MailService {
     body.created_at = new Date()
     body.updated_at = body.created_at
   })
-  static async insert(body: Mail, _this?: any) {
+  static async insert(body: Mail, params = {} as any) {
+    if (body.template_id) {
+      body.subject = MailService.replaceVar(body.subject, params)
+      if (body.html) {
+        body.html = MailService.replaceVar(body.html, params)
+      } else if (body.text) {
+        body.text = MailService.replaceVar(body.text, params)
+      }
+    }
     const rs = await MailService.mongo.insert<Mail>(Mail, body)
     await MailService.redis.hset('mail.temp', {
       [rs._id.toString()]: await MailCached.castToCached(rs)
