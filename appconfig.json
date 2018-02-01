@@ -1,0 +1,22 @@
+{
+  "url": "http://localhost:6116",
+  "path": "/script",
+  "mongo": {
+    "dbname": "script",
+    "url": "mongodb://localhost:27017/",
+    "releaseTimeout": 1000
+  },
+  "services": {
+    "oauth": "http://localhost:6111"
+  },
+  "encrypt": {
+    "pwd": "a!b@=;",
+    "mode": [
+      "query",
+      "body",
+      "response"
+    ],
+    "baseOnRequest": true,
+    "helmet": false
+  }
+}

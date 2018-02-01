@@ -1,0 +1,25 @@
+{
+  "mongo": {
+    "url": "mongodb://localhost:27017/",
+    "releaseTimeout": 50000
+  },
+  "redis": {
+    "host": "localhost",
+    "port": 6379,
+    "releaseTimeout": 50000
+  },
+  "encrypt": {
+    "pwd": ")^!!!(**",
+    "mode": [
+      "query",
+      "body",
+      "response"
+    ],
+    "baseOnRequest": true
+  },
+  "api": {
+    "services": {
+      "oauth": "http://localhost:6111"
+    }
+  }
+}
