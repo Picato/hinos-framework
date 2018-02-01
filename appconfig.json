@@ -1,0 +1,21 @@
+{
+  "url": "http://localhost:1009",
+  "path": "",
+  "mongo": {
+    "dbname": "test"
+  },
+  "redis": {
+    "host": "localhost",
+    "port": 6379,
+    "releaseTimeout": 50000
+  },
+  "rabbitmq": {
+    "url": "amqp://127.0.0.1",
+    "releaseTimeout": 50000,
+    "queue": {
+      "API_SENDER": "backend",
+      "API_RECEIVER": "api",
+      "LOG_RECEIVER": "log"
+    }
+  }
+}
