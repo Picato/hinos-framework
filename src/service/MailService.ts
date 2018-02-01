@@ -4,10 +4,8 @@ import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
 import { MailConfig, MailConfigService } from './MailConfigService'
 import { MailTemplateService } from './MailTemplateService'
-// import * as nodemailer from 'nodemailer'
+import * as nodemailer from 'nodemailer'
 import { REDIS, Redis } from 'hinos-redis'
-import * as path from 'path'
-import Utils from '../common/Utils';
 
 /************************************************
  ** MailService || 4/10/2017, 10:19:24 AM **
@@ -20,7 +18,7 @@ export interface Attachments {
   contentType?: string,
   encoding?: string,
   raw?: string
-  fileserv?: string
+  // fileserv?: string
 }
 
 @Collection('Mail')
@@ -223,32 +221,32 @@ export class MailService {
     await MailService.redis.hdel('mail.temp', [old._id.toString()])
   }
 
-  private static async sendMail(mailOptions: Mail, config: MailConfig) {
-    try {
-      await Utils.executeCmd(`go run ${path.resolve('mail_sending.go')} ` + `"${new Buffer(JSON.stringify(Object.assign({}, mailOptions, { config: config }))).toString('base64')}"`)
-    } catch (e) {
-      console.log(e)
-      throw HttpError.INTERNAL(e.message)
-    }
-  }
-
   // private static async sendMail(mailOptions: Mail, config: MailConfig) {
-  //   return new Promise((resolve, reject) => {
-  //     try {
-  //       const transporter = nodemailer.createTransport(config)
-  //       try {
-  //         transporter.sendMail(mailOptions as nodemailer.SendMailOptions, (error, info) => {
-  //           if (error) return reject(HttpError.INTERNAL(error.message))
-  //           resolve(info)
-  //         })
-  //       } catch (e) {
-  //         reject(HttpError.INTERNAL(e))
-  //       }
-  //     } catch (e) {
-  //       reject(HttpError.INTERNAL(e))
-  //     }
-  //   })
+  //   try {
+  //     await Utils.executeCmd(`go run ${path.resolve('mail_sending.go')} ` + `"${new Buffer(JSON.stringify(Object.assign({}, mailOptions, { config: config }))).toString('base64')}"`)
+  //   } catch (e) {
+  //     console.log(e)
+  //     throw HttpError.INTERNAL(e.message)
+  //   }
   // }
+
+  private static async sendMail(mailOptions: Mail, config: MailConfig) {
+    return new Promise((resolve, reject) => {
+      try {
+        const transporter = nodemailer.createTransport(config)
+        try {
+          transporter.sendMail(mailOptions as nodemailer.SendMailOptions, (error, info) => {
+            if (error) return reject(HttpError.INTERNAL(error.message))
+            resolve(info)
+          })
+        } catch (e) {
+          reject(HttpError.INTERNAL(e))
+        }
+      } catch (e) {
+        reject(HttpError.INTERNAL(e))
+      }
+    })
+  }
 
   private static async schedule() {
     const now = new Date().getTime()
