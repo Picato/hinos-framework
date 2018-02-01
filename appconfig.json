@@ -1,0 +1,34 @@
+{
+  "url": "http://localhost:6115",
+  "path": "/monitor",
+  "mongo": {
+    "dbname": "monitor",
+    "url": "mongodb://localhost:27017/",
+    "releaseTimeout": 50000
+  },
+  "redis": {
+    "host": "localhost",
+    "port": 6379,
+    "db": 0,
+    "releaseTimeout": 50000
+  },
+  "services": {
+    "oauth": "http://localhost:6111",
+    "mail": "http://localhost:6113",
+    "log": "http://localhost:6114"
+  },
+  "app": {
+    "timeoutPingService": 5000,
+    "timeoutSpamMail": 900000,
+    "configs": {}
+  },
+  "encrypt": {
+    "pwd": "a!b@=;",
+    "mode": [
+      "query",
+      "body",
+      "response"
+    ],
+    "baseOnRequest": true
+  }
+}
