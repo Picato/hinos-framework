@@ -1,0 +1,40 @@
+{
+  "url": "http://localhost:1009",
+  "path": "/oauth",
+  "mongo": {
+    "dbname": "oauth",
+    "url": "mongodb://localhost:27017/",
+    "releaseTimeout": 50000
+  },
+  "redis": {
+    "host": "localhost",
+    "port": 6379,
+    "releaseTimeout": 50000
+  },
+  "rabbitmq": {
+    "url": "amqp://127.0.0.1",
+    "releaseTimeout": 50000,
+    "queue": {
+      "API_SENDER": "backend",
+      "API_RECEIVER": "api",
+      "LOG_RECEIVER": "log"
+    }
+  },
+  "services": {
+    "oauth": "http://localhost:6111",
+    "mail": "http://localhost:6113"
+  },
+  "encrypt": {
+    "pwd": "a!b@=;",
+    "mode": [
+      "query",
+      "body",
+      "response"
+    ],
+    "baseOnRequest": true
+  },
+  "app": {
+    "suid": "123456789",
+    "twoStepVerificationTimeout": 60000
+  }
+}
