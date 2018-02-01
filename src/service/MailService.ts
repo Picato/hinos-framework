@@ -257,6 +257,10 @@ export class MailService {
         if (!e.retry_at || e.retry_at <= now) {
           await MailService.redis.hdel('mail.temp', [_id])
           try {
+            if (!e.config) {
+              e.status = Mail.Status.ERROR[Mail.Status.ERROR.length - 1]
+              throw HttpError.NOT_FOUND('Could not found mail config')
+            }
             await MailService.sendMail(e, e.config)
             e.status = Mail.Status.PASSED
             e.error = undefined
