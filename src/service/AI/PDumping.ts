@@ -91,7 +91,7 @@ export class PDumping {
       msgsDump.sort((a, b) => b.level - a.level)
       msgs.push(`DUMPING 👎`)
       msgs.push(`-------------------------------`)
-      msgs = msgs.concat(msgsDump.map(e => `[${e.key}](https://bittrex.com/Market/Index?MarketName=${e.key}) Lv ${e.level + 1}|${e.rate} _(${Utils.formatNumber(e.percent, false, 2)}%)_`))
+      msgs = msgs.concat(msgsDump.map(e => `[${e.key}](https://bittrex.com/Market/Index?MarketName=${e.key}) *${Utils.formatNumber(e.last)}*\n - Lv ${e.level + 1}|${e.rate} _(${Utils.formatNumber(e.percent, false, 2)}%)_`))
       msges.push(msgs.join('\n'))
     }
     if (msges.length > 0) {
