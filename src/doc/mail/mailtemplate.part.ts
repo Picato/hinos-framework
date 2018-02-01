@@ -26,9 +26,9 @@ export default [
     body: {
       name: 'Test template',
       config_id: $var('newmailconfig._id'),
-      subject: 'Test mail',
-      text: 'Hello world',
-      html: '<b>Hello</b> <i>world</i>',
+      subject: 'Test mail 123',
+      text: 'Hello world 123 ${name}',
+      html: '<b>Hello</b> <i>world</i> 123 ${name}',
       from: 'Tester'
     },
     var: {
@@ -47,7 +47,7 @@ export default [
     url: PUT(`${HOST.MAIL}/mail/Template/:mailTemplateId*`, $var('newmailtemplate._id')),
     body: {
       name: 'Test template 1',
-      subject: 'Test mail 1',
+      subject: 'Test mail 1 ${name}',
       text: 'Hello world',
       html: '<b>Hello</b> <i>world</i>',
       from: 'TesterUpdated'

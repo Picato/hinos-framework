@@ -1,4 +1,7 @@
-declare interface Var { }
+declare interface Var { 
+  append(txt: string)
+  prepend(txt: string)
+}
 declare interface Url { }
 declare interface FileData { }
 declare interface Doc {

@@ -11,7 +11,8 @@ const i18doc = {
   '*.from': DOC.required().des('Email from. <code>Its value must be <b>alphabet</b>, <b>digit</b>, <b>_</b> or <b>-</b></code>'),
   '*.to': DOC.required().des('Send to (emails)'),
   '*.cc': DOC.des('CC to (emails)'),
-  '*.attachments': DOC.des('Email attachments. It\'s link')
+  '*.attachments': DOC.des('Email attachments. It\'s link'),
+  '*.params': DOC.type('Dynamic<Any>').des('Object which replace value')
 }
 
 export default [
@@ -75,8 +76,11 @@ export default [
       to: ['doanthuanthanh88@gmail.com'],
       cc: ['thanhdt611@gmail.com'],
       attachments: [
-        { fileserv: $var('newfile') }
-      ]
+        { path: $var('newfile').prepend(HOST.FILE + '/') }
+      ],
+      params: {
+        name: 'Thanh'
+      }
     },
     var: {
       'newmail1': $var('this.$body')
