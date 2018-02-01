@@ -1,0 +1,27 @@
+{
+  "url": "http://localhost:6114",
+  "path": "/log",
+  "mongo": {
+    "dbname": "log",
+    "url": "mongodb://localhost:27017/",
+    "releaseTimeout": 1000
+  },
+  "redis": {
+    "host": "localhost",
+    "port": 6379,
+    "db": 0,
+    "releaseTimeout": 1000
+  },
+  "services": {
+    "oauth": "http://localhost:6111"
+  },
+  "encrypt": {
+    "pwd": "a!b@=;",
+    "mode": [
+      "query",
+      "body",
+      "response"
+    ],
+    "baseOnRequest": true
+  }
+}
