@@ -83,7 +83,7 @@ export class PDumping {
       msgsPump.sort((a, b) => b.level - a.level)
       msgs.push(`PUMPING 👍`)
       msgs.push(`-------------------------------`)
-      msgs = msgs.concat(msgsPump.map(e => `${e.key} Lv ${e.level + 1}|${e.rate} _(${e.percent}%)_`))
+      msgs = msgs.concat(msgsPump.map(e => `[${e.key}](https://bittrex.com/Market/Index?MarketName=${e.key}) Lv ${e.level + 1}|${e.rate} _(${e.percent}%)_`))
       msges.push(msgs.join('\n'))
     }
     if (msgsDump.length > 0) {
@@ -91,7 +91,7 @@ export class PDumping {
       msgsDump.sort((a, b) => b.level - a.level)
       msgs.push(`DUMPING 👎`)
       msgs.push(`-------------------------------`)
-      msgs = msgs.concat(msgsDump.map(e => `${e.key} Lv ${e.level + 1}|${e.rate} _(${e.percent}%)_`))
+      msgs = msgs.concat(msgsDump.map(e => `[${e.key}](https://bittrex.com/Market/Index?MarketName=${e.key}) Lv ${e.level + 1}|${e.rate} _(${e.percent}%)_`))
       msges.push(msgs.join('\n'))
     }
     if (msges.length > 0) {
