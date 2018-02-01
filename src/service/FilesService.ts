@@ -52,11 +52,11 @@ export class FilesCached {
       files
     })
   }
-  // static castToObject(_e) {
-  //   const e = JSON.parse(_e) as FilesCached
-  //   e._id = Mongo.uuid(e._id)
-  //   return e
-  // }
+  static castToObject(_e) {
+    const e = JSON.parse(_e) as FilesCached
+    e._id = Mongo.uuid(e._id)
+    return e
+  }
 }
 /* tslint:enable */
 
@@ -89,25 +89,25 @@ export class FilesService {
       }
     })
     await FilesService.redis.rpush('files.temp', rs.map(FilesCached.castToCached))
-    // FilesService.syncToRemoveTempFiles()
+    FilesService.syncToRemoveTempFiles()
   }
 
-  // static async syncToRemoveTempFiles() {
-  //   const now = new Date().getTime()
-  //   const rs = await FilesService.redis.lrange('files.temp')
-  //   if (rs.length > 0) {
-  //     for (let f of rs.map(FilesCached.castToObject).filter(e => e.expired_at < now)) {
-  //       try {
-  //         await FilesService.delete({
-  //           _id: f._id
-  //         })
-  //       } catch (e) {
-  //         console.error(e)
-  //       }
-  //     }
-  //   }
-  //   setTimeout(FilesService.syncToRemoveTempFiles, AppConfig.app.scanTimeout)
-  // }
+  static async syncToRemoveTempFiles() {
+    const now = new Date().getTime()
+    const rs = await FilesService.redis.lrange('files.temp')
+    if (rs.length > 0) {
+      for (let f of rs.map(FilesCached.castToObject).filter(e => e.expired_at < now)) {
+        try {
+          await FilesService.delete({
+            _id: f._id
+          })
+        } catch (e) {
+          console.error(e)
+        }
+      }
+    }
+    setTimeout(FilesService.syncToRemoveTempFiles, AppConfig.app.scanTimeout)
+  }
 
   static async find(fil = {}) {
     const rs = await FilesService.mongo.find<Files>(Files, fil)
@@ -143,7 +143,7 @@ export class FilesService {
 
   @VALIDATE((body: Files) => {
     Checker.required(body._id, 'files', Object)
-    Checker.required(body._id, 'project_id', Uuid)    
+    Checker.required(body._id, 'project_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
     body.status = Files.Status.SAVED
     body.updated_at = new Date()
