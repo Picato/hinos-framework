@@ -1,21 +1,30 @@
 {
-  "url": "http://localhost:1009",
-  "path": "",
+  "url": "http://localhost:6110",
+  "path": "/gateway",
   "mongo": {
-    "dbname": "test"
+    "dbname": "gateway",
+    "url": "mongodb://localhost:27017/",
+    "releaseTimeout": 1000
   },
   "redis": {
     "host": "localhost",
     "port": 6379,
-    "releaseTimeout": 50000
+    "releaseTimeout": 1000
   },
-  "rabbitmq": {
-    "url": "amqp://127.0.0.1",
-    "releaseTimeout": 50000,
-    "queue": {
-      "API_SENDER": "backend",
-      "API_RECEIVER": "api",
-      "LOG_RECEIVER": "log"
-    }
+  "services": {
+    "oauth": "http://localhost:6111"
+  },
+  "app": {
+    "gateway": {},
+    "suid": "123456789"
+  },
+  "encrypt": {
+    "pwd": "a!b@=;",
+    "mode": [
+      "query",
+      "body",
+      "response"
+    ],
+    "baseOnRequest": true
   }
 }
