@@ -3,9 +3,9 @@
   "path": "/coin-api",
   "app": {
     "telegram": {
-      "OrderBot": "532706770:AAGyNa9jRgQj6neRprQBo7chmJ2Vbq3rEG0",
-      "AlertBot": "472076591:AAERlij_FaPOVzTvSubH-KwEod2q48vlGS4",
-      "MenuBot": "511688991:AAGYbhU3gejlrNB6r6rIX-9bs5Zb03wN9d8"
+      "OrderBot": "",
+      "AlertBot": "",
+      "MenuBot": ""
     },
     "bittrex": {
       "scanTimeout": 5000,
