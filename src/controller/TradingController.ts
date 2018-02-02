@@ -8,6 +8,7 @@ import HandlerDay1 from '../service/Crawler/HandlerDay1'
 import RawTrading from '../service/Crawler/RawHandler'
 import HandlerMin1 from '../service/Crawler/HandlerMin1'
 import RemitanoHandler from '../service/Crawler/RemitanoHandler';
+import { TRACER, TRACE } from 'hinos-log/lib/tracer';
 
 /************************************************
  ** GoldController || 4/10/2017, 10:19:24 AM **
@@ -38,6 +39,7 @@ export default class CoinController {
     return rs
   }
 
+  @TRACE({ type: TRACER.HTTP_REQUEST })
   @GET('/remitano/rate')
   static async getRemitanoRate() {
     return await RemitanoHandler.getRate()

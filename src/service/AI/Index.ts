@@ -1,13 +1,13 @@
 import '../../config'
 import { Server } from 'hinos'
 import { Redis } from 'hinos-redis'
-import Logger from '../../common/Logger';
+import { Logger } from 'hinos-log/lib/logger';
 
 require(`../../env.${Server.env}`).default(Server)
 
 Redis(AppConfig.redis)
 
-Logger.log('---------------- SETUP AI BOT ----------------')
+Logger.pool().info('---------------- SETUP AI BOT ----------------')
 
 import { User } from "../User";
 import { PDumping } from "./PDumping";

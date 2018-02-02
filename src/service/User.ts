@@ -3,9 +3,12 @@ import { Order } from "./Order";
 import { Redis } from "hinos-redis/lib/redis";
 import HttpError from "../common/HttpError";
 import { Alert, Alerts } from './Alert';
-import Logger from '../common/Logger';
+import { LOGGER } from 'hinos-log'
+import { Logger } from 'log4js';
 
 export class User {
+  @LOGGER()
+  static Logger: Logger
   static users = [] as User[]
 
   static async init() {
@@ -19,6 +22,7 @@ export class User {
         e.alerts[k].alerts = e.alerts[k].alerts.map(al => {
           return _.merge(new Alert(), al)
         })
+        e.alerts[k] = _.merge(new Alerts(), e.alerts[k])
       }
       return _.merge(new User(), e)
     })
@@ -87,7 +91,7 @@ export class User {
         try {
           await this.cancel(od.orderId)
         } catch (e) {
-          Logger.warn(e)
+          User.Logger.warn(e)
         }
       }
       this.orders.splice(idx, 1)

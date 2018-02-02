@@ -2,8 +2,9 @@ import { MONGO, Mongo } from "hinos-mongo/lib/mongo"
 import { Redis, REDIS } from "hinos-redis/lib/redis"
 import { TradingTemp } from "./RawHandler";
 import { BittrexTrading } from "./BittrexTrading";
-import Logger from "../../common/Logger";
-import { TRACE } from "../../common/Tracer";
+import { Logger } from "log4js";
+import { LOGGER } from "hinos-log/lib/logger";
+import { TRACE, TRACER } from "hinos-log/lib/tracer";
 
 export class TradingDay extends BittrexTrading {
   name: string
@@ -19,6 +20,9 @@ export class TradingDay extends BittrexTrading {
 }
 
 export default class AbsHandlerDay {
+  @LOGGER()
+  protected logger: Logger
+
   @REDIS()
   protected redis: Redis
 
@@ -31,7 +35,7 @@ export default class AbsHandlerDay {
   constructor(protected skip: number) { }
 
   public async init() {
-    Logger.log(`#${this.constructor.name}`, 'Initial')
+    this.logger.info(`#${this.constructor.name}`, 'Initial')
     const self = this
 
     const [lastUpdateDB, caches] = await this.redis.manual(async redis => {
@@ -102,11 +106,11 @@ export default class AbsHandlerDay {
     return JSON.parse(await this.redis.get(`${this.constructor.name}.newestTrading`) || '[]')
   }
 
-  @TRACE()
+  @TRACE({ type: TRACER.EXECUTE_TIME })
   async handle(tradings: TradingTemp[], now: Date) {
     try {
       if (!this.lastUpdateDB || (this.lastUpdateDB.getDate() !== now.getDate() && now.getDate() % this.skip === 0)) {
-        Logger.log(`#${this.constructor.name}`, 'Begin handle data')
+        this.logger.debug(`#${this.constructor.name}`, 'Begin handle data')
         this.lastUpdateDB = now
         let data = []
         const self = this
@@ -185,7 +189,7 @@ export default class AbsHandlerDay {
         await this.redis.set(`${this.constructor.name}.cached`, JSON.stringify(this.caches))
       }
     } catch (e) {
-      Logger.error(`${this.constructor.name}`, e)
+      this.logger.error(`${this.constructor.name}`, e)
     }
   }
 }

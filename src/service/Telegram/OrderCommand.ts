@@ -5,11 +5,14 @@ import RawHandler from '../Crawler/RawHandler';
 import HttpError from '../../common/HttpError';
 import * as Extra from 'telegraf/extra'
 import Utils from '../../common/Utils';
-import Logger from '../../common/Logger';
-import { TRACE } from '../../common/Tracer';
 import * as Markup from 'telegraf/markup'
+import { TRACE, TRACER } from 'hinos-log/lib/tracer';
+import { LOGGER } from 'hinos-log/lib/logger';
+import { Logger } from 'log4js';
 
 export default class OrderCommand {
+  @LOGGER()
+  private static logger: Logger
   static readonly Bot = new Telegraf(AppConfig.app.telegram.OrderBot)
 
   static async init() {
@@ -20,7 +23,7 @@ export default class OrderCommand {
     return ['/order']
   }
 
-  @TRACE()
+  @TRACE({ type: TRACER.EXECUTE_TIME })
   static async runBackground() {
     const startTime = new Date().getTime()
     let tradings
@@ -122,7 +125,7 @@ export default class OrderCommand {
               break
           }
         } catch (e) {
-          Logger.error(e)
+          OrderCommand.logger.error(e)
         }
       }
     }
@@ -144,7 +147,8 @@ export default class OrderCommand {
         .extra()
       )
     })
-    OrderCommand.Bot.hears(/^\/p ([.\d]+)/i, async ({ from, reply, chat, match, message, deleteMessage }) => {
+    OrderCommand.Bot.hears(/^([.\d]+)/i, async ({ from, reply, chat, match, message, deleteMessage }) => {
+      // Update price
       if (message.reply_to_message) {
         let [, price] = match
         price = Utils.getQuickPrice(price)
@@ -158,6 +162,7 @@ export default class OrderCommand {
       }
     })
     OrderCommand.Bot.hears(/^\/q ([^\s]+)/i, async ({ from, reply, chat, match, message, deleteMessage }) => {
+      // Update quantity
       if (message.reply_to_message) {
         let [, quantity] = match
         const user = User.get(from.id)

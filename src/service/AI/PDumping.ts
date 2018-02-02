@@ -3,8 +3,8 @@ import { REDIS, Redis } from "hinos-redis/lib/redis";
 import { TradingTemp } from '../Crawler/RawHandler';
 import { User } from '../User';
 import AlertCommand from '../Telegram/AlertCommand';
-import { TRACE } from '../../common/Tracer';
 import Utils from '../../common/Utils';
+import { TRACE, TRACER } from 'hinos-log/lib/tracer';
 
 const MAX_RECORDS = 48
 const MIN_RECORDS = 24
@@ -58,10 +58,10 @@ export class PDumping {
 
   }
 
-  @TRACE()
+  @TRACE({ type: TRACER.EXECUTE_TIME })
   static async handleDumpPump(tradings: TradingTemp[]) {
     const msgsPump = [] as { key: string, last: number, level: number, percent: number, rate: string }[]
-    const msgsDump = [] as { key: string, last: number,level: number, percent: number, rate: string }[]
+    const msgsDump = [] as { key: string, last: number, level: number, percent: number, rate: string }[]
     for (let t of tradings) {
       const rs = await PDumping.addHistory(t.key, t.ask, t.bid)
       if (rs.pump.level !== -1 && PDumping.historyAsk[t.key].level !== rs.pump.level) {

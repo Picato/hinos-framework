@@ -1,8 +1,9 @@
 import { MONGO, Mongo, Collection } from "hinos-mongo/lib/mongo";
 import { REDIS, Redis } from "hinos-redis/lib/redis";
 import HttpError from "../../common/HttpError";
-import Logger from "../../common/Logger";
-import { TRACE } from "../../common/Tracer";
+import { TRACE, TRACER } from "hinos-log/lib/tracer";
+import { LOGGER } from "hinos-log/lib/logger";
+import { Logger } from "log4js";
 
 @Collection()
 export class RemitanoRate {
@@ -24,6 +25,8 @@ export class RemitanoRate {
 }
 
 export default class RemitanoHandler {
+  @LOGGER()
+  private static logger: Logger
 
   @MONGO()
   private static mongo: Mongo
@@ -79,7 +82,7 @@ export default class RemitanoHandler {
     }, AppConfig.app.bittrex.scanRemitano)
   }
 
-  @TRACE()
+  @TRACE({ type: TRACER.EXECUTE_TIME })
   static async scan() {
     try {
       let status
@@ -115,7 +118,7 @@ export default class RemitanoHandler {
       }
       await RemitanoHandler.redis.set('remitano.rate', JSON.stringify(rate))
     } catch (e) {
-      Logger.error('Remitano handler', e)
+      RemitanoHandler.logger.error('Remitano handler', e)
     }
   }
 }

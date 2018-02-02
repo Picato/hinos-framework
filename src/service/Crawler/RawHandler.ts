@@ -1,9 +1,10 @@
 import { REDIS, Redis } from "hinos-redis/lib/redis"
 import { Mongo, Uuid } from "hinos-mongo/lib/mongo"
 import BittrexService from "../BittrexService";
-import Logger from "../../common/Logger";
 import Utils from "../../common/Utils";
-import { TRACE } from "../../common/Tracer";
+import { TRACE, TRACER } from "hinos-log/lib/tracer";
+import { LOGGER } from "hinos-log/lib/logger";
+import { Logger } from "log4js";
 // import { Event } from "../Event";
 
 export class TradingTemp {
@@ -36,6 +37,8 @@ export class TradingTemp {
 }
 
 export default class RawHandler {
+  @LOGGER()
+  private static logger: Logger
 
   @REDIS()
   private static redis: Redis
@@ -54,7 +57,7 @@ export default class RawHandler {
     return JSON.parse(await RawHandler.redis.get('RawHandler.rate') || '[]') as { [key: string]: number }
   }
 
-  @TRACE()
+  @TRACE({ type: TRACER.EXECUTE_TIME })
   static async execute() {
     try {
       const now = new Date()
@@ -69,7 +72,7 @@ export default class RawHandler {
         await RawHandler.redis._publish(redis, 'updateData', JSON.stringify({ tradings: tradings, now: now }))
       })
     } catch (e) {
-      Logger.error('Raw handler', e)
+      RawHandler.logger.error('Raw handler', e)
     }
   }
 

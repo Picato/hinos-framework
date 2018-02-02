@@ -5,6 +5,13 @@ export class Alerts {
   chatId: number
   messageId: number
   alerts = [] as Alert[]
+  histories = [] as { last: number, num: number }[]
+
+  constructor() {
+    Object.defineProperty(this, 'histories', {
+      enumerable: false
+    })
+  }
 }
 
 export class Alert {

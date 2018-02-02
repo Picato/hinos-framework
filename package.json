@@ -34,6 +34,7 @@
         "hinos-common": "*",
         "hinos-cors": "*",
         "hinos-helmet": "*",
+        "hinos-log": "^1.0.2",
         "hinos-mongo": "*",
         "hinos-rabbitmq": "*",
         "hinos-redis": "*",

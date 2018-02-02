@@ -1,13 +1,13 @@
 import '../../config'
 import { Server } from 'hinos'
 import { Redis } from 'hinos-redis'
-import Logger from '../../common/Logger';
+import { Logger } from 'hinos-log/lib/logger';
 
 require(`../../env.${Server.env}`).default(Server)
 
 Redis(AppConfig.redis)
 
-Logger.log('---------------- SETUP TELEGRAM BOT ----------------')
+Logger.pool().info('---------------- SETUP TELEGRAM BOT ----------------')
 
 import OrderCommand from "./OrderCommand";
 import { User } from "../User";

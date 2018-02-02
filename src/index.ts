@@ -5,12 +5,15 @@ import { Mongo } from 'hinos-mongo'
 import { Redis } from 'hinos-redis'
 // import { serve } from 'hinos-serve'
 import { cors } from 'hinos-cors'
+import { Logger } from 'hinos-log/lib/logger';
 import './config'
 
 require(`./env.${Server.env}`).default(Server)
 
+Logger(AppConfig.log)
 Mongo(AppConfig.mongo)
 Redis(AppConfig.redis)
+
 // Server.use(serve({
 //   '/images': path.join(__dirname, '..', 'assets', 'images')
 // }))

@@ -3,13 +3,29 @@
   "path": "/coin-api",
   "app": {
     "telegram": {
-      "OrderBot": "",
-      "AlertBot": "",
-      "MenuBot": ""
+      "OrderBot": "532706770:AAGyNa9jRgQj6neRprQBo7chmJ2Vbq3rEG0",
+      "AlertBot": "472076591:AAERlij_FaPOVzTvSubH-KwEod2q48vlGS4",
+      "MenuBot": "511688991:AAGYbhU3gejlrNB6r6rIX-9bs5Zb03wN9d8"
     },
     "bittrex": {
       "scanTimeout": 5000,
       "scanRemitano": 10000
+    }
+  },
+  "log": {
+    "appenders": {
+      "default": {
+        "type": "console",
+        "filename": "log/all.log"
+      }
+    },
+    "categories": {
+      "default": {
+        "appenders": [
+          "default"
+        ],
+        "level": "all"
+      }
     }
   },
   "mongo": {

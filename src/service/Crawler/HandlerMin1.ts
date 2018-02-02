@@ -1,9 +1,10 @@
 import { Redis, REDIS } from "hinos-redis/lib/redis"
 import { TradingTemp } from './RawHandler'
 import { BittrexTrading } from "./BittrexTrading";
-import Logger from "../../common/Logger";
 import { Mongo } from "hinos-mongo/lib/mongo";
-import { TRACE } from "../../common/Tracer";
+import { LOGGER } from "hinos-log/lib/logger";
+import { Logger } from "log4js";
+import { TRACE, TRACER } from "hinos-log/lib/tracer";
 // import { Event } from "../Event";
 
 export class TradingMin1 extends BittrexTrading {
@@ -13,6 +14,9 @@ export class TradingMin1 extends BittrexTrading {
 }
 
 class HandlerMin1 {
+  @LOGGER()
+  private logger: Logger
+
   @REDIS()
   private redis: Redis
 
@@ -24,7 +28,7 @@ class HandlerMin1 {
 
 
   async init() {
-    Logger.log(`#${this.constructor.name}`, 'Initial')
+    this.logger.info(`#${this.constructor.name}`, 'Initial')
     const self = this
 
     const [lastUpdateDB, caches] = await this.redis.manual(async redis => {
@@ -43,11 +47,11 @@ class HandlerMin1 {
     return JSON.parse(await this.redis.get(`${this.constructor.name}.newestTrading`) || '[]')
   }
 
-  @TRACE()
+  @TRACE({ type: TRACER.EXECUTE_TIME })
   async handle(tradings: TradingTemp[], now: Date) {
     try {
       if (!this.lastUpdateDB || (this.lastUpdateDB.getMinutes() !== now.getMinutes())) {
-        Logger.log(`#${this.constructor.name}`, 'Begin handle data')
+        this.logger.debug(`#${this.constructor.name}`, 'Begin handle data')
         this.lastUpdateDB = now
         let data = [] as TradingMin1[]
         const self = this
@@ -91,7 +95,7 @@ class HandlerMin1 {
         })
       }
     } catch (e) {
-      Logger.error(`${this.constructor.name}`, e)
+      this.logger.error(`${this.constructor.name}`, e)
     }
   }
 }

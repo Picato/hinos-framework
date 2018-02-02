@@ -6,12 +6,15 @@ import * as Extra from 'telegraf/extra'
 import Utils from '../../common/Utils';
 import { Alert } from '../Alert';
 import HttpError from '../../common/HttpError';
-import Logger from '../../common/Logger';
-import { TRACE } from '../../common/Tracer';
 import RemitanoHandler from '../Crawler/RemitanoHandler';
 import MenuCommand from './MenuCommand';
+import { TRACE, TRACER } from 'hinos-log/lib/tracer';
+import { Logger } from 'log4js';
+import { LOGGER } from 'hinos-log/lib/logger';
 
 export default class AlertCommand {
+  @LOGGER()
+  private static logger: Logger
   static readonly Bot = new Telegraf(AppConfig.app.telegram.AlertBot)
 
   static async init() {
@@ -22,7 +25,7 @@ export default class AlertCommand {
     return ['/alert', '/arate']
   }
 
-  @TRACE()
+  @TRACE({ type: TRACER.EXECUTE_TIME })
   static async runBackground() {
     const tradings = await RawHandler.getTradings()
     for (const user of User.users) {
@@ -47,11 +50,26 @@ export default class AlertCommand {
           msgs = MenuCommand.getRateStr(`Rate at *${new Date().toTimeString().split(' ')[0]}*`, rate, vnd)
         } else {
           t = tradings.find(e => e.key === key)
+          if (!als.histories[0] || t.last !== als.histories[0].last) {
+            als.histories.splice(0, 0, { last: t.last, num: t.last - (als.histories[0] ? als.histories[0].last : t.last) })
+          }
           const [market] = key.split('-')
           msgs.push(`Alert at *${new Date().toTimeString().split(' ')[0]}*`)
           msgs.push(`----------------------------------------------`)
           msgs.push(`[${key}](https://bittrex.com/Market/Index?MarketName=${key})    *${Utils.formatNumber(t.last)}* ${market} 🚀`)
           msgs.push(`----------------------------------------------`)
+          if (als.histories.length > 0) {
+            for (let i = 0; i < als.histories.length; i++) {
+              let txt = `${Utils.formatNumber(als.histories[i].num, true)}`
+              if (als.histories[i + 4]) {
+                txt += ` | ${Utils.formatNumber(als.histories[i + 4].num, true)}`
+              }
+              msgs.push(txt)
+              if (i === 3) break
+            }
+            msgs.push(`----------------------------------------------`)
+            if (als.histories.length === 8) als.histories.splice(als.histories.length - 1, 1)
+          }
           msgs.push(`*  5%* | ${Utils.formatNumber(t.last + t.last * 5 / 100)} | ${Utils.formatNumber(t.last - t.last * 5 / 100)}`)
           msgs.push(`*10%* | ${Utils.formatNumber(t.last + t.last * 10 / 100)} | ${Utils.formatNumber(t.last - t.last * 10 / 100)}`)
           msgs.push(`*15%* | ${Utils.formatNumber(t.last + t.last * 15 / 100)} | ${Utils.formatNumber(t.last - t.last * 15 / 100)}`)
@@ -78,7 +96,7 @@ export default class AlertCommand {
             btn.map(e => m.callbackButton(e.text, e.cmd))
           )))
         } catch (e) {
-          Logger.error(e)
+          AlertCommand.logger.error(e)
         }
       }
     }
@@ -121,7 +139,7 @@ export default class AlertCommand {
         await reply(e.message)
       }
     })
-    AlertCommand.Bot.hears(/^\/nw (<|<=|>|>=)\s*([.\d]+)(\s(.+))?/i, async ({ from, reply, chat, match, message, deleteMessage }) => {
+    AlertCommand.Bot.hears(/^(<|<=|>|>=)\s*([.\d]+)(\s(.+))?/i, async ({ from, reply, chat, match, message, deleteMessage }) => {
       if (message.reply_to_message) {
         let [, operator, num, , des] = match
         const user = User.get(from.id)
