@@ -17,23 +17,22 @@
     "gen": "cd gencode && npm start"
   },
   "appconfig": [
-    "appconfig.json",
-    "global.json?mongo,redis,encrypt,#api"
+    "appconfig.json"
   ],
   "dependencies": {
     "axios": "^0.16.2",
-    "hinos": "^1.1.6",
-    "hinos-bodyparser": "^2.2.3",
-    "hinos-common": "^2.0.7",
-    "hinos-cors": "^1.0.2",
-    "hinos-helmet": "^1.0.0",
-    "hinos-mongo": "^1.2.4",
-    "hinos-redis": "^1.1.11",
-    "hinos-requesthasher": "^1.1.18",
-    "hinos-route": "^1.1.14",
-    "hinos-serve": "^1.1.2",
-    "hinos-socketio": "^2.0.11",
-    "hinos-validation": "^1.1.2",
+    "hinos": "*",
+    "hinos-bodyparser": "*",
+    "hinos-common": "*",
+    "hinos-cors": "*",
+    "hinos-helmet": "*",
+    "hinos-mongo": "*",
+    "hinos-redis": "*",
+    "hinos-requesthasher": "*",
+    "hinos-route": "*",
+    "hinos-serve": "*",
+    "hinos-socketio": "*",
+    "hinos-validation": "*",
     "lodash": "^4.17.4",
     "rimraf": "^2.6.2",
     "typescript": "^2.6.1"

@@ -1,13 +1,32 @@
 {
-  "url": "http://localhost:1009",
+  "url": "http://localhost:10000",
   "path": "",
   "mongo": {
-    "dbname": "test"
+    "dbname": "test",
+    "url": "mongodb://localhost:27017/",
+    "releaseTimeout": 1000
   },
   "redis": {
     "host": "localhost",
     "port": 6379,
+    "db": 0,
     "releaseTimeout": 50000
+  },
+  "log": {
+    "appenders": {
+      "default": {
+        "type": "console",
+        "filename": "log/all.log"
+      }
+    },
+    "categories": {
+      "default": {
+        "appenders": [
+          "default"
+        ],
+        "level": "all"
+      }
+    }
   },
   "rabbitmq": {
     "url": "amqp://127.0.0.1",
@@ -17,5 +36,14 @@
       "API_RECEIVER": "api",
       "LOG_RECEIVER": "log"
     }
+  },
+  "encrypt": {
+    "pwd": ")^!!!(**",
+    "mode": [
+      "query",
+      "body",
+      "response"
+    ],
+    "baseOnRequest": true
   }
 }
