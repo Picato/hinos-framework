@@ -144,7 +144,7 @@ export default class AlertCommand {
         deleteMessage()
       }
     })
-    AlertCommand.Bot.hears(/^\/alert/, async ({ match, from, reply, chat }) => {
+    AlertCommand.Bot.hears(/^\/alert/, async ({ from, reply, chat }) => {
       try {
         const user = User.get(from.id)
         const alerts = user.alerts
