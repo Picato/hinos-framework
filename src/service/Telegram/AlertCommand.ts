@@ -46,7 +46,7 @@ export default class AlertCommand {
           const vnd = await RemitanoHandler.getRate()
           msgs = MenuCommand.getRateStr(`Rate at *${new Date().toTimeString().split(' ')[0]}*`, rate, vnd)
         } else {
-          const t = tradings.find(e => e.key === key)
+          t = tradings.find(e => e.key === key)
           const [market] = key.split('-')
           msgs.push(`Alert at *${new Date().toTimeString().split(' ')[0]}*`)
           msgs.push(`----------------------------------------------`)
