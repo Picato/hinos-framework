@@ -4,10 +4,12 @@ import { route } from 'hinos-route'
 import { Mongo } from 'hinos-mongo'
 import { serve } from 'hinos-serve'
 import { cors } from 'hinos-cors'
+import { Logger } from 'hinos-log'
 import './config'
 
 require(`./env.${Server.env}`).default(Server)
 
+Logger(AppConfig.log)
 Mongo(AppConfig.mongo)
 Server.use(serve({
   '/images': path.join(__dirname, '..', 'assets', 'images')
@@ -16,7 +18,7 @@ Server.use(cors())
 Server.use(route(path.join(__dirname, 'controller'), { ignorecase: true, root: AppConfig.path }))
 
 Server.listen(AppConfig.port, () => {
-  console.info(`
+  Logger.pool().info(`
     _     _
   | |__ (_)_ __   ___  ___  ${AppConfig.name}
   | '_ \\| | '_ \\ / _ \\/ __|
