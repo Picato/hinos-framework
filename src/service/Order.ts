@@ -61,7 +61,7 @@ export class Order {
         return this.wbs.Available
       }
     }
-    return this.quantity
+    return +this.quantity
   }
   getSubTotal() {
     const quantity = this.getQuantity()

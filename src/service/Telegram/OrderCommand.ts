@@ -144,6 +144,30 @@ export default class OrderCommand {
         .extra()
       )
     })
+    OrderCommand.Bot.hears(/^\/p ([.\d]+)/i, async ({ from, reply, chat, match, message, deleteMessage }) => {
+      if (message.reply_to_message) {
+        let [, price] = match
+        price = Utils.getQuickPrice(price)
+        const user = User.get(from.id)
+        const o = user.orders.find(e => e.chatId === chat.id && e.messageId === message.reply_to_message.message_id)
+        if (!o) return await reply('Could not found this reply')
+        o.price = price
+        o.firstPrice = price
+        await user.save()
+        await deleteMessage()
+      }
+    })
+    OrderCommand.Bot.hears(/^\/q ([^\s]+)/i, async ({ from, reply, chat, match, message, deleteMessage }) => {
+      if (message.reply_to_message) {
+        let [, quantity] = match
+        const user = User.get(from.id)
+        const o = user.orders.find(e => e.chatId === chat.id && e.messageId === message.reply_to_message.message_id)
+        if (!o) return await reply('Could not found this reply')
+        o.quantity = quantity
+        await user.save()
+        await deleteMessage()
+      }
+    })
     OrderCommand.Bot.hears(/^\/order/, async ({ from, reply, chat }) => {
       try {
         const user = User.get(from.id)

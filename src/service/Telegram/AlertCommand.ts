@@ -59,7 +59,8 @@ export default class AlertCommand {
           msgs.push(`----------------------------------------------`)
         }
         if (key !== 'RATE') {
-          for (let i = als.alerts.length - 1; i >= 0; i--) {
+          const len = als.alerts.length
+          for (let i = len - 1; i >= 0; i--) {
             const al = als.alerts[i]
             if (al.isAlert(t)) {
               await AlertCommand.Bot.telegram.sendMessage(als.chatId, al.getMessageDone(t), Extra.markdown())
@@ -67,7 +68,7 @@ export default class AlertCommand {
               if (rs === 0) try { await AlertCommand.Bot.telegram.deleteMessage(als.chatId, als.messageId) } catch (_e) { }
             } else {
               msgs.push(al.getMessage(t.last))
-              btn.push({ text: `${i + 1}`, cmd: `alert:remove ${key} ${al.id}` })
+              btn.push({ text: `${len - i}`, cmd: `alert:remove ${key} ${al.id}` })
             }
           }
         }
@@ -120,34 +121,59 @@ export default class AlertCommand {
         await reply(e.message)
       }
     })
-    AlertCommand.Bot.hears(/^\/alert( ([\w-]+) (<|<=|>|>=)\s*([.\d]+)(\s(.+))?)?/, async ({ match, from, reply, chat }) => {
-      try {
-        let [, m] = match
-        if (m) {
-          let [, , key, operator, num, , des] = match
-          key = Utils.getQuickCoin(key)
-          const user = User.get(from.id)
-          const rs = await reply(`Added alert for ${key}`)
-          const old = await user.addAlert({
-            key,
-            operator,
-            des,
-            num: Utils.getQuickPrice(num),
-          } as Alert, chat.id, rs.message_id)
-          if (old) try { await AlertCommand.Bot.telegram.deleteMessage(old.chatId, old.messageId) } catch (_e) { }
-        } else {
-          const user = User.get(from.id)
-          const alerts = user.alerts
-          if (Object.keys(alerts).length === 0) throw HttpError.NOT_FOUND('Have no any alerting')
-          for (let key in user.alerts) {
-            const als = user.alerts[key]
-            try { await AlertCommand.Bot.telegram.deleteMessage(als.chatId, als.messageId) } catch (_e) { }
-            const rs = await reply(`Reloading ${key}`)
-            als.messageId = rs.message_id
-            als.chatId = chat.id
+    AlertCommand.Bot.hears(/^\/nw (<|<=|>|>=)\s*([.\d]+)(\s(.+))?/i, async ({ from, reply, chat, match, message, deleteMessage }) => {
+      if (message.reply_to_message) {
+        let [, operator, num, , des] = match
+        const user = User.get(from.id)
+        let key
+        for (let k in user.alerts) {
+          const e = user.alerts[k]
+          if (e.chatId === chat.id && e.messageId === message.reply_to_message.message_id) {
+            key = k
+            break
           }
-          await user.save()
         }
+        if (!key) return await reply('Could not found this reply')
+        await user.addAlert({
+          key,
+          operator,
+          des,
+          num: Utils.getQuickPrice(num),
+        } as Alert, chat.id, message.reply_to_message.message_id)
+        await user.save()
+        deleteMessage()
+      }
+    })
+    AlertCommand.Bot.hears(/^\/alert/, async ({ match, from, reply, chat }) => {
+      try {
+        const user = User.get(from.id)
+        const alerts = user.alerts
+        if (Object.keys(alerts).length === 0) throw HttpError.NOT_FOUND('Have no any alerting')
+        for (let key in user.alerts) {
+          const als = user.alerts[key]
+          try { await AlertCommand.Bot.telegram.deleteMessage(als.chatId, als.messageId) } catch (_e) { }
+          const rs = await reply(`Reloading ${key}`)
+          als.messageId = rs.message_id
+          als.chatId = chat.id
+        }
+        await user.save()
+      } catch (e) {
+        await reply(e.message)
+      }
+    })
+    AlertCommand.Bot.hears(/^\/nw ([\w-]+) (<|<=|>|>=)\s*([.\d]+)(\s(.+))?/, async ({ match, from, reply, chat }) => {
+      try {
+        let [, key, operator, num, , des] = match
+        key = Utils.getQuickCoin(key)
+        const user = User.get(from.id)
+        const rs = await reply(`Added alert for ${key}`)
+        const old = await user.addAlert({
+          key,
+          operator,
+          des,
+          num: Utils.getQuickPrice(num),
+        } as Alert, chat.id, rs.message_id)
+        if (old) try { await AlertCommand.Bot.telegram.deleteMessage(old.chatId, old.messageId) } catch (_e) { }
       } catch (e) {
         await reply(e.message)
       }
