@@ -68,7 +68,7 @@ export default class AlertCommand {
               if (i === 3) break
             }
             msgs.push(`----------------------------------------------`)
-            if (als.histories.length === 8) als.histories.splice(als.histories.length - 1, 1)
+            if (als.histories.length === 9) als.histories.splice(als.histories.length - 1, 1)
           }
           msgs.push(`*  5%* | ${Utils.formatNumber(t.last + t.last * 5 / 100)} | ${Utils.formatNumber(t.last - t.last * 5 / 100)}`)
           msgs.push(`*10%* | ${Utils.formatNumber(t.last + t.last * 10 / 100)} | ${Utils.formatNumber(t.last - t.last * 10 / 100)}`)
