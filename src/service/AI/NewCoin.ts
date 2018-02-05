@@ -1,7 +1,7 @@
 import * as _ from 'lodash'
 import * as Extra from 'telegraf/extra'
 import { REDIS, Redis } from "hinos-redis/lib/redis";
-import RawHandler, { TradingTemp } from '../Crawler/RawHandler';
+import { TradingTemp } from '../Crawler/RawHandler';
 import { User } from '../User';
 import AlertCommand from '../Telegram/AlertCommand';
 import { TRACE, TRACER } from 'hinos-log/lib/tracer';
