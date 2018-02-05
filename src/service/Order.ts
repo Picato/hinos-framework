@@ -1,5 +1,5 @@
 import Utils from "../common/Utils";
-import { Big } from 'big.js'
+import * as math from 'mathjs'
 import { TradingTemp } from "./Crawler/RawHandler";
 
 export class Order {
@@ -21,6 +21,10 @@ export class Order {
   static readonly Action = {
     BUY: -1,
     SELL: 1
+  }
+
+  static getOrderId() {
+    return new Date().getTime().toString()
   }
 
   constructor() {
@@ -57,7 +61,7 @@ export class Order {
   getQuantity() {
     if (this.quantity === 'all') {
       if (this.action === Order.Action.BUY) {
-        return +new Big(this.w.Available).div(new Big(0.0025).pow(this.price).plus(this.price)).toFixed(8)
+        return +(+math.dotDivide(this.w.Available, math.sum(math.dotMultiply(this.price, 0.0025), this.price))).toFixed(8)
       } else {
         return this.wbs.Available
       }
@@ -113,9 +117,9 @@ export class Order {
     msgs.push(`${od.action === Order.Action.BUY ? 'BUYING' : 'SELLING'} FORM at *${new Date().toTimeString().split(' ')[0]}*`)
     // _${status === undefined ? '' : (status === Order.Status.WAITING ? 'Waiting' : (status === Order.Status.DONE ? 'Done' : 'Canceled'))}_
     const sign = od.action === Order.Action.BUY ? 1 : -1
-    const lastPrice = od.action === Order.Action.BUY ? t.bid : t.ask
+    const lastPrice = od.type === Order.Type.BID ? t.last : (od.action === Order.Action.BUY ? t.bid : t.ask)
     msgs.push(`----------------------------------------------`)
-    msgs.push(`[${od.key}](https://bittrex.com/Market/Index?MarketName=${od.key})    *${Utils.formatNumber(lastPrice)}* ${market} 🚀`)
+    msgs.push(`[${od.key}](https://bittrex.com/Market/Index?MarketName=${od.key})    *${Utils.formatNumber(lastPrice)}* ${market} 🚀_${od.type === Order.Type.BID ? 'last' : (od.action === Order.Action.BUY ? 'bid' : 'ask')}_`)
     if (od.type === Order.Type.BID) {
       od.price = od.firstPrice
       msgs.push(`                   _${Utils.formatNumber(od.price - lastPrice, true)}_`)
@@ -166,6 +170,12 @@ export class Order {
         }
       }
     }
+    msgs.push(`----------------------------------------------`)
+    msgs.push(`            *TakeProfit*  | *StopLoss*`)
+    msgs.push(`*  5%* | ${Utils.formatNumber(od.firstPrice + od.firstPrice * 5 / 100)} | ${Utils.formatNumber(od.firstPrice - od.firstPrice * 5 / 100)}`)
+    msgs.push(`*10%* | ${Utils.formatNumber(od.firstPrice + od.firstPrice * 10 / 100)} | ${Utils.formatNumber(od.firstPrice - od.firstPrice * 10 / 100)}`)
+    msgs.push(`*15%* | ${Utils.formatNumber(od.firstPrice + od.firstPrice * 15 / 100)} | ${Utils.formatNumber(od.firstPrice - od.firstPrice * 15 / 100)}`)
+    msgs.push(`*20%* | ${Utils.formatNumber(od.firstPrice + od.firstPrice * 20 / 100)} | ${Utils.formatNumber(od.firstPrice - od.firstPrice * 20 / 100)}`)
     if (od.error && od.error.length > 0) {
       msgs.push(`----------------------------------------------`)
       msgs.push(od.error.map(e => `☠️ ${e}`).join('\n'))

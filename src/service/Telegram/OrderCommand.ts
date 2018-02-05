@@ -84,7 +84,7 @@ export default class OrderCommand {
               } else if (od.type === Order.Type.BOT) {
                 // Order by My bot
                 const t = await getTradings(od.key)
-                t.last = od.action === Order.Action.SELL ? t.ask : t.bid
+                t.last = od.action === Order.Action.SELL ? t.bid : t.ask
                 if (od.canBeOrder(t.last)) {
                   try { await OrderCommand.Bot.telegram.deleteMessage(od.chatId, od.messageId) } catch (_e) { }
                   let ors = {} as any
@@ -98,7 +98,8 @@ export default class OrderCommand {
                       ors = await user.buy(od) as any
                     }
                   } catch (e) {
-                    od.status = Order.Status.FAILED
+                    // od.status = Order.Status.FAILED
+                    rs = await OrderCommand.Bot.telegram.send(od.chatId, `[MISSED] Bot bought ${od.quantity} ${od.key} with price ${Utils.formatNumber(t.last)}/${Utils.formatNumber(od.price)}`)
                     od.error.push(e.message)
                   }
                   od.messageId = rs.message_id
@@ -116,7 +117,6 @@ export default class OrderCommand {
               break
             case Order.Status.CANCELED:
               await user.removeOrder(od)
-
               await OrderCommand.Bot.telegram.editMessageText(od.chatId, od.messageId, undefined, `🚫 Canceled order [${od.key}](https://bittrex.com/Market/Index?MarketName=${od.key}) buy *${od.getQuantity()}* ${coin} with price *${Utils.formatNumber(od.price)}* ${market}`, Extra.markdown())
               break
             case Order.Status.FAILED:
@@ -199,7 +199,9 @@ export default class OrderCommand {
         }
         for (let o of orders) {
           try { await OrderCommand.Bot.telegram.deleteMessage(o.chatId, o.messageId) } catch (_e) { }
-          const rs = await reply(`Reloading ${o.key}`)
+          const rs = await reply(`Reloading ${o.key}`, Extra.markdown().markup(m => m.inlineKeyboard([
+            m.callbackButton('🚫 CANCEL', `order:cancel ${o.id}`)
+          ])))
           o.messageId = rs.message_id
         }
         await user.save()
@@ -238,7 +240,6 @@ export default class OrderCommand {
             o.status = Order.Status.WAITING
             await user.save()
           }
-
         } else if (action.includes('order:cancel')) {
           o.status = Order.Status.CANCELED
           await user.save()
@@ -260,10 +261,14 @@ export default class OrderCommand {
         const [market, coin] = key.split('-')
         const balances = await user.getMyBalances()
         const w = balances.find(e => e.Currency === market) || { Available: 0 }
-        const rs = await reply(`Ordering ${key}`)
+        const orderId = Order.getOrderId()
+        const rs = await reply(`Ordering ${key}`, Extra.markdown().markup(m => m.inlineKeyboard([
+          m.callbackButton('🚫 CANCEL', `order:cancel ${orderId}`)
+        ])))
         price = Utils.getQuickPrice(price)
         if (action === 'buy') {
           await user.addOrder({
+            id: orderId,
             key,
             quantity,
             price,
@@ -276,6 +281,7 @@ export default class OrderCommand {
           } as Order)
         } else {
           await user.addOrder({
+            id: orderId,
             key,
             quantity,
             price,

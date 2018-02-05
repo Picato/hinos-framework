@@ -70,11 +70,6 @@ export default class AlertCommand {
             msgs.push(`----------------------------------------------`)
             if (als.histories.length === 9) als.histories.splice(als.histories.length - 1, 1)
           }
-          msgs.push(`*  5%* | ${Utils.formatNumber(t.last + t.last * 5 / 100)} | ${Utils.formatNumber(t.last - t.last * 5 / 100)}`)
-          msgs.push(`*10%* | ${Utils.formatNumber(t.last + t.last * 10 / 100)} | ${Utils.formatNumber(t.last - t.last * 10 / 100)}`)
-          msgs.push(`*15%* | ${Utils.formatNumber(t.last + t.last * 15 / 100)} | ${Utils.formatNumber(t.last - t.last * 15 / 100)}`)
-          msgs.push(`*20%* | ${Utils.formatNumber(t.last + t.last * 20 / 100)} | ${Utils.formatNumber(t.last - t.last * 20 / 100)}`)
-          msgs.push(`----------------------------------------------`)
         }
         if (key !== 'RATE') {
           const len = als.alerts.length

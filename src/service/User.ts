@@ -75,7 +75,7 @@ export class User {
     let existed
     if (od.id) existed = this.orders.find(e => e.id === od.id)
     else if (od.orderId) existed = this.orders.find(e => e.orderId === od.orderId)
-    if (!existed) od.id = new Date().getTime().toString()
+    if (!existed && !od.id) od.id = Order.getOrderId()
     if (existed) {
       _.merge(existed, od)
     } else {
