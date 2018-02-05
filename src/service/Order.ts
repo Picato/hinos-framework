@@ -57,8 +57,7 @@ export class Order {
   getQuantity() {
     if (this.quantity === 'all') {
       if (this.action === Order.Action.BUY) {
-        const price = new Big(this.price)
-        return +new Big(this.w.Available).div(price.plus(price.pow(0.0025))).toFixed(8)
+        return +new Big(this.w.Available).div(new Big(0.0025).pow(this.price).plus(this.price)).toFixed(8)
       } else {
         return this.wbs.Available
       }
