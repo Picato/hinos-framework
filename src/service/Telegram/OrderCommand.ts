@@ -248,9 +248,12 @@ export default class OrderCommand {
           await user.save()
         }
       } catch (e) {
-        o.status = Order.Status.FAILED
-        if (o) o.error.push(e.message)
-        else editMessageText(e.message)
+        if (o) {
+          o.status = Order.Status.FAILED
+          o.error.push(e.message)
+        } else {
+          editMessageText(e.message)
+        }
       }
     })
     OrderCommand.Bot.hears(/^\/(buy|sell) ([^\s]+) ([^\s]+) ([.\d]+)/i, async ({ from, match, reply, chat }) => {
