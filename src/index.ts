@@ -5,7 +5,7 @@ import { Mongo } from 'hinos-mongo'
 import { Redis } from 'hinos-redis'
 // import { serve } from 'hinos-serve'
 import { cors } from 'hinos-cors'
-import { Logger } from 'hinos-log/lib/logger';
+import { Logger } from 'hinos-log'
 import './config'
 
 require(`./env.${Server.env}`).default(Server)
@@ -21,7 +21,7 @@ Server.use(cors())
 Server.use(route(path.join(__dirname, 'controller'), { ignorecase: true, root: AppConfig.path }))
 
 Server.listen(AppConfig.port, () => {
-  console.info(`
+  Logger.pool().info(`
     _     _
   | |__ (_)_ __   ___  ___  ${AppConfig.name}
   | '_ \\| | '_ \\ / _ \\/ __|
@@ -30,3 +30,7 @@ Server.listen(AppConfig.port, () => {
 
   `)
 })
+import './service/Crawler/Main'
+// import './service/Crawler/Index'
+import './service/Telegram/Index'
+// import './service/AI/Index'
