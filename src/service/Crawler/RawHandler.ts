@@ -5,6 +5,7 @@ import Utils from "../../common/Utils";
 import { TRACE, TRACER } from "hinos-log/lib/tracer";
 import { LOGGER } from "hinos-log/lib/logger";
 import { Logger } from "log4js";
+import { NewCoin } from "../AI/NewCoin";
 // import { Event } from "../Event";
 
 export class TradingTemp {
@@ -62,9 +63,11 @@ export default class RawHandler {
     try {
       const now = new Date()
       const data = await BittrexService.getMarketSummaries()
+      const oldData = await RawHandler.getTradings()
       const [rate, tradings] = await Promise.all([
         RawHandler.handleRate(data),
-        RawHandler.handleData(data, now)
+        RawHandler.handleData(data, now),
+        NewCoin.handleNewCoin(oldData, data)
       ])
       await RawHandler.redis.manual(async redis => {
         await RawHandler.redis._set(redis, 'RawHandler.rate', JSON.stringify(rate))

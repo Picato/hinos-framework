@@ -30,7 +30,3 @@ Server.listen(AppConfig.port, () => {
 
   `)
 })
-import './service/Crawler/Main'
-// import './service/Crawler/Index'
-import './service/Telegram/Index'
-// import './service/AI/Index'
