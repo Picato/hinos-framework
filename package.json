@@ -29,6 +29,7 @@
     "appconfig.json"
   ],
   "dependencies": {
+    "big.js": "^5.0.3",
     "hinos": "*",
     "hinos-bodyparser": "*",
     "hinos-common": "*",
@@ -55,10 +56,11 @@
   "license": "ISC",
   "devDependencies": {
     "@types/axios": "^0.14.0",
+    "@types/big.js": "^4.0.2",
     "@types/chai": "^3.5.2",
     "@types/lodash": "^4.14.99",
-    "@types/mocha": "^2.2.48",
     "@types/log4js": "^2.3.5",
+    "@types/mocha": "^2.2.48",
     "@types/node": "^7.0.52",
     "axios": "^0.16.2",
     "chai": "^3.5.0",

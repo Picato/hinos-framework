@@ -1,4 +1,5 @@
 import Utils from "../common/Utils";
+import { Big } from 'big.js'
 import { TradingTemp } from "./Crawler/RawHandler";
 
 export class Order {
@@ -56,7 +57,8 @@ export class Order {
   getQuantity() {
     if (this.quantity === 'all') {
       if (this.action === Order.Action.BUY) {
-        return (this.w.Available / (this.price + (0.0025 * this.price)))
+        const price = new Big(this.price)
+        return +new Big(this.w.Available).div(price.plus(price.pow(0.0025))).toFixed(8)
       } else {
         return this.wbs.Available
       }
