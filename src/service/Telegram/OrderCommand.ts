@@ -279,11 +279,12 @@ export default class OrderCommand {
         const balances = await user.getMyBalances()
         const w = balances.find(e => e.Currency === market) || { Available: 0 }
         const orderId = Order.getOrderId()
-        const quantity = Order.calQuantity(spendMoney, price)
+        let quantity = spendMoney
+        price = Utils.getQuickPrice(price)
+        if (spendMoney !== 'all') quantity = Order.calQuantity(+spendMoney, price)
         const rs = await reply(`Ordering ${key}`, Extra.markdown().markup(m => m.inlineKeyboard([
           m.callbackButton('🚫 CANCEL', `order:cancel ${orderId}`)
         ])))
-        price = Utils.getQuickPrice(price)
         if (action === 'buy') {
           await user.addOrder({
             id: orderId,
