@@ -270,9 +270,9 @@ export default class OrderCommand {
         }
       }
     })
-    OrderCommand.Bot.hears(/^\/(buy|sell) ([^\s]+) ([^\s]+) ([.\d]+)/i, async ({ from, match, reply, chat }) => {
+    OrderCommand.Bot.hears(/^\/(buy|sell) ([^\s]+) ([^\s]+) ([.\d]+)( [.\d]+)?/i, async ({ from, match, reply, chat }) => {
       try {
-        let [, action, key, spendMoney, price] = match
+        let [, action, key, spendMoney, price, bufferRate] = match
         key = Utils.getQuickCoin(key)
         const user = User.get(from.id)
         const [market, coin] = key.split('-')
@@ -285,10 +285,12 @@ export default class OrderCommand {
         const rs = await reply(`Ordering ${key}`, Extra.markdown().markup(m => m.inlineKeyboard([
           m.callbackButton('🚫 CANCEL', `order:cancel ${orderId}`)
         ])))
+        if (bufferRate) bufferRate = Utils.getQuickPrice(bufferRate)
         if (action === 'buy') {
           await user.addOrder({
             id: orderId,
             key,
+            bufferRate,
             quantity,
             price,
             firstPrice: price,
@@ -302,6 +304,7 @@ export default class OrderCommand {
           await user.addOrder({
             id: orderId,
             key,
+            bufferRate,
             quantity,
             price,
             firstPrice: price,
