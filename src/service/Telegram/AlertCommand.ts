@@ -1,6 +1,6 @@
 import * as Telegraf from 'telegraf'
 import { User } from '../User';
-import RawHandler, { TradingTemp } from '../Crawler/RawHandler';
+import RawHandler from '../Crawler/RawHandler';
 import * as Markup from 'telegraf/markup'
 import * as Extra from 'telegraf/extra'
 import Utils from '../../common/Utils';
