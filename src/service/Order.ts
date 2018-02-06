@@ -121,7 +121,7 @@ export class Order {
     msgs.push(`${od.action === Order.Action.BUY ? 'BUYING' : 'SELLING'} FORM at *${new Date().toTimeString().split(' ')[0]}*`)
     // _${status === undefined ? '' : (status === Order.Status.WAITING ? 'Waiting' : (status === Order.Status.DONE ? 'Done' : 'Canceled'))}_
     const sign = od.action === Order.Action.BUY ? 1 : -1
-    const lastPrice = od.type === Order.Type.BID ? t.last : (od.action === Order.Action.BUY ? t.bid : t.ask)
+    const lastPrice = od.type === Order.Type.BID ? t.last : (od.action === Order.Action.BUY ? t.ask : t.bid)
     msgs.push(`----------------------------------------------`)
     msgs.push(`[${od.key}](https://bittrex.com/Market/Index?MarketName=${od.key})    *${Utils.formatNumber(lastPrice)}* ${market} 🚀_${od.type === Order.Type.BID ? 'last' : (od.action === Order.Action.BUY ? 'bid' : 'ask')}_`)
     if (od.type === Order.Type.BID) {
