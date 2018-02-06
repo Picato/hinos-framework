@@ -6,14 +6,16 @@ export default class Utils {
 
   static readonly Markets = ['BTC', 'USDT', 'ETH']
 
-  static getQuickCoin(coin: string) {
+  static getQuickCoin(coin: string, autoAdd = true) {
     coin = coin.toUpperCase()
-    const e = Utils.Markets.find(e => coin.startsWith(`${e}-`))
+    let e = Utils.Markets.find(e => coin.startsWith(`${e}-`))
     if (!e) {
       Utils.Markets.forEach(e => {
         coin = coin.replace(new RegExp(`^${e}`), `${e}-`)
       })
     }
+    e = Utils.Markets.find(e => coin.startsWith(`${e}-`))
+    if (autoAdd && !e) coin = `BTC-` + coin
     return coin
   }
 

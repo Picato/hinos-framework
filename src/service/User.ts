@@ -108,7 +108,8 @@ export class User {
     }
     this.alerts[a.key].chatId = chatId
     this.alerts[a.key].messageId = messageId
-    this.alerts[a.key].alerts.push(_.merge(new Alert(), a))
+    // this.alerts[a.key].hide = false
+    if (Object.keys(a).length > 2) this.alerts[a.key].alerts.push(_.merge(new Alert(), a))
     await this.save()
     return old
   }

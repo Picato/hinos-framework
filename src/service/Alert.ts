@@ -6,6 +6,7 @@ export class Alerts {
   messageId: number
   alerts = [] as Alert[]
   histories = [] as { last: number, num: number }[]
+  hide = false
 
   constructor() {
     Object.defineProperty(this, 'histories', {
@@ -44,10 +45,10 @@ export class Alert {
     return msgs.join('\n')
   }
 
-  getMessage(last: number) {
+  getMessage(last: number, isDes = true) {
     const msgs = []
     msgs.push(`🛎 ${this.operator}${Utils.formatNumber(this.num)} _(${Utils.formatNumber(this.num - last, true)})_`)
-    if (this.des)
+    if (this.des && isDes)
       msgs.push(`_${this.des}_`)
     return msgs.join('\n')
   }

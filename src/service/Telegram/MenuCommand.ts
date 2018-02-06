@@ -38,7 +38,7 @@ export default class MenuCommand {
       const { reply, replyWithMarkdown, match } = ctx
       try {
         let [, coin] = match
-        coin = Utils.getQuickCoin(coin)
+        coin = Utils.getQuickCoin(coin, false)
         const tradings = await RawHandler.getTradings()
         const txt = [
           `*🚀 ${coin} DETAILS 🚀*`, '-----------------------------------------',

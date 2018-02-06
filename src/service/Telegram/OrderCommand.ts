@@ -161,13 +161,27 @@ export default class OrderCommand {
         await deleteMessage()
       }
     })
-    OrderCommand.Bot.hears(/^\/q ([^\s]+)/i, async ({ from, reply, chat, match, message, deleteMessage }) => {
+    OrderCommand.Bot.hears(/^\/p ([^\s]+)/i, async ({ from, reply, chat, match, message, deleteMessage }) => {
       // Update quantity
       if (message.reply_to_message) {
-        let [, quantity] = match
         const user = User.get(from.id)
         const o = user.orders.find(e => e.chatId === chat.id && e.messageId === message.reply_to_message.message_id)
         if (!o) return await reply('Could not found this reply')
+        if (o.orderId) return await reply('Order was posted to server. Could not change')
+        let [, spendMoney] = match
+        o.quantity = Order.calQuantity(spendMoney, o.price)
+        await user.save()
+        await deleteMessage()
+      }
+    })
+    OrderCommand.Bot.hears(/^\/q ([^\s]+)/i, async ({ from, reply, chat, match, message, deleteMessage }) => {
+      // Update quantity
+      if (message.reply_to_message) {
+        const user = User.get(from.id)
+        const o = user.orders.find(e => e.chatId === chat.id && e.messageId === message.reply_to_message.message_id)
+        if (!o) return await reply('Could not found this reply')
+        if (o.orderId) return await reply('Order was posted to server. Could not change')
+        let [, quantity] = match
         o.quantity = quantity
         await user.save()
         await deleteMessage()
@@ -258,13 +272,14 @@ export default class OrderCommand {
     })
     OrderCommand.Bot.hears(/^\/(buy|sell) ([^\s]+) ([^\s]+) ([.\d]+)/i, async ({ from, match, reply, chat }) => {
       try {
-        let [, action, key, quantity, price] = match
+        let [, action, key, spendMoney, price] = match
         key = Utils.getQuickCoin(key)
         const user = User.get(from.id)
         const [market, coin] = key.split('-')
         const balances = await user.getMyBalances()
         const w = balances.find(e => e.Currency === market) || { Available: 0 }
         const orderId = Order.getOrderId()
+        const quantity = Order.calQuantity(spendMoney, price)
         const rs = await reply(`Ordering ${key}`, Extra.markdown().markup(m => m.inlineKeyboard([
           m.callbackButton('🚫 CANCEL', `order:cancel ${orderId}`)
         ])))

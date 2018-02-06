@@ -58,6 +58,10 @@ export class Order {
     return type === '0' ? 'IMMEDIATE_OR_CANCEL' : (type === '1' ? 'GOOD_TIL_CANCELLED' : 'FILL_OR_KILL')
   }
 
+  static calQuantity(total, price) {
+    return +(+math.dotDivide(total, price)).toFixed(8)
+  }
+
   getQuantity() {
     if (this.quantity === 'all') {
       if (this.action === Order.Action.BUY) {
