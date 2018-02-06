@@ -68,6 +68,7 @@ export default class OrderCommand {
                     msgs = rs.msgs
                   }
                   await OrderCommand.Bot.telegram.editMessageText(od.chatId, od.messageId, undefined, msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard([
+                    m.callbackButton(`✍️ S-LOSS ${od.isShowPercentLoss ? '✔️' : ''}`, `order:stoploss ${od.id}`),
                     m.callbackButton('🚫 CANCEL ORDER', `order:cancel ${od.id}`),
                   ])))
                 } else {
@@ -109,6 +110,7 @@ export default class OrderCommand {
                   const rs = await Order.formatOrderForm(t, od, undefined, undefined)
                   msgs = rs.msgs
                   await OrderCommand.Bot.telegram.editMessageText(od.chatId, od.messageId, undefined, msgs.join('\n'), Extra.markdown().markup(m => m.inlineKeyboard([
+                    m.callbackButton(`✍️ S-LOSS ${od.isShowPercentLoss ? '✔️' : ''}`, `order:stoploss ${od.id}`),
                     m.callbackButton(`🚀 NOW ${od.type === Order.Type.NOW ? '✔️' : ''}`, `order:now ${od.id}`),
                     m.callbackButton('🚫 CANCEL ORDER', `order:cancel ${od.id}`)
                   ])))
@@ -223,7 +225,7 @@ export default class OrderCommand {
         reply(e.message)
       }
     })
-    OrderCommand.Bot.action(/order:(yes|no|bot|bid|now|cancel) .+/, async ({ editMessageText, match, from }) => {
+    OrderCommand.Bot.action(/order:(yes|no|bot|bid|now|cancel|stoploss) .+/, async ({ editMessageText, match, from }) => {
       let o: Order
       try {
         const [action, id] = match[0].split(' ')
@@ -238,6 +240,9 @@ export default class OrderCommand {
           await user.save()
         } else if (action.includes('order:bot')) {
           o.type = Order.Type.BOT
+          await user.save()
+        } else if (action.includes('order:stoploss')) {
+          o.isShowPercentLoss = !o.isShowPercentLoss
           await user.save()
         } else if (action.includes('order:yes')) {
           if (o.type === Order.Type.BID || o.type === Order.Type.NOW) {

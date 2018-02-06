@@ -52,6 +52,8 @@ export class Order {
   error = [] as string[]
   success = [] as string[]
 
+  isShowPercentLoss = false
+
   private botEnable
 
   static getTypeValue(type) {
@@ -174,12 +176,14 @@ export class Order {
         }
       }
     }
-    msgs.push(`----------------------------------------------`)
-    msgs.push(`            *TakeProfit*  | *StopLoss*`)
-    msgs.push(`*  5%* | ${Utils.formatNumber(od.firstPrice + od.firstPrice * 5 / 100)} | ${Utils.formatNumber(od.firstPrice - od.firstPrice * 5 / 100)}`)
-    msgs.push(`*10%* | ${Utils.formatNumber(od.firstPrice + od.firstPrice * 10 / 100)} | ${Utils.formatNumber(od.firstPrice - od.firstPrice * 10 / 100)}`)
-    msgs.push(`*15%* | ${Utils.formatNumber(od.firstPrice + od.firstPrice * 15 / 100)} | ${Utils.formatNumber(od.firstPrice - od.firstPrice * 15 / 100)}`)
-    msgs.push(`*20%* | ${Utils.formatNumber(od.firstPrice + od.firstPrice * 20 / 100)} | ${Utils.formatNumber(od.firstPrice - od.firstPrice * 20 / 100)}`)
+    if (od.isShowPercentLoss) {
+      msgs.push(`----------------------------------------------`)
+      msgs.push(`            *TakeProfit*  | *StopLoss*`)
+      msgs.push(`*  5%* | ${Utils.formatNumber(od.firstPrice + od.firstPrice * 5 / 100)} | ${Utils.formatNumber(od.firstPrice - od.firstPrice * 5 / 100)}`)
+      msgs.push(`*10%* | ${Utils.formatNumber(od.firstPrice + od.firstPrice * 10 / 100)} | ${Utils.formatNumber(od.firstPrice - od.firstPrice * 10 / 100)}`)
+      msgs.push(`*15%* | ${Utils.formatNumber(od.firstPrice + od.firstPrice * 15 / 100)} | ${Utils.formatNumber(od.firstPrice - od.firstPrice * 15 / 100)}`)
+      msgs.push(`*20%* | ${Utils.formatNumber(od.firstPrice + od.firstPrice * 20 / 100)} | ${Utils.formatNumber(od.firstPrice - od.firstPrice * 20 / 100)}`)
+    }
     if (od.error && od.error.length > 0) {
       msgs.push(`----------------------------------------------`)
       msgs.push(od.error.map(e => `☠️ ${e}`).join('\n'))
