@@ -10,7 +10,7 @@ export class TableService {
 
   static async find(projectId: Uuid) {
     const mongo = Mongo.pool(Object.assign({}, AppConfig.mongo, {
-      url: AppConfig.mongo.url.replace(/\/\w+$/, `/${projectId}`)
+      dbname: projectId.toString()
     }))
     const rs = await mongo.manual(TableService.getListTables)
     return rs
@@ -24,7 +24,7 @@ export class TableService {
   })
   static async insert(name: string, projectId: Uuid) {
     const mongo = Mongo.pool(Object.assign({}, AppConfig.mongo, {
-      url: AppConfig.mongo.url.replace(/\/\w+$/, `/${projectId}`)
+      dbname: projectId.toString()
     }))
     const tables = await mongo.manual(TableService.getListTables)
     const idx = tables.findIndex(e => e.toLowerCase() === name.toLowerCase())
@@ -41,7 +41,7 @@ export class TableService {
   })
   static async delete(projectId: Uuid, name: String) {
     const mongo = Mongo.pool(Object.assign({}, AppConfig.mongo, {
-      url: AppConfig.mongo.url.replace(/\/\w+$/, `/${projectId}`)
+      dbname: projectId.toString()
     }))
     const tables = await mongo.manual(TableService.getListTables)
     if (tables.findIndex(e => e.toLowerCase() === name.toLowerCase()) === -1) throw HttpError.BAD_REQUEST('Table not found')

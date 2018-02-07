@@ -16,14 +16,14 @@ export class ObjectService {
 
   static async find(table: string, projectId: Uuid, fil = {}) {
     const mongo = Mongo.pool(Object.assign({}, AppConfig.mongo, {
-      url: AppConfig.mongo.url.replace(/\/\w+$/, `/${projectId}`)
+      dbname: projectId.toString()
     }))
     return await mongo.find<MObject>(table, fil)
   }
 
   static async get(table: string, projectId: Uuid, _id: any) {
     const mongo = Mongo.pool(Object.assign({}, AppConfig.mongo, {
-      url: AppConfig.mongo.url.replace(/\/\w+$/, `/${projectId}`)
+      dbname: projectId.toString()
     }))
     return await mongo.get<MObject>(table, _id)
   }
@@ -39,7 +39,7 @@ export class ObjectService {
   })
   static async insert(table: string, projectId: Uuid, body: MObject | MObject[]) {
     const mongo = Mongo.pool(Object.assign({}, AppConfig.mongo, {
-      url: AppConfig.mongo.url.replace(/\/\w+$/, `/${projectId}`)
+      dbname: projectId.toString()
     }))
     return await mongo.insert<MObject>(table, body as any)
   }
@@ -51,7 +51,7 @@ export class ObjectService {
   })
   static async update(table: string, projectId: Uuid, body: MObject) {
     const mongo = Mongo.pool(Object.assign({}, AppConfig.mongo, {
-      url: AppConfig.mongo.url.replace(/\/\w+$/, `/${projectId}`)
+      dbname: projectId.toString()
     }))
     const rs = await mongo.update(table, body, { replace: true })
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
@@ -64,7 +64,7 @@ export class ObjectService {
   })
   static async delete(table: string, projectId: Uuid, _id: Uuid) {
     const mongo = Mongo.pool(Object.assign({}, AppConfig.mongo, {
-      url: AppConfig.mongo.url.replace(/\/\w+$/, `/${projectId}`)
+      dbname: projectId.toString()
     }))
     const rs = await mongo.delete(table, _id)
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to delete')
