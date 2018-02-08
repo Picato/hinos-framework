@@ -16,7 +16,8 @@
     "gen": "cd gencode && npm start"
   },
   "appconfig": [
-    "appconfig.json"
+    "appconfig.json",
+    "../global.json"
   ],
   "dependencies": {
     "nodemailer": "^4.4.2",
