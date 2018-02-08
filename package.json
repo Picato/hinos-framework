@@ -17,7 +17,7 @@
   },
   "appconfig": [
     "appconfig.json",
-    "global.json?mongo,redis,encrypt,#api"
+    "../global.json?mongo,redis,encrypt,services,#log"
   ],
   "dependencies": {
     "zip-folder": "^1.0.0"
