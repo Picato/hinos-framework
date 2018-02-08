@@ -17,7 +17,8 @@
     "gen": "cd gencode && npm start"
   },
   "appconfig": [
-    "appconfig.json"
+    "appconfig.json",
+    "../global.json?mongo,encrypt,services,#dynamic"
   ],
   "dependencies": {
     "zip-folder": "^1.0.0"
