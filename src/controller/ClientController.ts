@@ -98,6 +98,7 @@ export default class AccountController {
   })
   static async register({ body, headers }) {
     body = Mongo.autocast(body)
+    const token = body.token
     body = _.omit(body, ['_id', 'trying', 'secret_key', 'created_at', 'updated_at', 'token', 'native', 'status', 'two_factor_secret_img', 'two_factor_secret_base32'])
     body.role_ids = headers.role ? [headers.role] : undefined
     const plugins = await ProjectService.getCached(headers.pj, 'plugins') as PluginCached
@@ -109,12 +110,12 @@ export default class AccountController {
     if (body.app) {
       if (oauth.app && oauth.app.includes(body.app)) {
         if ('facebook' === body.app) {
-          const { id, email, more } = await AccountService.getMeFacebook(body.token)
+          const { id, email, more } = await AccountService.getMeFacebook(token)
           body.username = email || id
           body.recover_by = email
           body = _.merge({}, more, body)
         } else if ('google' === body.app) {
-          const { id, email, more } = await AccountService.getMeGoogle(body.token)
+          const { id, email, more } = await AccountService.getMeGoogle(token)
           body.username = email || id
           body.recover_by = email
           body = _.merge({}, more, body)
