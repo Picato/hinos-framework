@@ -17,7 +17,7 @@
   },
   "appconfig": [
     "appconfig.json",
-    "global.json?mongo,redis,encrypt,#api"
+    "../global.json?mongo,encrypt,services,#script"
   ],
   "dependencies": {
     "archiver": "^2.1.0",
