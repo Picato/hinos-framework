@@ -1,4 +1,5 @@
 import * as _ from 'lodash'
+import axios from 'axios'
 import { VALIDATE, Checker } from 'hinos-validation'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
@@ -21,11 +22,24 @@ export interface Attachments {
   // fileserv?: string
 }
 
+// @Thanh bo sau khi send qua token
+const MailConfigDefault = {
+  gmail: {
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: {
+      type: 'OAuth2'
+    }
+  }
+}
+
 @Collection('Mail')
 /* tslint:disable */
 export class Mail {
   _id?: Uuid
   config_id?: Uuid
+  config?: object
   project_id?: Uuid
   account_id?: Uuid
   subject?: string
@@ -41,6 +55,10 @@ export class Mail {
   retry_at?: Date
   created_at?: Date
   updated_at?: Date
+  auth?: {
+    type: 'gmail',
+    accessToken: string
+  }
 }
 /* tslint:enable */
 
@@ -62,9 +80,15 @@ export class MailCached {
     const e = {} as MailCached
     if (!_e.retry_at) e.retry_at = new Date().getTime()
     if (_e.retry_at instanceof Date) e.retry_at = _e.retry_at.getTime()
-    const config = await MailConfigService.get(_e.config_id)
-    if (config) e.config = config.config
-    _.merge(e, _.pick(_e, ['_id', 'subject', 'text', 'html', 'from', 'to', 'cc', 'attachments', 'status']))
+    if (_e.config_id) {
+      const config = await MailConfigService.get(_e.config_id)
+      if (config) e.config = config.config
+      _.merge(e, _.pick(_e, ['_id', 'subject', 'text', 'html', 'from', 'to', 'cc', 'attachments', 'status']))
+    } else {
+      // @Thanh bo sau khi send qua token
+      _.merge(e, _.pick(_e, ['_id', 'subject', 'text', 'html', 'from', 'to', 'cc', 'attachments', 'status']), { auth: { accessToken: _e.config['accessToken'] } })
+      e.config = _.merge({}, MailConfigDefault[_e.config['type']])
+    }
     return JSON.stringify(e)
   }
   static castToObject(_e: string): MailCached {
@@ -99,7 +123,7 @@ export class MailService {
         }
       },
       $fields: {
-        _id: 1, config_id: 1, subject: 1, text: 1, html: 1, from: 1, to: 1, cc: 1, attachments: 1, retry_at: 1, status: 1
+        _id: 1, config_id: 1, config: 1, subject: 1, text: 1, html: 1, from: 1, to: 1, cc: 1, attachments: 1, retry_at: 1, status: 1
       },
       $recordsPerPage: 0,
       $sort: {
@@ -144,7 +168,11 @@ export class MailService {
       const mail = await MailTemplateService.get(body.template_id)
       _.merge(body, _.pick(mail, ['subject', 'text', 'html', 'config_id', 'from']))
     })
-    Checker.required(body, 'config_id', Uuid)
+    try {
+      Checker.required(body, 'config_id', Uuid)
+    } catch (e) {
+      Checker.required(body, 'config', Object)
+    }
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
     Checker.required(body, 'subject', String)
@@ -230,15 +258,43 @@ export class MailService {
   //   }
   // }
 
+  private static async sendMailViaToken(mail: Mail) {
+    const encodedMail = new Buffer(
+      `Content-Type: ${mail.html ? 'text/html' : 'text/plain'}; charset=\"UTF-8\"\n` +
+      "MIME-Version: 1.0\n" +
+      "Content-Transfer-Encoding: 7bit\n" +
+      `to: ${mail.to}\n` +
+      `from: ${mail.from}\n` +
+      `subject: ${mail.subject}\n\n` +
+
+      `${mail.html || mail.text}`
+    ).toString("base64").replace(/\+/g, '-').replace(/\//g, '_');
+    await axios.post('https://www.googleapis.com/gmail/v1/users/me/messages/send',
+      {
+        raw: encodedMail
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${mail.auth.accessToken}`
+        }
+      })
+    return null
+  }
+
   private static async sendMail(mailOptions: Mail, config: MailConfig) {
     return new Promise((resolve, reject) => {
       try {
         const transporter = nodemailer.createTransport(config)
         try {
-          transporter.sendMail(mailOptions as nodemailer.SendMailOptions, (error, info) => {
-            if (error) return reject(HttpError.INTERNAL(error.message))
-            resolve(info)
-          })
+          if (mailOptions.auth) {
+            // @Thanh bo sau khi send qua token
+            MailService.sendMailViaToken(mailOptions).then(resolve).catch(reject)
+          } else {
+            transporter.sendMail(mailOptions as nodemailer.SendMailOptions, (error, info) => {
+              if (error) return reject(HttpError.INTERNAL(error.message))
+              resolve(info)
+            })
+          }
         } catch (e) {
           reject(HttpError.INTERNAL(e))
         }

@@ -32,3 +32,23 @@ Server.listen(AppConfig.port, () => {
 
   `)
 })
+// import * as nodemailer from 'nodemailer'
+
+// let transporter = nodemailer.createTransport({
+//   host: 'smtp.gmail.com',
+//   port: 465,
+//   secure: true,
+//   auth: {
+//     type: 'OAuth2',
+//     user: 'thanhdt@viosoft.com',
+//     refreshToken: '1/aAIJWUAf5xF8KbOevIZxI022qrk-9MZBt89j2aKhAdo'
+//   }
+// });
+// transporter.sendMail({
+//   from: 'thanhdt@viosoft.com',
+//   to: 'doanthuanthanh88@gmail.com',
+//   subject: 'Message',
+//   text: 'I hope this message gets through!'
+// }, (error) => {
+//   console.log('error', error)
+// })

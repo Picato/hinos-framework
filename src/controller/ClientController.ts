@@ -53,6 +53,7 @@ export class ClientController {
       to: Array,
       cc: Array,
       attachments: Array,
+      config: Object,
       params: Object // replace mail content, subject
     }
   })
