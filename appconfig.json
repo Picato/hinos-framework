@@ -1,0 +1,38 @@
+{
+  "url": "http://localhost:8801",
+  "path": "/sct",
+  "services": {
+    "oauth": "http://localhost:6111",
+    "log": "http://localhost:6114"
+  },
+  "mongo": {
+    "dbname": "sochitieu",
+    "url": "mongodb://localhost:27017/",
+    "releaseTimeout": 1000
+  },
+  "log": {
+    "appenders": {
+      "default": {
+        "type": "console",
+        "filename": "log/all.log"
+      }
+    },
+    "categories": {
+      "default": {
+        "appenders": [
+          "default"
+        ],
+        "level": "all"
+      }
+    }
+  },
+  "encrypt": {
+    "pwd": ")^!!!(**",
+    "mode": [
+      "query",
+      "body",
+      "response"
+    ],
+    "baseOnRequest": true
+  }
+}

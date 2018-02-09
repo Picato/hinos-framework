@@ -2,5 +2,5 @@ node_modules/
 .build/
 .spec/
 assets/
-!assets/GUI.zip
+@gencode/
 package-lock.json

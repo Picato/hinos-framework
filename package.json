@@ -11,53 +11,39 @@
     "pretest": "rimraf .spec && tsc -p src/test/tsconfig.json",
     "test": "mocha --opts src/test/mocha.opts \".spec/test/spec/*.js\"",
     "dev": "tsc --watch --pretty --sourceMap",
-    "pm2": "cross-var \"pm2 start . --env production --name $npm_package_name\""
+    "pm2": "cross-var \"pm2 start . --env production --name $npm_package_name\"",
+    "gencode": "git clone https://github.com/doanthuanthanh88/quickstart.git -b hinos@gencode --single-branch gencode && cd gencode && npm install",
+    "gen": "cd gencode && npm start"
   },
-  "appconfig": {
-    "externalConfig": "./appconfig.cfg#api",
-    "url": "http://localhost:8801",
-    "path": "/sct",
-    "services": {
-      "oauth": "http://localhost:6111",
-      "log": "http://localhost:6114"
-    },
-    "mongo": {
-      "url": "mongodb://localhost:27017/sochitieu",
-      "releaseTimeout": 50000
-    },
-    "encrypt": {
-      "pwd": "",
-      "mode": [
-        "query",
-        "body",
-        "response"
-      ],
-      "baseOnRequest": true,
-      "helmet": false
-    }
-  },
-  "optionalDependencies": {
-    "hinos-helmet": "^1.0.0"
-  },
+  "appconfig": [
+    "appconfig.json"
+  ],
   "dependencies": {
-    "axios": "^0.16.2",
-    "hinos": "^1.1.6",
-    "hinos-bodyparser": "^2.1.5",
-    "hinos-cors": "^1.0.2",
-    "hinos-mongo": "^1.1.10",
-    "hinos-route": "^1.1.14",
-    "hinos-validation": "^1.1.2",
+    "hinos": "*",
+    "hinos-bodyparser": "*",
+    "hinos-common": "*",
+    "hinos-cors": "*",
+    "hinos-helmet": "*",
+    "hinos-log": "*",
+    "hinos-mongo": "*",
+    "hinos-requesthasher": "*",
+    "hinos-requestmatcher": "*",
+    "hinos-route": "*",
+    "hinos-serve": "*",
+    "hinos-validation": "*",
     "lodash": "^4.17.4",
-    "rimraf": "^2.6.2"
+    "log4js": "^2.5.2",
+    "typescript": "^2.7.1"
   },
   "author": "doanthuanthanh88@gmail.com",
   "license": "ISC",
   "devDependencies": {
     "@types/axios": "^0.14.0",
     "@types/chai": "^3.5.2",
-    "@types/lodash": "^4.14.85",
-    "@types/mocha": "^2.2.44",
-    "@types/node": "^7.0.48",
+    "@types/lodash": "^4.14.99",
+    "@types/mocha": "^2.2.48",
+    "@types/node": "^7.0.52",
+    "axios": "^0.16.2",
     "chai": "^3.5.0",
     "mocha": "^3.5.2"
   }

@@ -3,16 +3,18 @@ import { Server } from 'hinos'
 import { route } from 'hinos-route'
 import { Mongo } from 'hinos-mongo'
 import { cors } from 'hinos-cors'
+import { Logger } from 'hinos-log'
 import './config'
 
 require(`./env.${Server.env}`).default(Server)
 
-Mongo(AppConfig.mongo).debug(!Server.isProduction)
+Logger(AppConfig.log)
+Mongo(AppConfig.mongo)
 Server.use(cors())
-Server.use(route(path.join(__dirname, 'controller'), { ignorecase: true }))
+Server.use(route(path.join(__dirname, 'controller'), { root: AppConfig.path, ignorecase: true }))
 
 Server.listen(AppConfig.port, () => {
-  console.info(`
+  Logger.pool().info(`
     _     _
   | |__ (_)_ __   ___  ___  ${AppConfig.name}
   | '_ \\| | '_ \\ / _ \\/ __|
