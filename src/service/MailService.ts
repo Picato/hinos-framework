@@ -169,9 +169,10 @@ export class MailService {
       _.merge(body, _.pick(mail, ['subject', 'text', 'html', 'config_id', 'from']))
     })
     try {
-      Checker.required(body, 'config_id', Uuid)
-    } catch (e) {
       Checker.required(body, 'config', Object)
+      delete body.config_id
+    } catch (e) {
+      Checker.required(body, 'config_id', Uuid)
     }
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
