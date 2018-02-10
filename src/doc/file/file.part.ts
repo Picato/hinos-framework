@@ -1,4 +1,4 @@
-import { TAG, HOST } from '../common'
+import { HOST } from '../common'
 
 const GROUP = 'FILE'
 const i18doc = {
@@ -6,7 +6,7 @@ const i18doc = {
 }
 
 export default [
-  DOC('Upload file', GROUP, TAG.ADMIN, {
+  DOC('Upload file', GROUP, {
     i18doc: Object.assign({}, i18doc, {
       '$body': DOC.type('string | string[]').des('Link file(s) after upload. It data type base on file configuration'),
       '*.files': DOC.required().type('File | File[]').des('File uploading. It data type base on file configuration')
@@ -34,7 +34,7 @@ export default [
       'newfile1': $var('this.$body')
     }
   }, { extends: ['#uploadFile', '#authRequestByToken'] }),
-  DOC('Store or replace file(s) after uploading to make sure it wont be removed after period time', GROUP, TAG.ADMIN, {
+  DOC('Store or replace file(s) after uploading to make sure it wont be removed after period time', GROUP, {
     i18doc: {
       'body.oldFiles': DOC.type('string | string[]').des('Old link file which you got after call api file uploading'),
       'body.files': DOC.required().type('string | string[]').des('New link file which you got after call api file uploading')
@@ -52,7 +52,7 @@ export default [
       files: $var('newfile')
     }
   }, { extends: '#authRequestByToken' }),
-  DOC('Remove file', GROUP, TAG.ADMIN, {
+  DOC('Remove file', GROUP, {
     i18doc: {
       'body.files': DOC.required().type('string | string[]').des('Link file which you got after call api file uploading')
     },
