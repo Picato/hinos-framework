@@ -11,9 +11,9 @@ export default [
     i18doc: Object.assign({}, i18doc, {
       'body.name': DOC.required()
     }),
-    url: POST(`${HOST.DYNAMIC}/dynamic/table`),
+    url: POST(`${HOST.DYNAMIC}/dynamic/Table`),
     body: {
-      name: 'Pref'
+      name: 'PrefTesting'
     },
     var: {
       'newtable': $var('this.$body')
@@ -21,12 +21,12 @@ export default [
   }, { extends: '#authRequestByToken' }),
   DOC('Get list tables', GROUP, TAG.ADMIN, {
     i18doc,
-    url: GET(`${HOST.DYNAMIC}/dynamic/table`)
+    url: GET(`${HOST.DYNAMIC}/dynamic/Table`)
   }, { extends: '#authRequestByToken' }),
 
   ...INCLUDE('doc/dynamic/dynamic.part'),
 
   DOC('Remove table', GROUP, TAG.ADMIN, {
-    url: DELETE(`${HOST.DYNAMIC}/dynamic/table/:tableId*`, $var('newtable._id'))
+    url: DELETE(`${HOST.DYNAMIC}/dynamic/Table/:tableName*`, $var('newtable'))
   }, { extends: '#authRequestByToken' })
 ]

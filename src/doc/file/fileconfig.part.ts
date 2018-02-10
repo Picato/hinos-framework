@@ -6,8 +6,9 @@ const i18doc = {
   '*.name': 'File config name',
   '*.config': 'Uploading file configuration information',
   '*.config.maxSize': DOC.required().des('Limit uploading file size'),
-  '*.config.maxFile': DOC.des('Num of files can upload'),
-  '*.config.ext': DOC.des('File extension allow upload. <code>Eg. <b>jpe?g|png|gif</b> (or use <b>.*</b> for all files)</code>'),
+  '*.config.maxFile': DOC.required().des('Num of files can upload'),
+  '*.config.ext': DOC.required().des('File extension allow upload. <code>Eg. <b>jpe?g|png|gif</b> (or use <b>.*</b> for all files)</code>'),
+  '*.config.expiredTime': DOC.required().des('Storing time before file is be deleted when it not just saved (seconds)'),
   '*.config.resize': DOC.groupStart().des('Config to auto resize images after upload <code>Only use <b>resize</b> OR <b>zip</b></code>'),
   '*.config.zip': DOC.groupEnd('OR').des('Auto zip file in uploading progress <code>Only use <b>zip</b> OR <b>resize</b></code>'),  
   '*.config.resize.0.w': 'Image width after resize. <code>Atleast must have <b>w</b> or <b>h</b></code>',
@@ -28,11 +29,12 @@ export default [
     note: [
       `Add SMTP server information for sending`
     ],
-    url: POST(`${HOST.FILE}/files/config`),
+    url: POST(`${HOST.FILE}/files/Config`),
     body: {
       'config': {
         'maxSize': 2046,
         'maxFile': 2,
+        'expiredTime': 300,
         'ext': '.*',
         'resize': [
           { 'w': 100, 'h': 100, 'ext': 'thumb' }
@@ -47,13 +49,14 @@ export default [
   }, { extends: '#authRequestByToken' }),
   DOC('Update files config', GROUP, TAG.ADMIN, {
     i18doc,
-    url: PUT(`${HOST.FILE}/files/config/:fileConfigId*`, $var('newfileconfig._id')),
+    url: PUT(`${HOST.FILE}/files/Config/:fileConfigId*`, $var('newfileconfig._id')),
     body: {
       'name': 'test avatar',
       'config': {
         'maxSize': 512,
         'maxFile': 1,
         'ext': 'jpe?g|png|gif',
+        'expiredTime': 300,
         'resize': [
           {
             'w': 120,
@@ -67,12 +70,12 @@ export default [
   }, { extends: '#authRequestByToken' }),
   DOC('Get list files config', GROUP, TAG.ADMIN, {
     i18doc,
-    url: GET(`${HOST.FILE}/files/config`)
+    url: GET(`${HOST.FILE}/files/Config`)
   }, { extends: '#authRequestByToken' }),
 
   ...INCLUDE('doc/file/file.part'),
 
   DOC('Remove files config', GROUP, TAG.ADMIN, {
-    url: DELETE(`${HOST.FILE}/files/config/:fileConfigId*`, $var('newfileconfig._id'))
+    url: DELETE(`${HOST.FILE}/files/Config/:fileConfigId*`, $var('newfileconfig._id'))
   }, { extends: '#authRequestByToken' })
 ]

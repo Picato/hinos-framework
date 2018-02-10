@@ -33,12 +33,13 @@ export class ApiImpl extends Api {
   $body: any
   url: Url
   doc: Doc
+  nvm: boolean // for plugin like DELAY
 
   get _disabled() {
     return this.disabled || !this.url
   }
 
-  async run() {
+  async run(_prms) {
     const vars = ApiImpl.vars
     this.install(vars)
     await this.call()

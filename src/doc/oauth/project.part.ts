@@ -17,13 +17,13 @@ export default [
   '#adminLogin',
   DOC('Get project details', GROUP, TAG.ADMIN, {
     i18doc,
-    url: GET(`${HOST.OAUTH}/oauth/project`)
+    url: GET(`${HOST.OAUTH}/oauth/Project`)
   }, { extends: '#authRequestByToken' }),
   DOC('Update project', GROUP, TAG.ADMIN, {
     i18doc: Object.assign({}, i18doc, {
       'body.plugins.*': DOC.required()
     }),
-    url: PUT(`${HOST.OAUTH}/oauth/project`),
+    url: PUT(`${HOST.OAUTH}/oauth/Project`),
     body: {
       name: 'Developer',
       des: 'updated 1',

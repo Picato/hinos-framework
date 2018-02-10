@@ -18,7 +18,7 @@ export default [
       `?<b>fileName=filename.txt</b>: Rename file`,
       `</pre>`
     ],
-    url: POST(`${HOST.FILE}/files/upload/:fileConfigId*`, $var('newfileconfig._id')),
+    url: POST(`${HOST.FILE}/files/Upload/:fileConfigId*`, $var('newfileconfig._id')),
     headers: {
       'content-type': 'multipart/form-data'
     },
@@ -34,6 +34,7 @@ export default [
       'newfile1': $var('this.$body')
     }
   }, { extends: ['#uploadFile', '#authRequestByToken'] }),
+  DELAY(500),
   DOC('Store or replace file(s) after uploading to make sure it wont be removed after period time', GROUP, {
     i18doc: {
       'body.oldFiles': DOC.type('string | string[]').des('Old link file which you got after call api file uploading'),
@@ -46,7 +47,7 @@ export default [
       `<b>files</b>: The new files which you upload and want to store it. It not be removed after the period time`,
       `</pre>`
     ],
-    url: PUT(`${HOST.FILE}/files/store`),
+    url: PUT(`${HOST.FILE}/files/Store`),
     body: {
       oldFiles: $var('newfile1'),
       files: $var('newfile')
@@ -56,7 +57,7 @@ export default [
     i18doc: {
       'body.files': DOC.required().type('string | string[]').des('Link file which you got after call api file uploading')
     },
-    url: PUT(`${HOST.FILE}/files/remove`),
+    url: PUT(`${HOST.FILE}/files/Remove`),
     body: {
       files: $var('newfile')
     }

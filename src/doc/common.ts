@@ -3,9 +3,10 @@ export const TAG = {
   ADMIN: 'ADMIN'
 }
 
-export const HOST = {
+export const HOST = {  
   OAUTH: '',
   FILE: '',
   MAIL: '',
-  LOG: ''
+  LOG: '',
+  DYNAMIC: ''  
 }

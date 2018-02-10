@@ -1,4 +1,7 @@
-declare interface Var { }
+declare interface Var { 
+  append(txt: string)
+  prepend(txt: string)
+}
 declare interface Url { }
 declare interface FileData { }
 declare interface Doc {
@@ -32,6 +35,7 @@ declare interface Testcase {
 declare namespace API {
   export let HOST: string
 }
+declare function DELAY(timeout: number, des?: string): Api
 declare function INCLUDE(path: string): Api[]
 declare function API(title: string, options: Api, meta?: { key?: string, extends?: string | string[] }): Api
 declare interface DocType {

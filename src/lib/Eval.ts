@@ -1,12 +1,20 @@
 import * as URL from 'url'
 
 export class Var {
+  appendTxt = ''
+  prependTxt = ''
   constructor(public name: string, public value?: any) { }
   get prefix() {
     return this.name.indexOf('this.') === 0 ? '' : '$var.'
   }
+  prepend(prependTxt: string) {
+    this.prependTxt = prependTxt
+  }
+  append(appendTxt) {
+    this.appendTxt = appendTxt
+  }
   toString() {
-    return `\$\{${this.prefix}${this.name}\}`
+    return `${this.prependTxt}\$\{${this.prefix}${this.name}\}${this.appendTxt}`
   }
 }
 export function $var(name: string) {

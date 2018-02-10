@@ -444,8 +444,38 @@
 
 </script>
 <script>
-  let data = /*DATA*/
-  let mode = location.href.indexOf('?test') !== -1 ? 'test' : 'doc'
+  const data = /*DATA*/
+  const mode = location.href.indexOf('?test') !== -1 ? 'test' : 'doc'
+  const TEST_URL = 'http://test.onapis.com'
+  const convertToTest = (api, gpName) => {
+    let testData = {
+      title: (gpName ? `[${gpName.toUpperCase()}] ` : '') + api.title,
+      url: api.url.requestUrl,
+      contentType: api.headers['content-type'],
+      method: api.method
+    }
+    testData._headers = []
+    for(let k in api.headers) {
+      if(k === 'content-type') continue
+      testData._headers.push({ key: k, value: api.headers[k] })
+    }
+    testData._headers.push({})
+    if(testData.contentType === 'application/json') {
+      testData._data = api.body
+    } else {
+      testData._data = []
+      for(let k in api.body) {
+        const type = api.body[k].src ? 'File' : undefined
+        testData._data.push({
+          type,
+          key: k, 
+          value: type ? undefined : api.body[k]                
+        })
+      }
+      testData._data.push([{}])
+    }
+    return testData
+  }
   if (mode === 'doc') {
     Vue.component('json-doc', {
       props: ['data', 'copyData'],
@@ -543,7 +573,7 @@
       <div class="section">
         <h1 class="title">{{title}}</h1>
         <h2 class="subtitle">{{des}}</h2>
-        <table class="table is-striped is-narrow api-table">
+        <table class="table is-striped is-narrow api-table is-fullwidth">
           <thead>
             <tr>
               <th colspan="2">API Url</th>
@@ -564,7 +594,7 @@
                       </a>
                     </div>
                     <div class="column has-text-right">
-                      <a class="button is-small is-warning" @click="copyToTest(gp.apis, i)">
+                      <a class="button is-small is-warning" @click="copyToTest(gp.apis, i, gp.group)">
                         <span class="icon">
                           <i class="fa fa-clipboard"></i>
                         </span>&nbsp;
@@ -605,7 +635,7 @@
                       <div class="column is-paddingless">
                         <div class="field has-addons">
                           <div class="control">
-                            <button class="button is-small is-pulled-left is-info" @click="gotoTest(api)">
+                            <button class="button is-small is-pulled-left is-info" @click="gotoTest(api, gp.group)">
                               <i class="fa fa-internet-explorer"></i>&nbsp;<b>TEST NOW</b>
                             </button>
                           </div>
@@ -668,8 +698,7 @@
       </div>
       `,
       data() {
-        return {
-          testUrl: 'http://test.clipvnet.com',
+        return {          
           title: data.title,
           des: data.des,
           doc: []
@@ -691,39 +720,25 @@
       computed() {
 
       },
-      methods: {
-        convertToTest(api) {
-          let testData = {
-            title: api.title,
-            url: api.url.requestUrl,
-            method: api.method
-          }
-          testData._headers = []
-          for(let k in api.headers) {
-            testData._headers.push({ key: k, value: api.headers[k] })
-          }
-          testData._headers.push({})
-          testData._data = api.body
-          return testData
-        },
-        gotoTest(_api) {
+      methods: {        
+        gotoTest(_api, gpName) {
           if(_api) {
-            api = this.convertToTest(_api)
+            api = convertToTest(_api, gpName)
             api = encodeURIComponent(btoa(JSON.stringify(api)))
-            window.open(`${this.testUrl}/test-api?cmd=${api}`, _api.title)
+            window.open(`${TEST_URL}/test-api?cmd=${api}`, _api.title)
           } else {
-            window.open(`${this.testUrl}/test-api`, 'Test api')
+            window.open(`${TEST_URL}/test-api`, 'Test api')
           }
         },
-        copyToTest(_apis, i) {
+        copyToTest(_apis, i, gpName) {
           if(_apis instanceof Array) {
             let apis = _apis.map(e => {
-              return this.convertToTest(e)
+              return convertToTest(e, gpName)
             })
             apis = encodeURIComponent(btoa(JSON.stringify(apis)))
             clipboard.copy(apis)
           } else {
-            const api = this.convertToTest(_apis)
+            const api = convertToTest(_apis, gpName)
             api = encodeURIComponent(btoa(JSON.stringify(api)))
             clipboard.copy(api)
           }
@@ -769,12 +784,13 @@
               <th width="1">status</th>
               <th width="1">req/res</th>
               <th width="1">$var</th>
+              <th width="1"></th>
             </tr>
           </thead>
           <template v-for="(tc, i) in tcs">
             <thead class="tc-title" :class="{'is-selected': !tc.isHide}">
               <tr>
-                <td colspan="6">
+                <td colspan="7">
                   <div class="columns">
                     <div class="column">
                       <a class="has-text-dark no-wrap" @click="toggleTc(i)">
@@ -824,6 +840,14 @@
                   <a v-else @click="log(k)" v-for="(vl, k) in api.var"><strong>{{k}}</strong></a>
                 </template>
               </td>
+              <td>
+                <a class="button is-small is-info" @click="gotoTest(api)">
+                  <span class="icon">
+                    <i class="fa fa-internet-explorer"></i>
+                  </span>
+                  &nbsp;<b>TEST NOW</b>
+                </a>
+              </td>
             </tr>  
           </template>
         </table>
@@ -854,6 +878,15 @@
 
       },
       methods: {
+        gotoTest(_api, gpName) {
+          if(_api) {
+            api = convertToTest(_api, gpName)
+            api = encodeURIComponent(btoa(JSON.stringify(api)))
+            window.open(`${TEST_URL}/test-api?cmd=${api}`, _api.title)
+          } else {
+            window.open(`${TEST_URL}/test-api`, 'Test api')
+          }
+        },
         toggleTc(i) {
           this.$set(this.tcs[i], 'isHide', !this.tcs[i].isHide)
         },

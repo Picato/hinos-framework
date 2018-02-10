@@ -18,7 +18,13 @@ export default [
       'body.password': DOC.required(),
       'body.recover_by': DOC.required()
     }),
-    url: POST(`${HOST.OAUTH}/oauth/register`),
+    note: [
+      `You can add dynamic properties for user but it must be passed the bellow rules`,
+      `1. Must fill "username", "password", "recover_by" when register by default`,
+      `2. Must fill "token", "app" when register by social network. "app" must be in ["google", "facebook"]`,
+      `3. Top level key fields in object must be not same keywords "_id", "trying", "secret_key", "created_at", "updated_at", "token", "native", "status"`      
+    ],
+    url: POST(`${HOST.OAUTH}/oauth/Register`),
     headers: {
       pj: $var('$$pj'),
       role: $var('$$role')
@@ -27,10 +33,8 @@ export default [
       username: $var('$$user.username'),
       password: $var('$$user.password'),
       recover_by: 'testuser@abc.com',
-      more: {
-        fullname: 'Test user name',
-        phone: '093239842'
-      }
+      fullname: 'Test user name',
+      phone: '093239842'
     },
     var: {
       'user': $var('this.$body')
@@ -62,6 +66,20 @@ export default [
   DOC('Ping to server to extends login timeout', GROUP, {
     extends: '#ping'
   }),
+  DOC('Turn ON 2-step vertification', GROUP, {
+    i18doc: {
+      '$body': 'Secret token key. Use it to make call to api service which never is expired'
+    },
+    extends: '#authRequestByToken',
+    url: POST(`${HOST.OAUTH}/oauth/TwoFactor`)
+  }, { extends: '#authRequestByToken' }),
+  DOC('Turn OFF 2-step vertification', GROUP, {
+    i18doc: {
+      '$body': 'Secret token key. Use it to make call to api service which never is expired'
+    },
+    extends: '#authRequestByToken',
+    url: DELETE(`${HOST.OAUTH}/oauth/TwoFactor`)
+  }, { extends: '#authRequestByToken' }),
   DOC('Generate secret key which allow access api without login', GROUP, {
     i18doc: {
       '$body': 'Secret token key. Use it to make call to api service which never is expired'
@@ -83,24 +101,22 @@ export default [
   }, { extends: '#authRequestByToken' }),
   DOC('Update user information', GROUP, {
     i18doc,
-    url: PUT(`${HOST.OAUTH}/oauth/me`),
+    url: PUT(`${HOST.OAUTH}/oauth/Me`),
     body: {
       password: $var('$$user.password'),
       recover_by: 'abc123@abc.com',
-      more: {
-        fullname: 'Updated name'
-      }
+      fullname: 'Updated name'
     }
   }, { extends: '#authRequestByToken' }),
   DOC('Get user information', GROUP, {
     i18doc,
-    url: GET(`${HOST.OAUTH}/oauth/me`),
+    url: GET(`${HOST.OAUTH}/oauth/Me`),
     var: {
       'me': $var('this.$body')
     }
   }, { extends: '#authRequestByToken' }),
   DOC('Logout', 'ACCOUNT', {
-    url: GET(`${HOST.OAUTH}/oauth/logout`)
+    url: GET(`${HOST.OAUTH}/oauth/Logout`)
   }, { extends: '#authRequestByToken' }),
   API('Login by admin account', {
     var: {
@@ -115,15 +131,13 @@ export default [
       'body.recover_by': DOC.required(),
       'body.role_ids': DOC.required()
     }),
-    url: POST(`${HOST.OAUTH}/oauth/account`),
+    url: POST(`${HOST.OAUTH}/oauth/Account`),
     body: {
       'username': 'newuser',
       'password': 'test123',
       'status': 1,
       'recover_by': 'newuser@abc.com',
-      'more': {
-        'fullname': 'New name'
-      },
+      'fullname': 'New name',
       'role_ids': [$var('$$role')]
     },
     var: {
@@ -132,14 +146,12 @@ export default [
   }, { extends: '#authRequestByToken' }),
   DOC('Update exists account', GROUP, TAG.ADMIN, {
     i18doc,
-    url: PUT(`${HOST.OAUTH}/oauth/account/:accountId*`, $var('newuser._id')),
+    url: PUT(`${HOST.OAUTH}/oauth/Account/:accountId*`, $var('newuser._id')),
     body: {
       'password': 'test123',
       'status': 1,
       'recover_by': 'newuser@abc.com',
-      'more': {
-        'fullname': 'New name'
-      },
+      'fullname': 'New name',
       'role_ids': [$var('$$role')]
     }
   }, { extends: '#authRequestByToken' }),
@@ -149,11 +161,11 @@ export default [
       `Manual query by add "where", "sort", "fields" in querystring`,
       `<pre>?where={status: 1}&sort={updated_at: -1}&fields={username: 1}</pre>`
     ],
-    url: GET(`${HOST.OAUTH}/oauth/account`)
+    url: GET(`${HOST.OAUTH}/oauth/Account`)
   }, { extends: '#authRequestByToken' }),
   DOC('Get user details', GROUP, TAG.ADMIN, {
     i18doc,
-    url: GET(`${HOST.OAUTH}/oauth/account/:accountId*`, $var('newuser._id')),
+    url: GET(`${HOST.OAUTH}/oauth/Account/:accountId*`, $var('newuser._id')),
     var: {
       newuser: $var('this.$body')
     }
@@ -163,10 +175,10 @@ export default [
   ...INCLUDE('doc/oauth/project.part'),
 
   DOC('Delete an exists account', GROUP, TAG.ADMIN, {
-    url: DELETE(`${HOST.OAUTH}/oauth/account/:accountId*`, $var('newuser._id'))
+    url: DELETE(`${HOST.OAUTH}/oauth/Account/:accountId*`, $var('newuser._id'))
   }, { extends: '#authRequestByToken' }),
 
   API('Remove user after test client api', {
-    url: DELETE(`${HOST.OAUTH}/oauth/account/:accountId`, $var('user._id'))
+    url: DELETE(`${HOST.OAUTH}/oauth/Account/:accountId`, $var('user._id'))
   }, { extends: '#authRequestByToken' })
 ] as Api[]
