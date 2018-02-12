@@ -9,8 +9,8 @@ import './config'
 
 require(`./env.${Server.env}`).default(Server)
 
-Mongo(AppConfig.mongo).debug(!Server.isProduction)
-Redis(AppConfig.redis).debug(!Server.isProduction)
+Mongo(AppConfig.mongo)
+Redis(AppConfig.redis)
 
 Server.use(cors())
 Server.use(route(
