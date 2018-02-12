@@ -1,6 +1,6 @@
 import * as _ from 'lodash'
 import * as path from 'path'
-import { POST, PUT, GET, INJECT } from 'hinos-route'
+import { POST, PUT, INJECT } from 'hinos-route'
 import { FILEPARSER } from 'hinos-bodyparser/file'
 import { BODYPARSER } from 'hinos-bodyparser'
 import { RESTRICT } from 'hinos-bodyparser/restrict'
