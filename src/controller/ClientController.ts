@@ -17,19 +17,6 @@ import HttpError from '../common/HttpError'
 
 export class ClientController {
 
-  @GET('/base64/:data')
-  @RESTRICT({
-    params: {
-      data: String
-    }
-  })
-  static async getImageBase64({ params, ctx }) {
-    ctx.routed = true
-    const [, contentType, data] = params.data.match(/data\:([^;]+);base64,(.+)/)
-    ctx.contentType = `${contentType};charset=base64`
-    return new Buffer(data, 'base64')
-  }
-
   @POST('/Upload/:configId')
   @INJECT(authoriz(`${AppConfig.path}`, 'UPLOAD'))
   @RESTRICT({
