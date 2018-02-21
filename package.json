@@ -17,7 +17,8 @@
     "gen": "cd gencode && npm start"
   },
   "appconfig": [
-    "appconfig.json"
+    "appconfig.json",
+    "../global.json"
   ],
   "dependencies": {
     "http-proxy": "^1.16.2"

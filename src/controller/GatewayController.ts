@@ -12,7 +12,7 @@ import { HASHER } from 'hinos-requesthasher'
 
 export class gatewayController {
 
-  @GET('/gateway/Service')
+  @GET('/Service')
   @HASHER()
   @INJECT(authoriz(`${AppConfig.path}`, 'FIND'))
   @RESTRICT({
@@ -33,7 +33,7 @@ export class gatewayController {
     return rs
   }
 
-  @PUT('/gateway/Service')
+  @PUT('/Service')
   @HASHER()
   @INJECT(authoriz(`${AppConfig.path}`, 'UPDATE'))
   @BODYPARSER()
@@ -52,7 +52,7 @@ export class gatewayController {
     return rs
   }
 
-  @DELETE('/gateway/Service/:_id')
+  @DELETE('/Service/:_id')
   @HASHER()
   @INJECT(authoriz(`${AppConfig.path}`, 'DELETE'))
   @RESTRICT({
@@ -73,20 +73,34 @@ export class gatewayController {
     await GatewayService.delete(where)
   }
 
-  @POST('/gateway/Forward')
+  @POST('/Forward')
   @HASHER()
   @BODYPARSER()
   static async forwardRequest({ body, ctx }) {
     try {
-      const rs = await GatewayService.forwardRequest(body) as any      
+      const rs = await GatewayService.forwardRequest(body) as any
       delete rs.request
       return rs
-    } catch(rs) {
+    } catch (rs) {
       delete rs.response.request
       delete rs.request
       ctx.status = 500
       return rs
-    }        
+    }
+  }
+
+  @GET('/Forward')
+  static async forwardGetRequest({ ctx }) {
+    try {
+      const opts = JSON.parse(ctx.query.opts)
+      const res = await GatewayService.forwardRequest(opts) as any
+      return res.data
+    } catch (rs) {
+      delete rs.response.request
+      delete rs.request
+      ctx.status = 500
+      return rs
+    }
   }
 
   @ALL(/^\/([^\/]+)/i)
