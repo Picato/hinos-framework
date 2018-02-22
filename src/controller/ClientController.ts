@@ -205,6 +205,11 @@ export default class AccountController {
 
   @GET('/Me')
   @INJECT(authoriz(`${AppConfig.path}/Account`, undefined))
+  @RESTRICT({
+    query: {
+      fields: Object
+    }
+  })
   static async getMe({ state, query }) {
     let fields: any = query.fields
     _.merge(fields, { token: 0, password: 0, project_id: 0, trying: 0, secret_key: 0, two_factor_secret_base32: 0 })

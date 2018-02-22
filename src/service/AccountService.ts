@@ -190,7 +190,7 @@ export class AccountService {
   }
 
   static async getMe({ accountId }, fields?: any) {
-    const me = await AccountService.mongo.get<Account>(Account, accountId, fields)
+    const me = await AccountService.mongo.get<Account>(Account, accountId, { fields })
     return me
   }
 
