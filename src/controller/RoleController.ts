@@ -40,7 +40,7 @@ export class RoleController {
   static async find({ query, state }) {
     let where: any = Mongo.autocast(query.where || {})
     let sort: any = query.sort || {}
-    let fields: any = query.fields
+    let fields: any = query.fields || {}
 
     _.merge(fields, { project_id: 0 })
     _.merge(where, { project_id: state.auth.projectId })
