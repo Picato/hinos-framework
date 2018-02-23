@@ -24,3 +24,11 @@ export function authoriz(path: string, action: string) {
     }
   }
 }
+
+export function suAuthoriz() {
+  return async ({ headers }: Context, next: Function) => {
+    if (headers.token && headers.token === AppConfig.app.suid) return await next()
+    throw HttpError.AUTHORIZ()
+  }
+}
+
