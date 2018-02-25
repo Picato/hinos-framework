@@ -27,9 +27,8 @@ export class AccountController {
   static async find({ query, state }) {
     let where: any = Mongo.autocast(query.where || {})
     let sort: any = query.sort || {}
-    let fields: any = query.fields || {}
+    let fields: any = (query.fields && Object.keys(query.fields).length > 0) ? query.fields : undefined
 
-    _.merge(fields, { token: 0, password: 0, project_id: 0, trying: 0, secret_key: 0 })
     _.merge(where, { project_id: state.auth.projectId })
 
     const me = await AccountService.getCachedToken(state.auth.token.split('?')[0])
@@ -40,7 +39,7 @@ export class AccountController {
       $page: query.page,
       $recordsPerPage: query.recordsPerPage,
       $sort: sort,
-      $fields: fields
+      $fields: fields || { token: 0, password: 0, project_id: 0, trying: 0, secret_key: 0, two_factor_secret_base32: 0 }
     })
     return rs
   }
@@ -50,13 +49,17 @@ export class AccountController {
   @RESTRICT({
     params: {
       _id: Mongo.uuid
+    },
+    query: {
+      fields: Object
     }
   })
-  static async get({ params, state }) {
+  static async get({ params, state, query }) {
+    let fields: any = (query.fields && Object.keys(query.fields).length > 0) ? query.fields : undefined
     const rs: Account = await AccountService.get({
       _id: params._id,
       project_id: state.auth.projectId
-    })
+    }, fields || { token: 0, password: 0, project_id: 0, trying: 0, secret_key: 0, two_factor_secret_base32: 0 })
     return rs
   }
 

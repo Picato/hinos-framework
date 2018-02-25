@@ -211,9 +211,8 @@ export default class AccountController {
     }
   })
   static async getMe({ state, query }) {
-    const fields = query.fields || {}
-    _.merge(fields, { token: 0, password: 0, project_id: 0, trying: 0, secret_key: 0, two_factor_secret_base32: 0 })
-    const me = await AccountService.getMe(state.auth, fields)
+    let fields: any = (query.fields && Object.keys(query.fields).length > 0) ? query.fields : undefined
+    const me = await AccountService.getMe(state.auth, fields || { token: 0, password: 0, project_id: 0, trying: 0, secret_key: 0, two_factor_secret_base32: 0 })
     return me
   }
 

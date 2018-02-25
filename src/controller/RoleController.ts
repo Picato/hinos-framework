@@ -40,9 +40,8 @@ export class RoleController {
   static async find({ query, state }) {
     let where: any = Mongo.autocast(query.where || {})
     let sort: any = query.sort || {}
-    let fields: any = query.fields || {}
-
-    _.merge(fields, { project_id: 0 })
+    let fields: any = (query.fields && Object.keys(query.fields).length > 0) ? query.fields : undefined
+    
     _.merge(where, { project_id: state.auth.projectId })
 
     const me = await AccountService.getCachedToken(state.auth.token.split('?')[0])
@@ -52,7 +51,7 @@ export class RoleController {
       $where: where,
       $page: query.page,
       $sort: sort,
-      $fields: fields,
+      $fields: fields || { project_id: 0 },
       $recordsPerPage: query.recordsPerPage
     })
     return rs

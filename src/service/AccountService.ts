@@ -366,8 +366,8 @@ export class AccountService {
     return rs
   }
 
-  static async get(_id: any) {
-    const rs = await AccountService.mongo.get<Account>(Account, _id, { token: 0, password: 0, project_id: 0, trying: 0, secret_key: 0, two_factor_secret_base32: 0 })
+  static async get(_id: any, fields: any) {
+    const rs = await AccountService.mongo.get<Account>(Account, _id, fields)
     return rs
   }
 
