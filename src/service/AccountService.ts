@@ -83,27 +83,37 @@ export class AccountService {
   }
 
   static async getMeFacebook(token: string): Promise<{ id: string, email: string, more: any }> {
-    const { data } = await axios.get(`https://graph.facebook.com/v2.10/me?access_token=${token}&fields=email%2Cname&format=json&method=get&pretty=0&suppress_http_code=1`)
-    return {
-      id: data.id,
-      email: data.email,
-      more: {
-        fullname: data.name,
-        avatar: `http//graph.facebook.com/${data.id}/picture`
+    try {
+      const { data } = await axios.get(`https://graph.facebook.com/v2.10/me?access_token=${token}&fields=email%2Cname&format=json&method=get&pretty=0&suppress_http_code=1`)
+      return {
+        id: data.id,
+        email: data.email,
+        more: {
+          fullname: data.name,
+          avatar: `http//graph.facebook.com/${data.id}/picture`
+        }
       }
+    } catch (e) {
+      if (e.response) throw HttpError.CUSTOMIZE(e.response.status, e.response.data)
+      throw e
     }
   }
 
   static async getMeGoogle(token: string): Promise<{ id: string, email: string, more: any }> {
-    const { data } = await axios.get(`https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${token}`)
-    return {
-      id: data.id,
-      email: data.email,
-      more: {
-        fullname: data.name,
-        locale: data.locale,
-        avatar: data.picture
+    try {
+      const { data } = await axios.get(`https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${token}`)
+      return {
+        id: data.id,
+        email: data.email,
+        more: {
+          fullname: data.name,
+          locale: data.locale,
+          avatar: data.picture
+        }
       }
+    } catch (e) {
+      if (e.response) throw HttpError.CUSTOMIZE(e.response.status, e.response.data)
+      throw e
     }
   }
 
