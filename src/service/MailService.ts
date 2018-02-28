@@ -3,7 +3,7 @@ import axios from 'axios'
 import { VALIDATE, Checker } from 'hinos-validation'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
-import { MailConfig, MailConfigService } from './MailConfigService'
+import { MailConfig, MailConfigService, MailAccessTokenConfig } from './MailConfigService'
 import { MailTemplateService } from './MailTemplateService'
 import * as nodemailer from 'nodemailer'
 import { REDIS, Redis } from 'hinos-redis'
@@ -23,23 +23,23 @@ export interface Attachments {
 }
 
 // @Thanh bo sau khi send qua token
-const MailConfigDefault = {
-  gmail: {
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
-    auth: {
-      type: 'OAuth2'
-    }
-  }
-}
+// const MailConfigDefault = {
+//   gmail: {
+//     host: 'smtp.gmail.com',
+//     port: 465,
+//     secure: true,
+//     auth: {
+//       type: 'OAuth2'
+//     }
+//   }
+// }
 
 @Collection('Mail')
 /* tslint:disable */
 export class Mail {
   _id?: Uuid
   config_id?: Uuid
-  config?: object
+  config?: MailAccessTokenConfig
   project_id?: Uuid
   account_id?: Uuid
   subject?: string
@@ -55,17 +55,13 @@ export class Mail {
   retry_at?: Date
   created_at?: Date
   updated_at?: Date
-  auth?: {
-    type: 'gmail',
-    accessToken: string
-  }
 }
 /* tslint:enable */
 
 /* tslint:disable */
 export class MailCached {
   _id?: Uuid | string
-  config?: MailConfig
+  config?: MailConfig | MailAccessTokenConfig
   subject?: string
   status?: number
   text?: string
@@ -80,14 +76,10 @@ export class MailCached {
     const e = {} as MailCached
     if (!_e.retry_at) e.retry_at = new Date().getTime()
     if (_e.retry_at instanceof Date) e.retry_at = _e.retry_at.getTime()
-    if (_e.config_id) {
+    _.merge(e, _.pick(_e, ['_id', 'subject', 'text', 'html', 'from', 'to', 'cc', 'attachments', 'status', 'config']))
+    if (!_e.config && _e.config_id) {
       const config = await MailConfigService.get(_e.config_id)
       if (config) e.config = config.config
-      _.merge(e, _.pick(_e, ['_id', 'subject', 'text', 'html', 'from', 'to', 'cc', 'attachments', 'status']))
-    } else {
-      // @Thanh bo sau khi send qua token
-      _.merge(e, _.pick(_e, ['_id', 'subject', 'text', 'html', 'from', 'to', 'cc', 'attachments', 'status']), { auth: { accessToken: _e.config['accessToken'] } })
-      e.config = _.merge({}, MailConfigDefault[_e.config['type']])
     }
     return JSON.stringify(e)
   }
@@ -168,10 +160,10 @@ export class MailService {
       const mail = await MailTemplateService.get(body.template_id)
       _.merge(body, _.pick(mail, ['subject', 'text', 'html', 'config_id', 'from']))
     })
-    try {
+    if (body.config) {
       Checker.required(body, 'config', Object)
       delete body.config_id
-    } catch (e) {
+    } else {
       Checker.required(body, 'config_id', Uuid)
     }
     Checker.required(body, 'project_id', Uuid)
@@ -221,10 +213,6 @@ export class MailService {
     body.retry_at = undefined
   })
   static async resend(body: Mail) {
-    if (body.config || body.config_id) {
-      const d = await MailService.mongo.get<Mail>(Mail, body._id, { status: 1 })
-      if (d.status === Mail.Status.PASSED) throw HttpError.CONDITION('This email was sent successfully.\nNot allow change mail_config or access_token')
-    }
     const rs = await MailService.mongo.update<Mail>(Mail, body, { return: true }) as Mail
     if (!rs) throw HttpError.NOT_FOUND('Could not found item to update')
     await MailService.redis.hdel('mail.temp', [rs._id.toString()])
@@ -270,7 +258,7 @@ export class MailService {
   //   }
   // }
 
-  private static async sendMailViaToken(mail: Mail) {
+  private static async sendMailViaToken(mail: Mail, config: MailAccessTokenConfig) {
     const encodedMail = new Buffer(
       `Content-Type: ${mail.html ? 'text/html' : 'text/plain'}; charset=\"UTF-8\"\n` +
       "MIME-Version: 1.0\n" +
@@ -288,7 +276,7 @@ export class MailService {
         }, {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${mail.auth.accessToken}`
+            'Authorization': `Bearer ${config.accessToken}`
           }
         })
     } catch (e) {
@@ -298,14 +286,14 @@ export class MailService {
     return null
   }
 
-  private static async sendMail(mailOptions: Mail, config: MailConfig) {
+  private static async sendMail(mailOptions: Mail, config: MailConfig | MailAccessTokenConfig) {
     return new Promise((resolve, reject) => {
       try {
-        const transporter = nodemailer.createTransport(config)
         try {
-          if (mailOptions.auth) {
-            MailService.sendMailViaToken(mailOptions).then(resolve).catch(reject)
+          if ((config as MailAccessTokenConfig).accessToken) {
+            MailService.sendMailViaToken(mailOptions, config as MailAccessTokenConfig).then(resolve).catch(reject)
           } else {
+            const transporter = nodemailer.createTransport(config as MailConfig)
             transporter.sendMail(mailOptions as nodemailer.SendMailOptions, (error, info) => {
               if (error) return reject(HttpError.INTERNAL(error.message))
               resolve(info)

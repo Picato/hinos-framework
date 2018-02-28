@@ -6,6 +6,11 @@ import HttpError from '../common/HttpError'
  ** MailConfigService || 4/10/2017, 10:19:24 AM **
  ************************************************/
 
+export class MailAccessTokenConfig {
+  type: 'gmail'
+  accessToken: string
+}
+
 @Collection('MailConfig')
 /* tslint:disable */
 export class MailConfig {
