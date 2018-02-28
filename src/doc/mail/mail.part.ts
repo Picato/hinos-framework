@@ -130,6 +130,10 @@ export default [
   }, { extends: '#authRequestByToken' }),
   DOC('Resend an existed email', GROUP, TAG.ADMIN, {
     i18doc,
+    note: [
+      `You can change mail_config sender by add "config_id" in request body`,
+      `You can change access_token by add "config": { "type": "gmail", "access_token": $YOUR_ACCESS_TOKEN } in request body`
+    ],
     url: PUT(`${HOST.MAIL}/mail/Resend/:mailId*`, $var('newmail._id'))
   }, { extends: '#authRequestByToken' }),
   DOC('Get list emails', GROUP, TAG.ADMIN, {
