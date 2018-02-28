@@ -209,6 +209,13 @@ export class MailService {
 
   @VALIDATE((body: Mail) => {
     Checker.required(body, '_id', Object)
+    if (body.config) {
+      Checker.required(body, 'config', Object)
+      delete body.config_id
+    } else if (body.config_id) {
+      Checker.required(body, 'config_id', Uuid)
+      delete body.config
+    }
     body.status = Mail.Status.PENDING
     body.updated_at = new Date()
     body.retry_at = undefined

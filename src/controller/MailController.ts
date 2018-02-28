@@ -35,14 +35,20 @@ export class MailController {
   @RESTRICT({
     params: {
       _id: Mongo.uuid
+    },
+    body: {
+      config: Object,
+      config_id: Mongo.uuid
     }
   })
-  static async resend({ params, state }) {
+  static async resend({ params, state, body }) {
     await MailService.resend({
       _id: {
         _id: params._id,
         project_id: state.auth.projectId
       },
+      config: body.config,
+      config_id: body.config_id,
       account_id: state.auth.accountId
     })
   }
