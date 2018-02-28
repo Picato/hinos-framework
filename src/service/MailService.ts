@@ -147,8 +147,8 @@ export class MailService {
     return rs
   }
 
-  static async get(_id: any) {
-    const rs = await MailService.mongo.get<Mail>(Mail, _id, { project_id: 0 })
+  static async get(_id: any, fields) {
+    const rs = await MailService.mongo.get<Mail>(Mail, _id, fields)
     return rs
   }
 

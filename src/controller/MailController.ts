@@ -65,6 +65,7 @@ export class MailController {
     let where = {
       project_id: state.auth.projectId
     }
+    let fields: any = (query.fields && Object.keys(query.fields).length > 0) ? query.fields : { text: 0, html: 0, project_id: 0 }
     const rs = await MailService.find({
       $where: where,
       $page: query.page,
@@ -72,7 +73,7 @@ export class MailController {
       $sort: {
         updated_at: -1
       },
-      $fields: { text: 0, html: 0, project_id: 0 }
+      $fields: fields
     })
     return rs
   }
@@ -84,11 +85,12 @@ export class MailController {
       _id: Mongo.uuid
     }
   })
-  static async get({ params, state }) {
+  static async get({ params, state, query }) {
+    let fields: any = (query.fields && Object.keys(query.fields).length > 0) ? query.fields : { project_id: 0 }
     const rs = await MailService.get({
       _id: params._id,
       project_id: state.auth.projectId
-    })
+    }, fields)
     return rs
   }
 
