@@ -208,6 +208,7 @@ export class MailService {
     body.status = Mail.Status.PENDING
     body.updated_at = new Date()
     body.retry_at = undefined
+    body.error = undefined
   })
   static async resend(body: Mail, accessToken?: string) {
     const m = await MailService.mongo.get<Mail>(Mail, body._id) as Mail
@@ -219,7 +220,10 @@ export class MailService {
     }
     const rs = await MailService.mongo.update<Mail>(Mail, body) as Mail
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
-    _.merge(m, body, { _id: m._id })
+    m.status = body.status
+    m.updated_at = body.updated_at
+    m.retry_at = body.retry_at
+    m.error = body.error
     await MailService.redis.hset('mail.temp', {
       [m._id.toString()]: await MailCached.castToCached(m)
     })
@@ -318,12 +322,12 @@ export class MailService {
         const e = MailCached.castToObject(rs[_id]) as any
         if (!e.retry_at || e.retry_at <= now) {
           try {
+            await MailService.redis.hdel('mail.temp', [_id])
             if (!e.auth && !e.config) {
               e.status = Mail.Status.ERROR[Mail.Status.ERROR.length - 1]
               throw HttpError.NOT_FOUND('Could not found mail_config and auth')
             }
             await MailService.sendMail(e, e.config)
-            await MailService.redis.hdel('mail.temp', [_id])
             if (e.config) delete e.config.accessToken
             e.status = Mail.Status.PASSED
             e.error = undefined
