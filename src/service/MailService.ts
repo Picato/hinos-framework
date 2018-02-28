@@ -23,23 +23,22 @@ export interface Attachments {
 }
 
 // @Thanh bo sau khi send qua token
-const MailConfigDefault = {
-  gmail: {
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
-    auth: {
-      type: 'OAuth2'
-    }
-  }
-}
+// const MailConfigDefault = {
+//   gmail: {
+//     host: 'smtp.gmail.com',
+//     port: 465,
+//     secure: true,
+//     auth: {
+//       type: 'OAuth2'
+//     }
+//   }
+// }
 
 @Collection('Mail')
 /* tslint:disable */
 export class Mail {
   _id?: Uuid
   config_id?: Uuid
-  config?: object
   project_id?: Uuid
   account_id?: Uuid
   subject?: string
@@ -75,6 +74,10 @@ export class MailCached {
   cc?: string[]
   attachments?: Attachments[]
   retry_at?: number
+  auth?: {
+    type: 'gmail',
+    accessToken: string
+  }
 
   static async castToCached(_e: Mail): Promise<string> {
     const e = {} as MailCached
@@ -84,11 +87,12 @@ export class MailCached {
       const config = await MailConfigService.get(_e.config_id)
       if (config) e.config = config.config
       _.merge(e, _.pick(_e, ['_id', 'subject', 'text', 'html', 'from', 'to', 'cc', 'attachments', 'status']))
-    } else {
-      // @Thanh bo sau khi send qua token
-      _.merge(e, _.pick(_e, ['_id', 'subject', 'text', 'html', 'from', 'to', 'cc', 'attachments', 'status']), { auth: { accessToken: _e.config['accessToken'] } })
-      e.config = _.merge({}, MailConfigDefault[_e.config['type']])
     }
+    // else {
+    //   // @Thanh bo sau khi send qua token
+    //   _.merge(e, _.pick(_e, ['_id', 'subject', 'text', 'html', 'from', 'to', 'cc', 'attachments', 'status']), { auth: { accessToken: _e.config['accessToken'] } })
+    //   e.config = _.merge({}, MailConfigDefault[_e.config['type']])
+    // }
     return JSON.stringify(e)
   }
   static castToObject(_e: string): MailCached {
@@ -168,12 +172,7 @@ export class MailService {
       const mail = await MailTemplateService.get(body.template_id)
       _.merge(body, _.pick(mail, ['subject', 'text', 'html', 'config_id', 'from']))
     })
-    try {
-      Checker.required(body, 'config', Object)
-      delete body.config_id
-    } catch (e) {
-      Checker.required(body, 'config_id', Uuid)
-    }
+    Checker.option(body, 'config_id', Uuid)
     Checker.required(body, 'project_id', Uuid)
     Checker.required(body, 'account_id', Uuid)
     Checker.required(body, 'subject', String)
@@ -209,19 +208,14 @@ export class MailService {
 
   @VALIDATE((body: Mail) => {
     Checker.required(body, '_id', Object)
-    if (body.config) {
-      Checker.required(body, 'config', Object)
-      delete body.config_id
-    } else if (body.config_id) {
-      Checker.required(body, 'config_id', Uuid)
-      delete body.config
-    }
+    Checker.option(body, 'config_id', Uuid)
+    Checker.option(body, 'auth', Object)
     body.status = Mail.Status.PENDING
     body.updated_at = new Date()
     body.retry_at = undefined
   })
   static async resend(body: Mail) {
-    if (body.config || body.config_id) {
+    if (body.auth || body.config_id) {
       const d = await MailService.mongo.get<Mail>(Mail, body._id, { status: 1 })
       if (d.status === Mail.Status.PASSED) throw HttpError.CONDITION('This email was sent successfully.\nNot allow change mail_config or access_token')
     }
@@ -301,11 +295,11 @@ export class MailService {
   private static async sendMail(mailOptions: Mail, config: MailConfig) {
     return new Promise((resolve, reject) => {
       try {
-        const transporter = nodemailer.createTransport(config)
         try {
           if (mailOptions.auth) {
             MailService.sendMailViaToken(mailOptions).then(resolve).catch(reject)
           } else {
+            const transporter = nodemailer.createTransport(config)
             transporter.sendMail(mailOptions as nodemailer.SendMailOptions, (error, info) => {
               if (error) return reject(HttpError.INTERNAL(error.message))
               resolve(info)
@@ -329,9 +323,9 @@ export class MailService {
         if (!e.retry_at || e.retry_at <= now) {
           await MailService.redis.hdel('mail.temp', [_id])
           try {
-            if (!e.config) {
+            if (!e.auth && !e.config) {
               e.status = Mail.Status.ERROR[Mail.Status.ERROR.length - 1]
-              throw HttpError.NOT_FOUND('Could not found mail config')
+              throw HttpError.NOT_FOUND('Could not found mail_config and auth')
             }
             await MailService.sendMail(e, e.config)
             e.status = Mail.Status.PASSED

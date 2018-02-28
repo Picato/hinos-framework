@@ -38,8 +38,8 @@ export class MailController {
       _id: Mongo.uuid
     },
     body: {
-      config: Object,
-      config_id: Mongo.uuid
+      config_id: Mongo.uuid,
+      auth: Object
     }
   })
   static async resend({ params, state, body }) {
@@ -48,7 +48,7 @@ export class MailController {
         _id: params._id,
         project_id: state.auth.projectId
       },
-      config: body.config,
+      auth: body.config,
       config_id: body.config_id,
       account_id: state.auth.accountId
     })
