@@ -71,9 +71,13 @@ export class MailCached {
   cc?: string[]
   attachments?: Attachments[]
   retry_at?: number
+  auth?: {
+    type: 'gmail',
+    accessToken: string
+  }
 
   static async castToCached(_e: Mail): Promise<string> {
-    const e = {} as MailCached
+    let e = {} as MailCached
     if (!_e.retry_at) e.retry_at = new Date().getTime()
     if (_e.retry_at instanceof Date) e.retry_at = _e.retry_at.getTime()
     _.merge(e, _.pick(_e, ['_id', 'subject', 'text', 'html', 'from', 'to', 'cc', 'attachments', 'status', 'config']))
@@ -115,7 +119,7 @@ export class MailService {
         }
       },
       $fields: {
-        _id: 1, config_id: 1, config: 1, subject: 1, text: 1, html: 1, from: 1, to: 1, cc: 1, attachments: 1, retry_at: 1, status: 1
+        _id: 1, config_id: 1, config: 1, subject: 1, text: 1, html: 1, from: 1, to: 1, cc: 1, attachments: 1, retry_at: 1, status: 1, auth: 1
       },
       $recordsPerPage: 0,
       $sort: {
@@ -201,13 +205,8 @@ export class MailService {
 
   @VALIDATE((body: Mail) => {
     Checker.required(body, '_id', Object)
-    if (body.config) {
-      Checker.required(body, 'config', Object)
-      delete body.config_id
-    } else if (body.config_id) {
-      Checker.required(body, 'config_id', Uuid)
-      delete body.config
-    }
+    Checker.option(body, 'config_id', Uuid)
+    Checker.option(body, 'auth', Object)
     body.status = Mail.Status.PENDING
     body.updated_at = new Date()
     body.retry_at = undefined
@@ -317,9 +316,9 @@ export class MailService {
         if (!e.retry_at || e.retry_at <= now) {
           await MailService.redis.hdel('mail.temp', [_id])
           try {
-            if (!e.config) {
+            if (!e.auth && !e.config) {
               e.status = Mail.Status.ERROR[Mail.Status.ERROR.length - 1]
-              throw HttpError.NOT_FOUND('Could not found mail config')
+              throw HttpError.NOT_FOUND('Could not found mail_config and auth')
             }
             await MailService.sendMail(e, e.config)
             e.status = Mail.Status.PASSED
