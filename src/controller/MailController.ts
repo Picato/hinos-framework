@@ -32,6 +32,7 @@ export class MailController {
 
   @PUT('/Resend/:_id')
   @INJECT(authoriz(`${AppConfig.path}`, 'RESEND'))
+  @BODYPARSER()
   @RESTRICT({
     params: {
       _id: Mongo.uuid

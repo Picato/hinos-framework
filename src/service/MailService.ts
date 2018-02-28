@@ -221,6 +221,10 @@ export class MailService {
     body.retry_at = undefined
   })
   static async resend(body: Mail) {
+    if (body.config || body.config_id) {
+      const d = await MailService.mongo.get<Mail>(Mail, body._id, { status: 1 })
+      if (d.status === Mail.Status.PASSED) throw HttpError.CONDITION('This email was sent successfully.\nNot allow change mail_config or access_token')
+    }
     const rs = await MailService.mongo.update<Mail>(Mail, body, { return: true }) as Mail
     if (!rs) throw HttpError.NOT_FOUND('Could not found item to update')
     await MailService.redis.hdel('mail.temp', [rs._id.toString()])
@@ -300,7 +304,6 @@ export class MailService {
         const transporter = nodemailer.createTransport(config)
         try {
           if (mailOptions.auth) {
-            // @Thanh bo sau khi send qua token
             MailService.sendMailViaToken(mailOptions).then(resolve).catch(reject)
           } else {
             transporter.sendMail(mailOptions as nodemailer.SendMailOptions, (error, info) => {
