@@ -219,7 +219,7 @@ export class MailService {
     }
     const rs = await MailService.mongo.update<Mail>(Mail, body) as Mail
     if (rs === 0) throw HttpError.NOT_FOUND('Could not found item to update')
-    _.merge(m, body)
+    _.merge(m, body, { _id: m._id })
     await MailService.redis.hset('mail.temp', {
       [m._id.toString()]: await MailCached.castToCached(m)
     })
@@ -317,13 +317,13 @@ export class MailService {
       for (let _id in rs) {
         const e = MailCached.castToObject(rs[_id]) as any
         if (!e.retry_at || e.retry_at <= now) {
-          await MailService.redis.hdel('mail.temp', [_id])
           try {
             if (!e.auth && !e.config) {
               e.status = Mail.Status.ERROR[Mail.Status.ERROR.length - 1]
               throw HttpError.NOT_FOUND('Could not found mail_config and auth')
             }
             await MailService.sendMail(e, e.config)
+            await MailService.redis.hdel('mail.temp', [_id])
             if (e.config) delete e.config.accessToken
             e.status = Mail.Status.PASSED
             e.error = undefined
