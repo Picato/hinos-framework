@@ -80,13 +80,15 @@ export class MailCached {
   }
 
   static async castToCached(_e: Mail): Promise<string> {
-    const e = {} as MailCached
+    let e = {} as MailCached
     if (!_e.retry_at) e.retry_at = new Date().getTime()
     if (_e.retry_at instanceof Date) e.retry_at = _e.retry_at.getTime()
-    if (_e.config_id) {
+    if (_e.auth) {
+      e = _.merge(e, _.pick(_e, ['_id', 'subject', 'text', 'html', 'from', 'to', 'cc', 'attachments', 'status', 'auth']))
+    } else if (_e.config_id) {
       const config = await MailConfigService.get(_e.config_id)
       if (config) e.config = config.config
-      _.merge(e, _.pick(_e, ['_id', 'subject', 'text', 'html', 'from', 'to', 'cc', 'attachments', 'status']))
+      e = _.merge(e, _.pick(_e, ['_id', 'subject', 'text', 'html', 'from', 'to', 'cc', 'attachments', 'status']))
     }
     // else {
     //   // @Thanh bo sau khi send qua token
@@ -127,7 +129,7 @@ export class MailService {
         }
       },
       $fields: {
-        _id: 1, config_id: 1, config: 1, subject: 1, text: 1, html: 1, from: 1, to: 1, cc: 1, attachments: 1, retry_at: 1, status: 1
+        _id: 1, config_id: 1, config: 1, subject: 1, text: 1, html: 1, from: 1, to: 1, cc: 1, attachments: 1, retry_at: 1, status: 1, auth: 1
       },
       $recordsPerPage: 0,
       $sort: {
