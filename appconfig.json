@@ -26,6 +26,6 @@
   },
   "app": {
     "scanTimeout": 1000,
-    "retrySending": 300000
+    "retrySending": 120000
   }
 }
