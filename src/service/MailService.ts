@@ -269,16 +269,21 @@ export class MailService {
       `subject: ${mail.subject}\n\n` +
 
       `${mail.html || mail.text}`
-    ).toString("base64").replace(/\+/g, '-').replace(/\//g, '_');
-    await axios.post('https://www.googleapis.com/gmail/v1/users/me/messages/send',
-      {
-        raw: encodedMail
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${mail.auth.accessToken}`
-        }
-      })
+    ).toString("base64").replace(/\+/g, '-').replace(/\//g, '_')
+    try {
+      await axios.post('https://www.googleapis.com/gmail/v1/users/me/messages/send',
+        {
+          raw: encodedMail
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${mail.auth.accessToken}`
+          }
+        })
+    } catch (e) {
+      if (e.response) throw HttpError.INTERNAL(e.response.data.error)
+      throw e
+    }
     return null
   }
 
