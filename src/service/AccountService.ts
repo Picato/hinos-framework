@@ -304,19 +304,17 @@ export class AccountService {
       }
       throw HttpError.BAD_REQUEST(msgs.join('\n'))
     }
-    await Checker.option(user, 'password', String, async () => {
+    if (user.app) {
+      await Checker.required(user, 'app', String)
+      if (!acc.app || acc.app !== user.app) {
+        await wrongPass('Login via social error')
+      }
+    } else {
+      await Checker.required(user, 'password', String)
       if (acc.password !== user.password) {
         await wrongPass('Password not match')
       }
-    }, async () => {
-      await Checker.option(user, 'app', String, async () => {
-        if (!acc.app || !acc.app.includes(user.app)) {
-          await wrongPass('Login via social error')
-        }
-      }, async () => {
-        await wrongPass('Password not match')
-      })
-    })
+    }
     if (acc.two_factor_secret_base32) {
       const tempToken = `${Mongo.uuid()}`
       await AccountService.redis.set(`$2factor:${tempToken}`, JSON.stringify({
