@@ -205,13 +205,18 @@ export class MailService {
 
   @VALIDATE((body: Mail) => {
     Checker.required(body, '_id', Object)
-    Checker.option(body, 'config_id', Uuid)
-    Checker.option(body, 'auth', Object)
     body.status = Mail.Status.PENDING
     body.updated_at = new Date()
     body.retry_at = undefined
   })
-  static async resend(body: Mail) {
+  static async resend(body: Mail, accessToken?: string) {
+    if (accessToken) {
+      const m = await MailService.mongo.get<Mail>(Mail, body._id, { status: 1, config: 1 }) as Mail
+      if (m.config) {
+        m.config.accessToken = accessToken
+        body.config = m.config
+      }
+    }
     const rs = await MailService.mongo.update<Mail>(Mail, body, { return: true }) as Mail
     if (!rs) throw HttpError.NOT_FOUND('Could not found item to update')
     await MailService.redis.hdel('mail.temp', [rs._id.toString()])
