@@ -102,7 +102,7 @@ export class AccountController {
   })
   static async update({ params, body, state }) {
     body = Mongo.autocast(body)
-    body = _.omit(body, ['_id', 'project_id', 'app', 'username', 'trying', 'secret_key', 'created_at', 'updated_at', 'token', 'native', 'two_factor_secret_img', 'two_factor_secret_base32'])
+    body = _.omit(body, ['_id', 'project_id', 'username', 'trying', 'secret_key', 'created_at', 'updated_at', 'token', 'native', 'two_factor_secret_img', 'two_factor_secret_base32'])
     body._id = {
       _id: params._id,
       project_id: state.auth.projectId
