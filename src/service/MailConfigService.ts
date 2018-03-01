@@ -55,7 +55,7 @@ export class MailConfigService {
   @VALIDATE((body: MailConfig) => {
     Checker.required(body, '_id', Object)
     Checker.option(body, 'name', String)
-    Checker.option(body, 'MailConfig', Object)
+    Checker.option(body, 'config', Object)
     body.updated_at = new Date()
   })
   static async update(body: MailConfig) {
