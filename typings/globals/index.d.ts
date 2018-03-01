@@ -1,5 +1,5 @@
 interface IAppConfig {
-  externalConfig?: string
+  env: 'production' | 'development'
   url: string
   path: string
   name: string
@@ -9,14 +9,31 @@ interface IAppConfig {
     url: string
     releaseTimeout?: number
   }
-  redis?: {
-    host: string
-    port: number
-    db?: string
-    releaseTimeout?: number
-  }
   services: {
     oauth: string
+  }
+  cors: {
+    allowMethods?: string[] | string;
+    exposeHeaders?: string[] | string;
+    allowHeaders?: string[] | string;
+    origin?: Function | string;
+    maxAge?: number | string;
+    credentials?: boolean;
+    keepHeadersOnError?: boolean;
+  },
+  log?: {
+    appenders?: {
+      [appenderName: string]: {
+        type: string,
+        filename: string
+      }
+    },
+    categories?: {
+      default: {
+        appenders: string[],
+        level: "all" | "error" | "debug" | "fatal" | "info" | "trace" | "warn"
+      }
+    }
   }
   encrypt?: {
     pwd?: string

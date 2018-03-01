@@ -1,12 +1,14 @@
+import './config'
 import * as path from 'path'
 import { Server } from 'hinos'
 import { route } from 'hinos-route'
 import { Mongo } from 'hinos-mongo'
 import { cors } from 'hinos-cors'
-import './config'
+import { Logger } from 'hinos-log'
 
 require(`./env.${Server.env}`).default(Server)
 
+Logger(AppConfig.log)
 Mongo(AppConfig.mongo).debug(!Server.isProduction)
 
 Server.use(cors())
@@ -18,7 +20,7 @@ Server.use(route(
 ))
 
 Server.listen(AppConfig.port, () => {
-  console.info(`
+  Logger.pool().info(`
     _     _
   | |__ (_)_ __   ___  ___  ${AppConfig.name}
   | '_ \\| | '_ \\ / _ \\/ __|
