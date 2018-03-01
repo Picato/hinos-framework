@@ -22,7 +22,7 @@ Server.use(route(
 
 Server.listen(AppConfig.port, async () => {
   await startup()
-  console.info(`
+  Logger.pool().info(`
     _     _
   | |__ (_)_ __   ___  ___  ${AppConfig.name}
   | '_ \\| | '_ \\ / _ \\/ __|
