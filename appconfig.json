@@ -1,4 +1,5 @@
 {
+  "env": "",
   "url": "http://localhost:10000",
   "path": "",
   "mongo": {
@@ -11,6 +12,9 @@
     "port": 6379,
     "db": 0,
     "releaseTimeout": 50000
+  },
+  "cors": {
+    "origin": "*"
   },
   "log": {
     "appenders": {

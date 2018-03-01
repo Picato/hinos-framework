@@ -30,4 +30,6 @@ const urlApp = url.parse(appconfig.url)
 appconfig.port = +urlApp.port
 appconfig.host = urlApp.host
 
+process.env.NODE_ENV = appconfig.env || 'development';
+
 global.AppConfig = appconfig
