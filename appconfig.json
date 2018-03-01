@@ -1,4 +1,5 @@
 {
+  "env": "",
   "url": "http://localhost:6112",
   "path": "/files",
   "mongo": {
@@ -12,11 +13,24 @@
     "db": 0,
     "releaseTimeout": 1000
   },
-  "services": {
-    "oauth": "http://localhost:6111"
+  "cors": {
+    "origin": "*"
   },
-  "app": {
-    "scanTimeout": 1000
+  "log": {
+    "appenders": {
+      "default": {
+        "type": "console",
+        "filename": "log/all.log"
+      }
+    },
+    "categories": {
+      "default": {
+        "appenders": [
+          "default"
+        ],
+        "level": "all"
+      }
+    }
   },
   "encrypt": {
     "pwd": "a!b@=;",
@@ -26,5 +40,11 @@
       "response"
     ],
     "baseOnRequest": true
+  },
+  "services": {
+    "oauth": "http://localhost:6111"
+  },
+  "app": {
+    "scanTimeout": 1000
   }
 }

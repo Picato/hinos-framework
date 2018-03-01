@@ -1,5 +1,6 @@
 import * as url from 'url'
 import * as _ from 'lodash'
+import { Logger } from 'hinos-log/lib/logger';
 
 declare let global: any
 
@@ -28,5 +29,7 @@ appconfig.name = packageConfig.name
 const urlApp = url.parse(appconfig.url)
 appconfig.port = +urlApp.port
 appconfig.host = urlApp.host
+
+process.env.NODE_ENV = appconfig.env || 'development';
 
 global.AppConfig = appconfig

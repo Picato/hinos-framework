@@ -1,18 +1,18 @@
+import './config'
 import * as path from 'path'
 import { Server } from 'hinos'
 import { route } from 'hinos-route'
 import { Mongo } from 'hinos-mongo'
-import { cors } from 'hinos-cors'
 import { FilesService } from './service/FilesService'
 import { Redis } from 'hinos-redis'
-import './config'
+import { Logger } from 'hinos-log'
 
 require(`./env.${Server.env}`).default(Server)
 
-Mongo(AppConfig.mongo)
-Redis(AppConfig.redis)
+Logger(AppConfig.log)
+Mongo(AppConfig.mongo).debug(!Server.isProduction)
+Redis(AppConfig.redis).debug(!Server.isProduction)
 
-Server.use(cors())
 Server.use(route(
   [
     path.join(__dirname, 'controller', 'GlobalController.js'),
@@ -21,8 +21,8 @@ Server.use(route(
 ))
 Server.listen(AppConfig.port, () => {
   FilesService.loadIntoCached()
-  console.info(`
-    _     _
+  Logger.pool().info(`
+   _     _
   | |__ (_)_ __   ___  ___  ${AppConfig.name}
   | '_ \\| | '_ \\ / _ \\/ __|
   | | | | | | | | (_) \\__ \\

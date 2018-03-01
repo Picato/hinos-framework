@@ -17,7 +17,7 @@
   },
   "appconfig": [
     "appconfig.json",
-    "../global.json?mongo,redis,encrypt,services,#files"
+    "../global.json?env,mongo,redis,encrypt,services,#files"
   ],
   "dependencies": {
     "archiver": "^2.1.0",
@@ -35,6 +35,7 @@
     "hinos-route": "*",
     "hinos-serve": "*",
     "hinos-validation": "*",
+    "hinos-log": "*",
     "lodash": "^4.17.4",
     "rimraf": "^2.6.2"
   },
