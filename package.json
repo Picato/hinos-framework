@@ -18,7 +18,7 @@
   },
   "appconfig": [
     "appconfig.json",
-    "../global.json?mongo,encrypt,services,#dynamic"
+    "../global.json?env,mongo,encrypt,services,#dynamic"
   ],
   "dependencies": {
     "zip-folder": "^1.0.0"
@@ -34,6 +34,7 @@
     "hinos-requesthasher": "*",
     "hinos-route": "*",
     "hinos-validation": "*",
+    "hinos-log": "*",
     "lodash": "^4.17.4",
     "typescript": "^2.6.1",
     "rimraf": "^2.6.2"

@@ -1,10 +1,30 @@
 {
+  "env": "",
   "url": "http://localhost:6117",
   "path": "/dynamic",
   "mongo": {
     "dbname": "dynamic",
     "url": "mongodb://localhost:27017/",
     "releaseTimeout": 1000
+  },
+  "cors": {
+    "origin": "*"
+  },
+  "log": {
+    "appenders": {
+      "default": {
+        "type": "console",
+        "filename": "log/all.log"
+      }
+    },
+    "categories": {
+      "default": {
+        "appenders": [
+          "default"
+        ],
+        "level": "all"
+      }
+    }
   },
   "services": {
     "oauth": "http://localhost:6111"
