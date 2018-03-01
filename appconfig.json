@@ -1,10 +1,11 @@
 {
+  "env": "",
   "url": "http://localhost:6113",
   "path": "/mail",
   "mongo": {
     "dbname": "mail",
     "url": "mongodb://localhost:27017/",
-    "releaseTimeout": 5000
+    "releaseTimeout": 1000
   },
   "redis": {
     "host": "localhost",
@@ -15,13 +16,28 @@
   "services": {
     "oauth": "http://localhost:6111"
   },
+  "cors": {
+    "origin": "*"
+  },
+  "log": {
+    "appenders": {
+      "default": {
+        "type": "console",
+        "filename": "log/all.log"
+      }
+    },
+    "categories": {
+      "default": {
+        "appenders": [
+          "default"
+        ],
+        "level": "all"
+      }
+    }
+  },
   "encrypt": {
-    "pwd": "a!b@=;",
-    "mode": [
-      "query",
-      "body",
-      "response"
-    ],
+    "pwd": "",
+    "mode": [],
     "baseOnRequest": true
   },
   "app": {
