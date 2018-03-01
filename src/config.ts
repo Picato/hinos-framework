@@ -1,6 +1,5 @@
 import * as url from 'url'
 import * as _ from 'lodash'
-import { Logger } from 'hinos-log/lib/logger';
 
 declare let global: any
 
