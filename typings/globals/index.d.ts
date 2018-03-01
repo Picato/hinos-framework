@@ -25,6 +25,20 @@ interface IAppConfig {
     credentials?: boolean;
     keepHeadersOnError?: boolean;
   },
+  log?: {
+    appenders?: {
+      [appenderName: string]: {
+        type: string,
+        filename: string
+      }
+    },
+    categories?: {
+      default: {
+        appenders: string[],
+        level: "all" | "error" | "debug" | "fatal" | "info" | "trace" | "warn"
+      }
+    }
+  }
   encrypt?: {
     pwd?: string
     mode?: Array<'query' | 'body' | 'response'>

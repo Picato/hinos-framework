@@ -5,9 +5,11 @@ import { route } from 'hinos-route'
 import { Mongo } from 'hinos-mongo'
 import { Redis } from 'hinos-redis'
 import startup from './service/_StartupService'
+import { Logger } from 'hinos-log'
 
 require(`./env.${Server.env}`).default(Server)
 
+Logger(AppConfig.log)
 Mongo(AppConfig.mongo).debug(!Server.isProduction)
 Redis(AppConfig.redis).debug(!Server.isProduction)
 
