@@ -1,10 +1,10 @@
+import './config'
 import * as path from 'path'
 import { Server } from 'hinos'
 import { route } from 'hinos-route'
 import { Mongo } from 'hinos-mongo'
 import { Redis } from 'hinos-redis'
 import startup from './service/_StartupService'
-import './config'
 
 require(`./env.${Server.env}`).default(Server)
 

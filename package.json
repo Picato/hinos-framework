@@ -17,7 +17,7 @@
   },
   "appconfig": [
     "appconfig.json",
-    "../global.json?mongo,redis,encrypt,services,#oauth"
+    "../global.json?env,mongo,redis,encrypt,services,#oauth"
   ],
   "dependencies": {
     "qrcode": "^1.2.0",

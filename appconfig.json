@@ -1,4 +1,5 @@
 {
+  "env": "",
   "url": "http://localhost:6111",
   "path": "/oauth",
   "mongo": {

@@ -1,5 +1,5 @@
 interface IAppConfig {
-  externalConfig?: string
+  env: 'production' | 'development'
   url: string
   path: string
   name: string
