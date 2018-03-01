@@ -1,5 +1,5 @@
 interface IAppConfig {
-  externalConfig?: string
+  env: 'production' | 'development'
   url: string
   path: string
   name: string
@@ -15,6 +15,15 @@ interface IAppConfig {
     db?: string
     releaseTimeout?: number
   }
+  cors: {
+    allowMethods?: string[] | string;
+    exposeHeaders?: string[] | string;
+    allowHeaders?: string[] | string;
+    origin?: Function | string;
+    maxAge?: number | string;
+    credentials?: boolean;
+    keepHeadersOnError?: boolean;
+  },
   rabbitmq?: {
     url: string
     releaseTimeout?: number
