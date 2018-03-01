@@ -16,6 +16,15 @@ interface IAppConfig {
     db?: string
     releaseTimeout?: number
   }
+  cors: {
+    allowMethods?: string[] | string;
+    exposeHeaders?: string[] | string;
+    allowHeaders?: string[] | string;
+    origin?: Function | string;
+    maxAge?: number | string;
+    credentials?: boolean;
+    keepHeadersOnError?: boolean;
+  },
   encrypt?: {
     pwd?: string
     mode?: Array<'query' | 'body' | 'response'>

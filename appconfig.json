@@ -16,6 +16,14 @@
     "oauth": "http://localhost:6111",
     "mail": "http://localhost:6113"
   },
+  "cors": {
+    "exposeHeaders": [
+      "token",
+      "project_id",
+      "account_id"
+    ],
+    "origin": "*"
+  },
   "encrypt": {
     "pwd": "a!b@=;",
     "mode": [
