@@ -16,7 +16,7 @@ import HttpError from '../common/HttpError'
 
 export default class AccountController {
 
-  @POST('/Login2')
+  @PUT('/Login')
   @BODYPARSER()
   @RESTRICT({
     headers: {
@@ -26,8 +26,8 @@ export default class AccountController {
       code: String
     }
   })
-  static async login2({ headers, body, ctx }) {
-    const token = await AccountService.login2(headers.token, body.code)
+  static async login2Steps({ headers, body, ctx }) {
+    const token = await AccountService.login2Steps(headers.token, body.code)
     ctx.set('token', token)
   }
 

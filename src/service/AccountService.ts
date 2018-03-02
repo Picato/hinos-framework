@@ -261,8 +261,8 @@ export class AccountService {
     await AccountService.redis.del(`$tk:${token}`)
   }
 
-  static async login2(tempToken: string, code: string) {
-    const temp = await AccountService.redis.get(`$2factor:${tempToken}`) as string
+  static async login2Steps(tempToken: string, code: string) {
+    const temp = await AccountService.redis.get(`$tk2steps:${tempToken}`) as string
     if (!temp) throw HttpError.NOT_FOUND("Could not found this token")
     const tempAcc = JSON.parse(temp) as {
       two_factor_secret_base32: string,
@@ -317,7 +317,7 @@ export class AccountService {
     }
     if (acc.two_factor_secret_base32) {
       const tempToken = `${Mongo.uuid()}`
-      await AccountService.redis.set(`$2factor:${tempToken}`, JSON.stringify({
+      await AccountService.redis.set(`$tk2steps:${tempToken}`, JSON.stringify({
         two_factor_secret_base32: acc.two_factor_secret_base32,
         pj: acc.project_id,
         _id: acc._id
