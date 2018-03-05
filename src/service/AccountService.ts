@@ -238,7 +238,7 @@ export class AccountService {
     return _.omit(acc, ['role_ids', 'project_id', 'trying', 'token', 'secret_key', 'password', 'two_factor_secret_img', 'two_factor_secret_base32'])
   }
 
-  static async authoriz({ token = undefined as string, path = undefined as string, action = undefined as string }) {
+  static async authoriz({ token = undefined as string, path = undefined as string, action = undefined as string[] }) {
     if (!token) throw HttpError.AUTHEN()
 
     const cached = await AccountService.getCachedToken(token)
@@ -248,9 +248,14 @@ export class AccountService {
     const accRole = roles.filter(e => cached.role_ids.includes(e.role_id))
     for (const r of accRole) {
       if ((!r.isPathRegex && r.path === path) || (r.isPathRegex && new RegExp(`^${r.path}$`).test(path))) {
-        if (!action) return cached
-        if (r.isActionRegex && new RegExp(`^${r.actions}$`).test(action)) return cached
-        else if (r.actions === action) return cached
+        if (!action) return { cached, action: undefined }
+        if (r.isActionRegex) {
+          const a = action.find(a => new RegExp(`^${r.actions}$`).test(a))
+          if (a) return { cached, action: a }
+        } else {
+          const a = action.find(a => a === r.actions)
+          if (a) return { cached, action: a }
+        }
       }
     }
     throw HttpError.AUTHORIZ('Not allow access')

@@ -162,12 +162,12 @@ export default class AccountController {
     }
   })
   static async authoriz({ headers, query, ctx }) {
-    const ac = await AccountService.authoriz({
+    const { cached, action } = await AccountService.authoriz({
       token: headers.token,
       path: query.path,
-      action: query.action
+      action: query.action ? query.action.split('|') : query.action
     })
-    if (ac) ctx.set({ account_id: ac._id, project_id: ac.project_id })
+    if (cached) ctx.set({ account_id: cached._id, project_id: cached.project_id, action: action })
   }
 
   @POST('/TwoFactor')
