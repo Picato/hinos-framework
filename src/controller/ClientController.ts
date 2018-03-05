@@ -167,7 +167,12 @@ export default class AccountController {
       path: query.path,
       action: query.action ? query.action.split('|') : query.action
     })
-    if (cached) ctx.set({ account_id: cached._id, project_id: cached.project_id, action: action })
+    let rs = {
+      account_id: cached._id,
+      project_id: cached.project_id
+    } as any
+    if (action) rs.action = action
+    ctx.set(rs)
   }
 
   @POST('/TwoFactor')

@@ -248,13 +248,17 @@ export class AccountService {
     const accRole = roles.filter(e => cached.role_ids.includes(e.role_id))
     for (const r of accRole) {
       if ((!r.isPathRegex && r.path === path) || (r.isPathRegex && new RegExp(`^${r.path}$`).test(path))) {
-        if (!action) return { cached, action: undefined }
+        if (!action) return { cached }
         if (r.isActionRegex) {
-          const a = action.find(a => new RegExp(`^${r.actions}$`).test(a))
-          if (a) return { cached, action: a }
+          const a = action.filter(a => new RegExp(`^${r.actions}$`).test(a))
+          if (a.length > 0) {
+            return { cached, action: action.length > 1 ? a.join('&') : undefined }
+          }
         } else {
-          const a = action.find(a => a === r.actions)
-          if (a) return { cached, action: a }
+          const a = action.filter(a => a === r.actions)
+          if (a.length > 0) {
+            return { cached, action: action.length > 1 ? a.join('&') : undefined }
+          }
         }
       }
     }
