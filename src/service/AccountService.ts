@@ -2,7 +2,6 @@ import * as _ from 'lodash'
 import { VALIDATE, Checker } from 'hinos-validation'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import { Redis, REDIS } from 'hinos-redis'
-import md5 from 'hinos-common/encrypt/md5'
 import HttpError from '../common/HttpError'
 import { Role } from './RoleService'
 import { ProjectService, Plugin, PluginCached } from './ProjectService'
@@ -10,6 +9,7 @@ import { RoleService } from './RoleService'
 import axios from 'axios'
 import * as speakeasy from 'speakeasy'
 import * as qrcode from 'qrcode'
+import EnDecryptToken from './EnDecryptToken';
 
 /************************************************
  ** AccountService || 4/10/2017, 10:19:24 AM **
@@ -171,7 +171,7 @@ export class AccountService {
   }
 
   static async genSecretKey({ accountId = undefined as Uuid, projectId = undefined as Uuid }) {
-    const secretKey = AccountService.generateToken()
+    const secretKey = EnDecryptToken.generateToken()
     const acc = await AccountService.mongo.get<Account>(Account, {
       _id: accountId,
       project_id: projectId
@@ -211,7 +211,7 @@ export class AccountService {
 
   static async ping(token: string) {
     if (!token) throw HttpError.AUTHEN()
-    const accountCached = await AccountService.getCachedToken(token)
+    const accountCached = await EnDecryptToken.getUserByToken(token)
     if (!accountCached) throw HttpError.EXPIRED()
     if (!accountCached.is_secret) {
       const plugins = await ProjectService.getCached(accountCached.project_id, 'plugins') as PluginCached
@@ -241,7 +241,7 @@ export class AccountService {
   static async authoriz({ token = undefined as string, path = undefined as string, action = undefined as string[] }) {
     if (!token) throw HttpError.AUTHEN()
 
-    const cached = await AccountService.getCachedToken(token)
+    const cached = await EnDecryptToken.getUserByToken(token)
     if (!cached) throw HttpError.EXPIRED()
 
     const { roles } = await RoleService.getCachedApiRole(cached.project_id)
@@ -325,7 +325,7 @@ export class AccountService {
       }
     }
     if (acc.two_factor_secret_base32) {
-      const tempToken = `${Mongo.uuid()}`
+      const tempToken = EnDecryptToken.generateToken()
       await AccountService.redis.set(`$tk2steps:${tempToken}`, JSON.stringify({
         two_factor_secret_base32: acc.two_factor_secret_base32,
         pj: acc.project_id,
@@ -343,11 +343,11 @@ export class AccountService {
     } else if (acc.token && acc.token.length > 0) {
       let cached
       for (let i = acc.token.length - 1; i >= 0; i--) {
-        cached = await AccountService.getCachedToken(acc.token[i])
+        cached = await EnDecryptToken.getUserByToken(acc.token[i])
         if (!cached) acc.token.splice(i, 1)
       }
     }
-    const token = AccountService.generateToken()
+    const token = EnDecryptToken.generateToken()
     acc.token.push(token)
     await AccountService.mongo.update(Account, {
       _id: acc._id,
@@ -364,7 +364,7 @@ export class AccountService {
     const password = Mongo.uuid().toString().split('').reverse().join('').substr(0, 6)
     const admin = await AccountService.insert({
       username: 'admin',
-      password: md5(password),
+      password: EnDecryptToken.encryptPwd(password),
       project_id: projectId,
       recover_by: 'YourEmail@gmail',
       status: Account.Status.ACTIVED,
@@ -484,12 +484,8 @@ export class AccountService {
 
   ///////////////////// Cached
 
-  static async getCachedToken(token: string) {
-    return await AccountService.redis.get(`$tk:${token}`) as AccountCached
-  }
-
-  private static generateToken() {
-    return md5(`${Math.round(Math.random() * 1000000)}${Mongo.uuid()}`)
-  }
+  // static async getCachedToken(token: string) {
+  //   return await AccountService.redis.get(`$tk:${token}`) as AccountCached
+  // }
 
 }

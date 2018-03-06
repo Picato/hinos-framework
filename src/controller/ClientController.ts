@@ -1,6 +1,5 @@
 import * as _ from 'lodash'
 import { GET, POST, PUT, DELETE, HEAD, INJECT } from 'hinos-route'
-import md5 from 'hinos-common/encrypt/md5'
 import { BODYPARSER } from 'hinos-bodyparser'
 import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { Mongo } from 'hinos-mongo'
@@ -9,6 +8,7 @@ import { RoleService } from '../service/RoleService'
 import { ProjectService, PluginCached } from '../service/ProjectService'
 import { authoriz } from '../service/Authoriz'
 import HttpError from '../common/HttpError'
+import EnDecryptToken from '../service/EnDecryptToken';
 
 /************************************************
  ** AccountController || 4/10/2017, 10:19:24 AM **
@@ -46,7 +46,7 @@ export default class AccountController {
       app: String,
       token: String,
       username: String,
-      password: md5
+      password: EnDecryptToken.encryptPwd
     }
   })
   static async login({ headers, ctx, body }) {
@@ -103,7 +103,7 @@ export default class AccountController {
     body.role_ids = headers.role ? [headers.role] : undefined
     const plugins = await ProjectService.getCached(headers.pj, 'plugins') as PluginCached
     body.project_id = Mongo.uuid(plugins.project_id)
-    if (body.password) body.password = md5(body.password)
+    if (body.password) body.password = EnDecryptToken.encryptPwd(body.password)
     if (!plugins || !plugins.oauth) throw HttpError.INTERNAL('Project config got problem')
     const oauth = plugins.oauth
     // Register via social network
@@ -235,7 +235,7 @@ export default class AccountController {
     body = Mongo.autocast(body)
     body = _.omit(body, ['_id', 'project_id', 'app', 'username', 'trying', 'secret_key', 'created_at', 'updated_at', 'token', 'native', 'status', 'role_ids', 'two_factor_secret_img', 'two_factor_secret_base32'])
     body._id = state.auth.accountId
-    if (body.password) body.password = md5(body.password)
+    if (body.password) body.password = EnDecryptToken.encryptPwd(body.password)
     await AccountService.update(body)
   }
 

@@ -2,8 +2,8 @@ import * as _ from 'lodash'
 import { VALIDATE, Checker } from 'hinos-validation'
 import { MONGO, Mongo, Uuid, Collection } from 'hinos-mongo'
 import HttpError from '../common/HttpError'
-import { AccountService } from './AccountService'
 import { ProjectService } from './ProjectService';
+import EnDecryptToken from './EnDecryptToken';
 
 /************************************************
  ** RoleService || 4/10/2017, 10:19:24 AM **
@@ -218,7 +218,7 @@ export class RoleService {
   static async getMyRole(type: string, { projectId, token }) {
     if (!type) throw HttpError.BAD_REQUEST('Role type is required')
     const { roles } = await RoleService.getCachedRole(projectId)
-    const me = await AccountService.getCachedToken(token.split('?')[0])
+    const me = await EnDecryptToken.getUserByToken(token.split('?')[0])
     const myRoles = roles.filter(e => me.role_ids.includes(e._id))
     return myRoles.reduce((sum, n) => sum.concat(n[type]), [])
   }

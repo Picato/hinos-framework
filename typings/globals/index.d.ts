@@ -52,6 +52,8 @@ interface IAppConfig {
   app: {
     suid: string
     twoStepVerificationTimeout: number
+    prefixToken: string
+    prefixPwd: string
   }
 }
 

@@ -2,10 +2,10 @@ import * as _ from 'lodash'
 import { GET, POST, PUT, DELETE, INJECT } from 'hinos-route'
 import { BODYPARSER } from 'hinos-bodyparser'
 import { RESTRICT } from 'hinos-bodyparser/restrict'
-import md5 from 'hinos-common/encrypt/md5'
 import { Mongo } from 'hinos-mongo'
 import { Account, AccountService } from '../service/AccountService'
 import { authoriz } from '../service/Authoriz'
+import EnDecryptToken from '../service/EnDecryptToken';
 
 /************************************************
  ** AccountController || 4/10/2017, 10:19:24 AM **
@@ -31,7 +31,7 @@ export class AccountController {
 
     _.merge(where, { project_id: state.auth.projectId })
 
-    const me = await AccountService.getCachedToken(state.auth.token.split('?')[0])
+    const me = await EnDecryptToken.getUserByToken(state.auth.token.split('?')[0])
     if (!me.native) where.native = { $exists: false }
 
     const rs = await AccountService.find({
@@ -79,7 +79,7 @@ export class AccountController {
   static async add({ body, state }) {
     body = Mongo.autocast(body)
     body = _.omit(body, ['_id', 'trying', 'secret_key', 'created_at', 'updated_at', 'token', 'native', 'two_factor_secret_img', 'two_factor_secret_base32'])
-    if (body.password) body.password = md5(body.password)
+    if (body.password) body.password = EnDecryptToken.encryptPwd(body.password)
     body.project_id = state.auth.projectId
     const rs: Account = await AccountService.insert(body)
     return rs
@@ -108,7 +108,7 @@ export class AccountController {
       project_id: state.auth.projectId
     }
     body.project_id = state.auth.projectId
-    if (body.password) body.password = md5(body.password)
+    if (body.password) body.password = EnDecryptToken.encryptPwd(body.password)
     await AccountService.update(body)
   }
 

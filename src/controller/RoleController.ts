@@ -4,9 +4,9 @@ import { BODYPARSER } from 'hinos-bodyparser'
 import { RESTRICT } from 'hinos-bodyparser/restrict'
 import { Mongo } from 'hinos-mongo'
 import { Role, RoleService } from '../service/RoleService'
-import { AccountService } from '../service/AccountService'
 import { authoriz } from '../service/Authoriz'
 import HttpError from '../common/HttpError'
+import EnDecryptToken from '../service/EnDecryptToken';
 
 /************************************************
  ** RoleController || 4/10/2017, 10:19:24 AM **
@@ -41,10 +41,10 @@ export class RoleController {
     let where: any = Mongo.autocast(query.where || {})
     let sort: any = query.sort || {}
     let fields: any = (query.fields && Object.keys(query.fields).length > 0) ? query.fields : undefined
-    
+
     _.merge(where, { project_id: state.auth.projectId })
 
-    const me = await AccountService.getCachedToken(state.auth.token.split('?')[0])
+    const me = await EnDecryptToken.getUserByToken(state.auth.token.split('?')[0])
     if (!me.native) where.native = { $exists: false }
 
     const rs: Role[] = await RoleService.find({
