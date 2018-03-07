@@ -98,7 +98,7 @@ export class RoleService {
       { path: '/monitor/Service', actions: 'SESSION|FIND|INSERT|UPDATE|DELETE' },
       { path: '/monitor/Config', actions: 'GET|CONFIG' },
       { path: '/monitor/Log', actions: 'FIND' },
-      { path: '/script', actions: 'FIND|GET|INSERT|UPDATE|DELETE' },
+      { path: '/script', actions: 'FIND|GET|INSERT|UPDATE|UPALL|DELETE' },
       { path: '/files/Config', actions: 'FIND|INSERT|UPDATE|DELETE' },
       { path: '/files', actions: 'UPLOAD|STORE|DELETE|FIND' },
       { path: '/log', actions: 'FIND|GET|INSERT|UPDATE|DELETE' },
