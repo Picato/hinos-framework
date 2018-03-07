@@ -54,10 +54,13 @@ export default class AccountController {
       ctx.set('token', body.password)
       return
     }
+    if (!body.app && (!body.username || !body.password)) throw HttpError.BAD_REQUEST(`Username or password is required`)
+
     const plugins = await ProjectService.getCached(headers.pj, 'plugins') as PluginCached
     if (!plugins || !plugins.oauth) throw HttpError.INTERNAL('Project config got problem')
-    body.projectId = Mongo.uuid(plugins.project_id)
-    if (body.app) {
+    if (!body.app) {
+      body.password = EnDecryptToken.encryptPwd(body.password)
+    } else {
       const oauth = plugins.oauth
       // Login via social network
       if (oauth.app && oauth.app.includes(body.app)) {
@@ -73,9 +76,8 @@ export default class AccountController {
       } else {
         throw HttpError.BAD_REQUEST(`This app not supported to login via social network ${body.app}`)
       }
-    } else if (body.password) {
-      body.password = EnDecryptToken.encryptPwd(body.password)
     }
+    body.projectId = Mongo.uuid(headers.pj)
     try {
       const token = await AccountService.login(body, plugins)
       ctx.set('token', token)
