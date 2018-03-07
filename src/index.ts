@@ -3,7 +3,6 @@ import * as path from 'path'
 import { Server } from 'hinos'
 import { route } from 'hinos-route'
 import { Mongo } from 'hinos-mongo'
-import { cors } from 'hinos-cors'
 import { Logger } from 'hinos-log'
 
 require(`./env.${Server.env}`).default(Server)
@@ -11,7 +10,6 @@ require(`./env.${Server.env}`).default(Server)
 Logger(AppConfig.log)
 Mongo(AppConfig.mongo).debug(!Server.isProduction)
 
-Server.use(cors())
 Server.use(route(
   [
     path.join(__dirname, 'controller', 'GlobalController.js'),
