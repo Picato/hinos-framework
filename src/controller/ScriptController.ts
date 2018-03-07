@@ -104,7 +104,7 @@ export class ScriptController {
   }
 
   @PUT('/:_id')
-  @INJECT(authoriz(`${AppConfig.path}`, 'UPDATE'))
+  @INJECT(authoriz(`${AppConfig.path}`, 'UPDATE|UPALL'))
   @BODYPARSER()
   @RESTRICT({
     params: {
@@ -125,7 +125,7 @@ export class ScriptController {
       project_id: state.auth.projectId
     }
     body.account_id = state.auth.accountId
-    await ScriptService.update(body)
+    await ScriptService.update(body, state.auth.action)
   }
 
   @DELETE('/:_id')

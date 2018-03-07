@@ -14,6 +14,7 @@ export function authoriz(path: string, action: string) {
       })
       ctx.state.auth = {
         token,
+        action: res.headers.action ? res.headers.action.split('&') : [],
         projectId: Mongo.uuid(res.headers.project_id),
         accountId: Mongo.uuid(res.headers.account_id)
       }

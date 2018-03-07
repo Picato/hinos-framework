@@ -130,8 +130,9 @@ export class ScriptService {
     body.content = await ScriptService.replaceContent(body.content, body.project_id)
     body.updated_at = new Date()
   })
-  static async update(body: Script) {
-    const old = await ScriptService.mongo.get<Script>(Script, body._id, { _name: 1 })
+  static async update(body: Script, action: String[]) {
+    const old = await ScriptService.mongo.get<Script>(Script, body._id, { _name: 1, account_id: 1 })
+    if (!action.includes('UPALL') && old.account_id.toString() !== body.account_id.toString()) throw HttpError.AUTHORIZ()
     if (old._name !== body._name) {
       const existed = await ScriptService.mongo.get<Script>(Script, {
         _id: {
