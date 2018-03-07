@@ -8,7 +8,7 @@ export default class EnDecryptToken {
   private static redis: Redis
 
   static encryptPwd(pwd) {
-    return md5(`${AppConfig.app.prefixPwd || ''}${md5(pwd)}`)
+    return md5(`${AppConfig.app.prefixPwd || ''}${pwd}`)
   }
 
   static generateToken() {
