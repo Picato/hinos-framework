@@ -77,7 +77,7 @@ export default class AccountController {
         throw HttpError.BAD_REQUEST(`This app not supported to login via social network ${body.app}`)
       }
     }
-    body.projectId = Mongo.uuid(headers.pj)
+    body.projectId = Mongo.uuid(plugins.project_id)
     try {
       const token = await AccountService.login(body, plugins)
       ctx.set('token', token)
