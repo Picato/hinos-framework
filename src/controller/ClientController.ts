@@ -6,7 +6,7 @@ import { Mongo } from 'hinos-mongo'
 import { AccountService } from '../service/AccountService'
 import { RoleService } from '../service/RoleService'
 import { ProjectService, PluginCached } from '../service/ProjectService'
-import { authoriz } from '../service/Authoriz'
+import { authoriz, isSuAuthoriz } from '../service/Authoriz'
 import HttpError from '../common/HttpError'
 import EnDecryptToken from '../service/EnDecryptToken';
 
@@ -46,15 +46,19 @@ export default class AccountController {
       app: String,
       token: String,
       username: String,
-      password: EnDecryptToken.encryptPwd
+      password: String
     }
   })
   static async login({ headers, ctx, body }) {
+    if (!headers.pj && isSuAuthoriz(body.password)) {
+      ctx.set('token', body.password)
+      return
+    }
     const plugins = await ProjectService.getCached(headers.pj, 'plugins') as PluginCached
-    body.projectId = Mongo.uuid(plugins.project_id)
     if (!plugins || !plugins.oauth) throw HttpError.INTERNAL('Project config got problem')
-    const oauth = plugins.oauth
-    if (oauth.app && oauth.app.length > 0 && body.app) {
+    body.projectId = Mongo.uuid(plugins.project_id)
+    if (body.app) {
+      const oauth = plugins.oauth
       // Login via social network
       if (oauth.app && oauth.app.includes(body.app)) {
         if ('facebook' === body.app) {
@@ -69,6 +73,8 @@ export default class AccountController {
       } else {
         throw HttpError.BAD_REQUEST(`This app not supported to login via social network ${body.app}`)
       }
+    } else if (body.password) {
+      body.password = EnDecryptToken.encryptPwd(body.password)
     }
     try {
       const token = await AccountService.login(body, plugins)

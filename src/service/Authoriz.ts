@@ -32,3 +32,7 @@ export function suAuthoriz() {
   }
 }
 
+export function isSuAuthoriz(token) {
+  return token && AppConfig.app.suid === token
+}
+
