@@ -33,7 +33,7 @@
     "hinos-route": "*",
     "hinos-validation": "*",
     "hinos-log": "*",
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.5",
     "rimraf": "^2.6.2"
   },
   "author": "doanthuanthanh88@gmail.com",
@@ -41,9 +41,9 @@
   "devDependencies": {
     "@types/axios": "^0.14.0",
     "@types/chai": "^3.5.2",
-    "@types/lodash": "^4.14.82",
-    "@types/mocha": "^2.2.44",
-    "@types/node": "^7.0.48",
+    "@types/lodash": "^4.14.104",
+    "@types/mocha": "^2.2.48",
+    "@types/node": "^7.0.56",
     "chai": "^3.5.0",
     "mocha": "^3.5.3"
   }
