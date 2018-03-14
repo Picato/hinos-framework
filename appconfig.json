@@ -33,12 +33,8 @@
     }
   },
   "encrypt": {
-    "pwd": "a!b@=;",
-    "mode": [
-      "query",
-      "body",
-      "response"
-    ],
+    "pwd": "",
+    "mode": [],
     "baseOnRequest": true
   },
   "services": {
