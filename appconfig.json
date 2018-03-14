@@ -30,12 +30,8 @@
     "oauth": "http://localhost:6111"
   },
   "encrypt": {
-    "pwd": "a!b@=;",
-    "mode": [
-      "query",
-      "body",
-      "response"
-    ],
+    "pwd": "",
+    "mode": [],
     "baseOnRequest": true
   }
 }
