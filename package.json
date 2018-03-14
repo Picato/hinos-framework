@@ -34,7 +34,7 @@
     "hinos-serve": "*",
     "hinos-socketio": "*",
     "hinos-validation": "*",
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.5",
     "log4js": "^2.5.2",
     "typescript": "^2.7.1"
   },
