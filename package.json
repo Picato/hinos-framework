@@ -17,7 +17,7 @@
   },
   "appconfig": [
     "appconfig.json",
-    "../global.json?env,mongo,encrypt,services,#mail"
+    "../global.json?env,mongo,redis,encrypt,services,#mail"
   ],
   "dependencies": {
     "nodemailer": "^4.4.2",
