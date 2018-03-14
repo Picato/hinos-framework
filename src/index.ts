@@ -17,7 +17,12 @@ Server.use(route(
   [
     path.join(__dirname, 'controller', 'GlobalController.js'),
     path.join(__dirname, 'controller')
-  ], { ignorecase: true, root: AppConfig.path }
+  ],
+  {
+    ignorecase: true,
+    root: AppConfig.path,
+    hasher: (AppConfig.encrypt && AppConfig.encrypt.pwd) ? new (require('hinos-requesthasher').Hashers)(AppConfig.encrypt.pwd, AppConfig.encrypt) : undefined
+  }
 ))
 
 Server.listen(AppConfig.port, async () => {
