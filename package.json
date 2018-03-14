@@ -35,7 +35,7 @@
     "hinos-route": "*",
     "hinos-validation": "*",
     "hinos-log": "*",
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.5",
     "rimraf": "^2.6.2"
   },
   "author": "doanthuanthanh88@gmail.com",
